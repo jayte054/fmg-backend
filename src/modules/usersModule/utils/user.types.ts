@@ -1,5 +1,5 @@
-export interface CreateBuyerResponse {
-  id: string;
+export interface BuyerResponse {
+  buyerId: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
@@ -7,7 +7,7 @@ export interface CreateBuyerResponse {
   location: string;
   email: string;
   role: string;
-  isAdmin: string;
+  isAdmin: boolean;
 }
 
 export interface BuyerCredentials {

@@ -1,7 +1,15 @@
-import { CreateBuyerDto } from '../utils/user.dto';
-import { CreateBuyerResponse } from '../utils/user.types';
+import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
+import { BuyerResponse } from '../utils/user.types';
 
 export interface IBuyerRepository {
-  createBuyer(createBuyerDto: CreateBuyerDto): Promise<CreateBuyerResponse>;
-  findBuyerById(userId: string): Promise<CreateBuyerResponse>;
+  createBuyer(createBuyerDto: CreateBuyerDto): Promise<BuyerResponse>;
+  findBuyerById(userId: string): Promise<BuyerResponse>;
+  findBuyers(options: {
+    skip: number;
+    take: number;
+  }): Promise<{ data: BuyerResponse[]; total: number; currentPage: number }>;
+  updateBuyer(
+    buyerId: string,
+    updateDto: UpdateBuyerDto,
+  ): Promise<BuyerResponse>;
 }

@@ -41,3 +41,25 @@ export class CreateBuyerDto {
   @IsNotEmpty()
   userId: string;
 }
+
+export class UpdateBuyerDto {
+  buyerId?: string;
+
+  firstName?: string;
+
+  lastName?: string;
+
+  phoneNumber?: string;
+
+  email?: string;
+
+  address?: string;
+
+  location?: string;
+
+  role?: string;
+
+  isAdmin?: boolean;
+
+  userId?: string;
+}
