@@ -2,11 +2,13 @@ import {
   BaseEntity,
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../utils/auth.enum';
+import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 
 @Entity()
 @Unique(['email'])
@@ -31,6 +33,11 @@ export class AuthEntity extends BaseEntity {
 
   @Column()
   role: UserRole;
+
+  @OneToMany(() => BuyerEntity, (buyerId) => buyerId.user, {
+    eager: true,
+  })
+  buyerId: string;
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

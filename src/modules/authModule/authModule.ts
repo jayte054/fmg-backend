@@ -7,11 +7,13 @@ import { AuthController } from './controller/auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import * as config from 'config';
+// import { UserModule } from '../usersModule/user.module';
 
 const jwtConfig: any = config.get('jwt');
 
 @Module({
   imports: [
+    // UserModule,
     TypeOrmModule.forFeature([AuthEntity]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({

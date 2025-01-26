@@ -1,16 +1,18 @@
+import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import {
   BaseEntity,
   Column,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 
 @Entity()
 @Unique(['email'])
-export class AuthEntity extends BaseEntity {
+export class BuyerEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  buyerId: string;
 
   @Column()
   firstName: string;
@@ -25,11 +27,22 @@ export class AuthEntity extends BaseEntity {
   email: string;
 
   @Column()
-  password: string;
+  address: string;
 
   @Column()
-  salt: string;
+  location: string;
+
+  @Column()
+  role: string;
 
   @Column({ default: false })
   isAdmin: boolean;
+
+  @ManyToOne(() => AuthEntity, (user) => user.buyerId, {
+    eager: false,
+  })
+  user: AuthEntity;
+
+  @Column()
+  userId: string;
 }

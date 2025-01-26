@@ -18,7 +18,6 @@ export class AuthController {
     @Res() response: Response,
   ) {
     const user = await this.authService.signIn(signInCredentials, response);
-
     response.status(200).json({
       message: 'Sign-in successful',
       user,

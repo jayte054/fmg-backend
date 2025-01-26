@@ -11,8 +11,10 @@ export class JwtCookieMiddleware implements NestMiddleware {
   constructor(private readonly jwtService: JwtService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    console.log(req.cookies);
     const token = req.cookies['jwt'];
+    if (!token) {
+      throw new UnauthorizedException('authentication token missing');
+    }
     if (token) {
       try {
         const decoded = this.jwtService.verify(token);
