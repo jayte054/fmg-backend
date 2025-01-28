@@ -30,3 +30,33 @@ export interface Usertype {
   iat: any;
   exp: any;
 }
+
+export enum RetailScale {
+  Bulk = 'Bulk-Scale',
+  Large = 'Large-Scale',
+  Medium = 'Medium-Scale',
+  Small = 'Small-Scale',
+}
+
+export interface SellerResponse {
+  sellerId: string;
+  name: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+  location: string;
+  role: string;
+  isAdmin: boolean;
+  scale: string;
+  rating: number;
+  userId: string;
+}
+
+export interface SellerCredentials {
+  name: string;
+  phoneNumber: string;
+  address: string;
+  location: string;
+  scale: RetailScale;
+  rating: number;
+}

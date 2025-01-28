@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { IBuyerRepository } from '../interface/user.interface';
@@ -48,7 +49,7 @@ export class BuyerService {
       }
 
       const buyer = await this.buyerRepository.createBuyer(createBuyerDto);
-      console.log('buyer-details', buyer);
+
       this.logger.verbose('buyer profile created successfully');
 
       return this.mapToBuyerResponse(buyer);
@@ -144,6 +145,23 @@ export class BuyerService {
       console.log(error);
       this.logger.error('failed to update buyer details');
       throw new InternalServerErrorException('failed to update buyer details');
+    }
+  };
+
+  deleteBuyer = async (buyerId: string, user: AuthEntity) => {
+    try {
+      const buyer = await this.buyerRepository.findBuyerById(user.id);
+      if (buyerId !== buyer.buyerId) {
+        this.logger.log('unauthourized user');
+        throw new UnauthorizedException('user not authorized');
+      }
+
+      await this.buyerRepository.deleteBuyer(buyerId);
+      this.logger.verbose(`buyer with id ${buyerId} deleted successfully`);
+      return 'buyer profile successfully deleted';
+    } catch (error) {
+      this.logger.error(`failed to delete buyer with id ${buyerId}`);
+      throw new InternalServerErrorException(`failed to delete buyer`);
     }
   };
 

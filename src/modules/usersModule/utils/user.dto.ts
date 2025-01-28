@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { RetailScale } from './user.types';
 
 export class CreateBuyerDto {
   @IsString()
@@ -33,7 +34,7 @@ export class CreateBuyerDto {
   @IsNotEmpty()
   role: string;
 
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
   isAdmin: boolean;
 
@@ -62,4 +63,50 @@ export class UpdateBuyerDto {
   isAdmin?: boolean;
 
   userId?: string;
+}
+
+export class CreateSellerDto {
+  @IsString()
+  @IsNotEmpty()
+  sellerId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isAdmin: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  scale: RetailScale;
+
+  @IsNumber()
+  @IsNotEmpty()
+  rating: number;
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }

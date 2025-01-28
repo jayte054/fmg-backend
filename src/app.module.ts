@@ -5,7 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/authModule/authModule';
 import { JwtCookieMiddleware } from './common/middleware/auth.cookie.middleware';
 import { UserModule } from './modules/usersModule/user.module';
-import { UserController } from './modules/usersModule/controller/buyer.controller';
+import { BuyerController } from './modules/usersModule/controller/buyer.controller';
+import { SellerController } from './modules/usersModule/controller/seller.controller';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { UserController } from './modules/usersModule/controller/buyer.controlle
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtCookieMiddleware).forRoutes(UserController);
+    consumer
+      .apply(JwtCookieMiddleware)
+      .forRoutes(BuyerController, SellerController);
   }
 }

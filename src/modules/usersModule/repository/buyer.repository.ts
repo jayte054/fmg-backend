@@ -37,4 +37,8 @@ export class BuyerRepository extends Repository<BuyerEntity> {
     await this.update({ buyerId }, updateDto);
     return await this.findOne({ where: { buyerId } });
   };
+
+  deleteBuyer = async (buyerId: string) => {
+    return await this.delete({ buyerId });
+  };
 }

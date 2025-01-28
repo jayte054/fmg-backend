@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  Param,
   Post,
   Put,
   Query,
@@ -21,7 +23,7 @@ import { UpdateBuyerDto } from '../utils/user.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('user')
-export class UserController {
+export class BuyerController {
   constructor(private buyerService: BuyerService) {}
 
   @Post('/buyer')
@@ -64,5 +66,12 @@ export class UserController {
   ) {
     const { user }: any = req;
     return await this.buyerService.updateBuyer(user, updateData);
+  }
+
+  @Delete('/deleteBuyer/:buyerId')
+  @HttpCode(HttpStatus.OK)
+  async deleteBuyer(@Req() req: Request, @Param('buyerId') buyerId: string) {
+    const { user }: any = req;
+    return await this.buyerService.deleteBuyer(buyerId, user);
   }
 }
