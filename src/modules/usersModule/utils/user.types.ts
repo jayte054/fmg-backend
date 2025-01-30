@@ -60,3 +60,13 @@ export interface SellerCredentials {
   scale: RetailScale;
   rating: number;
 }
+
+export interface sellerResObj {
+  sellers: SellerResponse[];
+  total: number;
+}
+
+export interface buyerResObj {
+  buyers: BuyerResponse[];
+  total: number;
+}

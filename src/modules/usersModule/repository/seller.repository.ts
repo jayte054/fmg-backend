@@ -21,4 +21,15 @@ export class SellerRepository extends Repository<SellerEntity> {
     });
     return seller;
   };
+
+  findSellers = async (options: { skip: number; take: number }) => {
+    const sellersQuery = this.createQueryBuilder('seller');
+
+    const [sellers, total] = await sellersQuery
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
+
+    return { sellers, total };
+  };
 }

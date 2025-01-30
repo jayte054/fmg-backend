@@ -8,7 +8,11 @@ import {
 import { v4 as uuidV4 } from 'uuid';
 import { ISellerRepository } from '../interface/user.interface';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { SellerCredentials, SellerResponse } from '../utils/user.types';
+import {
+  SellerCredentials,
+  sellerResObj,
+  SellerResponse,
+} from '../utils/user.types';
 import { CreateSellerDto } from '../utils/user.dto';
 
 @Injectable()
@@ -68,6 +72,37 @@ export class SellerService {
     } catch (error) {
       this.logger.error(`error finding seller with id ${user.id}`);
       throw new InternalServerErrorException('failed to find seller');
+    }
+  };
+
+  findSellers = async (
+    user: AuthEntity,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    data: SellerResponse[];
+    total: number;
+    currentPage: number;
+  }> => {
+    const currentPage = Math.max(page, 1);
+    const currentLimit = Math.max(limit, 1);
+    const skip = (currentPage - 1) * currentLimit;
+
+    try {
+      const { sellers, total }: sellerResObj =
+        await this.sellerRepository.findSellers({
+          skip,
+          take: limit,
+        });
+
+      return {
+        data: sellers,
+        total,
+        currentPage: page,
+      };
+    } catch (error) {
+      this.logger.error('failed to fetch sellers');
+      throw new InternalServerErrorException('failed to fetch sellers');
     }
   };
 

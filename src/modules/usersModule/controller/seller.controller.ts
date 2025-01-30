@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   UseGuards,
   ValidationPipe,
@@ -34,5 +35,19 @@ export class SellerController {
   async findSellerById(@Req() req: Request) {
     const { user }: any = req;
     return await this.sellerService.findSellerById(user.id);
+  }
+
+  @Get('/findSellers')
+  @HttpCode(HttpStatus.FOUND)
+  async findBuyers(
+    @Req() req: Request,
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) {
+    const { user }: any = req;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+
+    return await this.sellerService.findSellers(user, pageNum, limitNum);
   }
 }

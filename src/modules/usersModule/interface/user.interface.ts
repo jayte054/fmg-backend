@@ -11,7 +11,7 @@ export interface IBuyerRepository {
   findBuyers(options: {
     skip: number;
     take: number;
-  }): Promise<{ data: BuyerResponse[]; total: number; currentPage: number }>;
+  }): Promise<{ buyers: BuyerResponse[]; total: number }>;
   updateBuyer(
     buyerId: string,
     updateDto: UpdateBuyerDto,
@@ -22,4 +22,8 @@ export interface IBuyerRepository {
 export interface ISellerRepository {
   createSeller(createSellerDto: CreateSellerDto): Promise<SellerResponse>;
   findSellerId(userId: string): Promise<SellerResponse>;
+  findSellers(options: {
+    skip: number;
+    take: number;
+  }): Promise<Promise<{ sellers: SellerResponse[]; total: number }>>;
 }

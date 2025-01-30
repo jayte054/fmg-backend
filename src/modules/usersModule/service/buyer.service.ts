@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { IBuyerRepository } from '../interface/user.interface';
-import { BuyerCredentials, BuyerResponse } from '../utils/user.types';
+import { BuyerCredentials, buyerResObj, BuyerResponse } from '../utils/user.types';
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { DuplicateException } from 'src/common/exceptions/exceptions';
@@ -89,10 +89,11 @@ export class BuyerService {
     const skip = (currentPage - 1) * currentLimit;
 
     try {
-      const { buyers, total }: any = await this.buyerRepository.findBuyers({
-        skip,
-        take: limit,
-      });
+      const { buyers, total }: buyerResObj =
+        await this.buyerRepository.findBuyers({
+          skip,
+          take: limit,
+        });
       return {
         data: buyers,
         total,
