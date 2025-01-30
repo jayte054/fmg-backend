@@ -12,8 +12,9 @@ import {
   SellerCredentials,
   sellerResObj,
   SellerResponse,
+  UpdateCredentials,
 } from '../utils/user.types';
-import { CreateSellerDto } from '../utils/user.dto';
+import { CreateSellerDto, UpdateSellerDto } from '../utils/user.dto';
 
 @Injectable()
 export class SellerService {
@@ -103,6 +104,65 @@ export class SellerService {
     } catch (error) {
       this.logger.error('failed to fetch sellers');
       throw new InternalServerErrorException('failed to fetch sellers');
+    }
+  };
+
+  updateSeller = async (
+    user: AuthEntity,
+    updateCredentials: UpdateCredentials,
+  ): Promise<SellerResponse> => {
+    try {
+      const seller = await this.sellerRepository.findSellerId(user.id);
+
+      if (!seller) {
+        throw new NotFoundException(`seller with id ${user.id}not found`);
+      }
+
+      seller.name = updateCredentials.name || seller.name;
+      seller.phoneNumber = updateCredentials.phoneNumber || seller.phoneNumber;
+      seller.email = updateCredentials.email || seller.email;
+      seller.address = updateCredentials.address || seller.address;
+      seller.location = updateCredentials.location || seller.location;
+      seller.scale = updateCredentials.scale || seller.scale;
+
+      const updateDto: UpdateSellerDto = {
+        sellerId: seller.sellerId,
+        name: seller.name,
+        phoneNumber: seller.phoneNumber,
+        email: seller.email,
+        address: seller.address,
+        location: seller.location,
+        scale: seller.scale,
+        rating: seller.rating,
+        isAdmin: seller.isAdmin,
+        role: seller.role,
+        userId: seller.userId,
+      };
+
+      const updatedSeller: SellerResponse =
+        await this.sellerRepository.updateSellers(seller.sellerId, updateDto);
+      return this.mapToSellerResponse(updatedSeller);
+    } catch (error) {
+      this.logger.error(`failed to update seller with id ${user.id}`);
+      throw new InternalServerErrorException(
+        "failed to update seller's record",
+      );
+    }
+  };
+
+  deleteSeller = async (user: AuthEntity): Promise<string> => {
+    try {
+      const seller = await this.sellerRepository.findSellerId(user.id);
+      if (!seller) {
+        this.logger.log(`seller with id ${user.id} not found`);
+        throw new NotFoundException(`seller with id ${user.id} not found`);
+      }
+      const result = await this.sellerRepository.deleteSeller(seller.sellerId);
+
+      if (result) return `seller profile successfully deleted`;
+    } catch (error) {
+      this.logger.error('failed to delete seller profile');
+      throw new InternalServerErrorException('failed to delete seller profile');
     }
   };
 

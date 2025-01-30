@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -12,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { SellerService } from '../service/seller.service';
-import { SellerCredentials } from '../utils/user.types';
+import { SellerCredentials, UpdateCredentials } from '../utils/user.types';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
@@ -49,5 +51,22 @@ export class SellerController {
     const limitNum = parseInt(limit, 10);
 
     return await this.sellerService.findSellers(user, pageNum, limitNum);
+  }
+
+  @Put('/updateSeller')
+  @HttpCode(HttpStatus.OK)
+  async updateSeller(
+    @Req() req: Request,
+    @Body(ValidationPipe) updateCredentials: UpdateCredentials,
+  ) {
+    const { user }: any = req;
+    return await this.sellerService.updateSeller(user, updateCredentials);
+  }
+
+  @Delete('/deleteSeller')
+  @HttpCode(HttpStatus.OK)
+  async deleteSeller(@Req() req: Request) {
+    const { user }: any = req;
+    return await this.sellerService.deleteSeller(user);
   }
 }

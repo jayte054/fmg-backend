@@ -47,7 +47,7 @@ export interface SellerResponse {
   location: string;
   role: string;
   isAdmin: boolean;
-  scale: string;
+  scale: RetailScale;
   rating: number;
   userId: string;
 }
@@ -69,4 +69,13 @@ export interface sellerResObj {
 export interface buyerResObj {
   buyers: BuyerResponse[];
   total: number;
+}
+
+export interface UpdateCredentials {
+  name: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+  location: string;
+  scale: RetailScale;
 }

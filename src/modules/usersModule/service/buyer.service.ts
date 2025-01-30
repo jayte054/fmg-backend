@@ -8,7 +8,11 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { IBuyerRepository } from '../interface/user.interface';
-import { BuyerCredentials, buyerResObj, BuyerResponse } from '../utils/user.types';
+import {
+  BuyerCredentials,
+  buyerResObj,
+  BuyerResponse,
+} from '../utils/user.types';
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { DuplicateException } from 'src/common/exceptions/exceptions';

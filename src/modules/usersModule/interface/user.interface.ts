@@ -2,6 +2,7 @@ import {
   CreateBuyerDto,
   CreateSellerDto,
   UpdateBuyerDto,
+  UpdateSellerDto,
 } from '../utils/user.dto';
 import { BuyerResponse, SellerResponse } from '../utils/user.types';
 
@@ -26,4 +27,9 @@ export interface ISellerRepository {
     skip: number;
     take: number;
   }): Promise<Promise<{ sellers: SellerResponse[]; total: number }>>;
+  updateSellers(
+    sellerId: string,
+    sellerDto: UpdateSellerDto,
+  ): Promise<SellerResponse>;
+  deleteSeller(sellerId: string): Promise<any>;
 }

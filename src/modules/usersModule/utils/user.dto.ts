@@ -110,3 +110,27 @@ export class CreateSellerDto {
   @IsNotEmpty()
   userId: string;
 }
+
+export interface UpdateSellerDto {
+  sellerId?: string;
+
+  name?: string;
+
+  phoneNumber?: string;
+
+  email?: string;
+
+  address?: string;
+
+  location?: string;
+
+  role?: string;
+
+  isAdmin?: boolean;
+
+  scale?: RetailScale;
+
+  rating?: number;
+
+  userId?: string;
+}

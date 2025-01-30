@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SellerEntity } from '../userEntity/sellerEntity';
 import { DataSource, Repository } from 'typeorm';
-import { CreateSellerDto } from '../utils/user.dto';
+import { CreateSellerDto, UpdateSellerDto } from '../utils/user.dto';
 
 @Injectable()
 export class SellerRepository extends Repository<SellerEntity> {
@@ -31,5 +31,14 @@ export class SellerRepository extends Repository<SellerEntity> {
       .getManyAndCount();
 
     return { sellers, total };
+  };
+
+  updateSeller = async (sellerId: string, updateDto: UpdateSellerDto) => {
+    await this.update({ sellerId }, updateDto);
+    return await this.findOne({ where: { sellerId } });
+  };
+
+  deleteSeller = async (sellerId: string) => {
+    return await this.delete({ sellerId });
   };
 }
