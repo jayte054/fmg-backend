@@ -7,9 +7,11 @@ import { JwtCookieMiddleware } from './common/middleware/auth.cookie.middleware'
 import { UserModule } from './modules/usersModule/user.module';
 import { BuyerController } from './modules/usersModule/controller/buyer.controller';
 import { SellerController } from './modules/usersModule/controller/seller.controller';
+import { CloudinaryModule } from './modules/cloudinaryModule/cloudinary.module';
 
 @Module({
   imports: [
+    CloudinaryModule,
     AuthModule,
     UserModule,
     TypeOrmModule.forRoot(typeOrmConfig),

@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRole } from '../utils/auth.enum';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { SellerEntity } from 'src/modules/usersModule/userEntity/sellerEntity';
+import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 
 @Entity()
 @Unique(['email'])
@@ -44,6 +45,11 @@ export class AuthEntity extends BaseEntity {
     eager: true,
   })
   sellerId: string;
+
+  @OneToMany(() => DriverEntity, (driverId) => driverId.user, {
+    eager: true,
+  })
+  driverId: string;
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

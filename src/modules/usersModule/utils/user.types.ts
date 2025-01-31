@@ -79,3 +79,51 @@ export interface UpdateCredentials {
   location: string;
   scale: RetailScale;
 }
+
+export enum VehicleType {
+  tricycle = 'tricycle',
+  truck = 'truck',
+  van = 'van',
+}
+
+export interface DriverResponse {
+  driverId: string;
+
+  firstName: string;
+
+  lastName: string;
+
+  phoneNumber: string;
+
+  email: string;
+
+  address: string;
+
+  vehicle: VehicleType;
+
+  role: string;
+
+  driversLicense: string;
+
+  imageUrl: string;
+
+  isAdmin: boolean;
+
+  userId: string;
+}
+
+export interface CreateDriverCredentials {
+  firstName: string;
+
+  lastName: string;
+
+  address: string;
+
+  vehicle: VehicleType;
+
+  vehicleNumber: string;
+
+  driversLicense: Express.Multer.File;
+
+  file: Express.Multer.File;
+}

@@ -8,13 +8,24 @@ import { AuthModule } from '../authModule/authModule';
 import { SellerEntity } from './userEntity/sellerEntity';
 import { SellerService } from './service/seller.service';
 import { SellerRepository } from './repository/seller.repository';
+import { DriverEntity } from './userEntity/driver.entity';
+import { SellerController } from './controller/seller.controller';
+import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
+import { DriverService } from './service/driver.service';
+import { DriverRepository } from './repository/driver.repository';
+import { DriverController } from './controller/driver.controller';
 
 @Module({
-  imports: [AuthModule, TypeOrmModule.forFeature([BuyerEntity, SellerEntity])],
-  controllers: [BuyerController],
+  imports: [
+    CloudinaryModule,
+    AuthModule,
+    TypeOrmModule.forFeature([BuyerEntity, SellerEntity, DriverEntity]),
+  ],
+  controllers: [BuyerController, SellerController, DriverController],
   providers: [
     BuyerService,
     SellerService,
+    DriverService,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
@@ -22,6 +33,10 @@ import { SellerRepository } from './repository/seller.repository';
     {
       provide: 'ISellerRepository',
       useClass: SellerRepository,
+    },
+    {
+      provide: 'IDriverRepository',
+      useClass: DriverRepository,
     },
   ],
   exports: [],

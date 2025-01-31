@@ -1,10 +1,15 @@
 import {
   CreateBuyerDto,
+  CreateDriverDto,
   CreateSellerDto,
   UpdateBuyerDto,
   UpdateSellerDto,
 } from '../utils/user.dto';
-import { BuyerResponse, SellerResponse } from '../utils/user.types';
+import {
+  BuyerResponse,
+  DriverResponse,
+  SellerResponse,
+} from '../utils/user.types';
 
 export interface IBuyerRepository {
   createBuyer(createBuyerDto: CreateBuyerDto): Promise<BuyerResponse>;
@@ -32,4 +37,8 @@ export interface ISellerRepository {
     sellerDto: UpdateSellerDto,
   ): Promise<SellerResponse>;
   deleteSeller(sellerId: string): Promise<any>;
+}
+
+export interface IDriverRepository {
+  createDriver(createDriverDto: CreateDriverDto): Promise<DriverResponse>;
 }

@@ -1,5 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { RetailScale } from './user.types';
+import { RetailScale, VehicleType } from './user.types';
 
 export class CreateBuyerDto {
   @IsString()
@@ -133,4 +133,58 @@ export interface UpdateSellerDto {
   rating?: number;
 
   userId?: string;
+}
+
+export class CreateDriverDto {
+  @IsString()
+  @IsNotEmpty()
+  driverId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  vehicle: VehicleType;
+
+  @IsString()
+  @IsNotEmpty()
+  vehicleNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
+
+  @IsString()
+  @IsNotEmpty()
+  driversLicense: string;
+
+  @IsString()
+  @IsNotEmpty()
+  imageUrl: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isAdmin: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }
