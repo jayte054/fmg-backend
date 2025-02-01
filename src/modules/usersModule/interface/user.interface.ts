@@ -3,6 +3,7 @@ import {
   CreateDriverDto,
   CreateSellerDto,
   UpdateBuyerDto,
+  UpdateDriverDto,
   UpdateSellerDto,
 } from '../utils/user.dto';
 import {
@@ -44,4 +45,13 @@ export interface IDriverRepository {
   createDriver(createDriverDto: CreateDriverDto): Promise<DriverResponse>;
   findDriverById(userId: string): Promise<DriverResponse>;
   findDrivers(options: { skip: number; take: number }): Promise<driverResObj>;
+  updateDriver(
+    driverId: string,
+    updateDto: UpdateDriverDto,
+  ): Promise<DriverResponse>;
+  updateDriverImage(
+    driverId: string,
+    updateDto: UpdateDriverDto,
+  ): Promise<DriverResponse>;
+  deleteDriverProfile(driverId: string): Promise<any>;
 }

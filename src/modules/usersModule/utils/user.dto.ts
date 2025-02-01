@@ -188,3 +188,19 @@ export class CreateDriverDto {
   @IsNotEmpty()
   userId: string;
 }
+
+export class UpdateDriverDto {
+  driverId?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+  address?: string;
+  vehicle?: VehicleType;
+  vehicleNumber?: string;
+  role?: string;
+  driversLicense?: string;
+  imageUrl?: string;
+  isAdmin?: boolean;
+  userId?: string;
+}

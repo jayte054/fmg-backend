@@ -153,19 +153,21 @@ export class BuyerService {
     }
   };
 
-  deleteBuyer = async (buyerId: string, user: AuthEntity) => {
+  deleteBuyer = async (user: AuthEntity) => {
     try {
       const buyer = await this.buyerRepository.findBuyerById(user.id);
-      if (buyerId !== buyer.buyerId) {
-        this.logger.log('unauthourized user');
+      if (user.id !== buyer.userId) {
+        this.logger.log('unauthorized user');
         throw new UnauthorizedException('user not authorized');
       }
 
-      await this.buyerRepository.deleteBuyer(buyerId);
-      this.logger.verbose(`buyer with id ${buyerId} deleted successfully`);
+      await this.buyerRepository.deleteBuyer(buyer.buyerId);
+      this.logger.verbose(
+        `buyer with id ${user.id} profile deleted successfully`,
+      );
       return 'buyer profile successfully deleted';
     } catch (error) {
-      this.logger.error(`failed to delete buyer with id ${buyerId}`);
+      this.logger.error(`failed to delete buyer profile`);
       throw new InternalServerErrorException(`failed to delete buyer`);
     }
   };
@@ -181,6 +183,7 @@ export class BuyerService {
       location: buyer.location,
       role: buyer.role,
       isAdmin: buyer.isAdmin,
+      userId: buyer.userId,
     };
   };
 }

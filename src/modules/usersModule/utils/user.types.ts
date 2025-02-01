@@ -8,6 +8,7 @@ export interface BuyerResponse {
   email: string;
   role: string;
   isAdmin: boolean;
+  userId: string;
 }
 
 export interface BuyerCredentials {
@@ -101,6 +102,8 @@ export interface DriverResponse {
 
   vehicle: VehicleType;
 
+  vehicleNumber: string;
+
   role: string;
 
   driversLicense: string;
@@ -131,4 +134,22 @@ export interface CreateDriverCredentials {
 export interface driverResObj {
   drivers: DriverResponse[];
   total: number;
+}
+
+export interface UpdateDriverCredentials {
+  firstName?: string;
+
+  lastName?: string;
+
+  phoneNumber?: string;
+
+  email?: string;
+
+  address?: string;
+
+  vehicle?: VehicleType;
+
+  vehicleNumber?: string;
+
+  driversLicense?: Express.Multer.File;
 }

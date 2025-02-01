@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   Query,
   Req,
   UploadedFiles,
@@ -14,9 +16,12 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { DriverService } from '../service/driver.service';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
-import { CreateDriverCredentials } from '../utils/user.types';
+import {
+  CreateDriverCredentials,
+  UpdateDriverCredentials,
+} from '../utils/user.types';
 
 @UseGuards(JwtAuthGuard)
 @Controller('driver')
@@ -55,5 +60,44 @@ export class DriverController {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     return await this.driverService.findDrivers(pageNum, limitNum);
+  }
+
+  @Put('/updateDriver')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async updateDriver(
+    @Req() req: Request,
+    @Body(ValidationPipe) updateDriverCredentials: UpdateDriverCredentials,
+    @UploadedFiles() file: Express.Multer.File,
+  ) {
+    const { user }: any = req;
+    return await this.driverService.updateDriver(
+      user,
+      updateDriverCredentials,
+      file,
+    );
+  }
+
+  @Put('/updateDriverImage')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async updateDriverImage(
+    @Req() req: Request,
+    // @Body(ValidationPipe) updateDriverCredentials: UpdateDriverCredentials,
+    @UploadedFiles() file: Express.Multer.File,
+  ) {
+    const { user }: any = req;
+    return await this.driverService.updateDriverImage(
+      user,
+      //   updateDriverCredentials,
+      file,
+    );
+  }
+
+  @Delete('deleteDriverProfile')
+  @HttpCode(HttpStatus.OK)
+  async deleteDriver(@Req() req: Request) {
+    const { user }: any = req;
+    return await this.driverService.deleteDriverProfile(user);
   }
 }

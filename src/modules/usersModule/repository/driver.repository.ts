@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DriverEntity } from '../userEntity/driver.entity';
 import { DataSource, Repository } from 'typeorm';
-import { CreateDriverDto } from '../utils/user.dto';
+import { CreateDriverDto, UpdateDriverDto } from '../utils/user.dto';
 
 @Injectable()
 export class DriverRepository extends Repository<DriverEntity> {
@@ -32,5 +32,19 @@ export class DriverRepository extends Repository<DriverEntity> {
       .getManyAndCount();
 
     return { drivers, total };
+  };
+
+  updateDriver = async (driverId: string, updateDto: UpdateDriverDto) => {
+    await this.update({ driverId }, updateDto);
+    return await this.findOne({ where: { driverId } });
+  };
+
+  updateDriverImage = async (driverId: string, updateDto: UpdateDriverDto) => {
+    await this.update({ driverId }, updateDto);
+    return await this.findOne({ where: { driverId } });
+  };
+
+  deleteDriverProfile = async (driverId: string) => {
+    return await this.delete({ driverId });
   };
 }

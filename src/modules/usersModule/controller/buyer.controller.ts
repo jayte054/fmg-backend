@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
-  Param,
   Post,
   Put,
   Query,
@@ -68,10 +67,10 @@ export class BuyerController {
     return await this.buyerService.updateBuyer(user, updateData);
   }
 
-  @Delete('/deleteBuyer/:buyerId')
+  @Delete('/deleteBuyer')
   @HttpCode(HttpStatus.OK)
-  async deleteBuyer(@Req() req: Request, @Param('buyerId') buyerId: string) {
+  async deleteBuyer(@Req() req: Request) {
     const { user }: any = req;
-    return await this.buyerService.deleteBuyer(buyerId, user);
+    return await this.buyerService.deleteBuyer(user);
   }
 }
