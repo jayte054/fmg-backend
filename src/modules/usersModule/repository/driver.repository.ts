@@ -15,4 +15,22 @@ export class DriverRepository extends Repository<DriverEntity> {
     const newDriver = await driver.save();
     return newDriver;
   };
+
+  findDriverById = async (userId: string) => {
+    const driver = await this.findOne({
+      where: { userId },
+    });
+    return driver;
+  };
+
+  findDrivers = async (options: { skip: number; take: number }) => {
+    const driversQuery = this.createQueryBuilder('drivers');
+
+    const [drivers, total] = await driversQuery
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
+
+    return { drivers, total };
+  };
 }

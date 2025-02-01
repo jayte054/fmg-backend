@@ -7,6 +7,7 @@ import {
 } from '../utils/user.dto';
 import {
   BuyerResponse,
+  driverResObj,
   DriverResponse,
   SellerResponse,
 } from '../utils/user.types';
@@ -41,4 +42,6 @@ export interface ISellerRepository {
 
 export interface IDriverRepository {
   createDriver(createDriverDto: CreateDriverDto): Promise<DriverResponse>;
+  findDriverById(userId: string): Promise<DriverResponse>;
+  findDrivers(options: { skip: number; take: number }): Promise<driverResObj>;
 }

@@ -127,3 +127,8 @@ export interface CreateDriverCredentials {
 
   file: Express.Multer.File;
 }
+
+export interface driverResObj {
+  drivers: DriverResponse[];
+  total: number;
+}

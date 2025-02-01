@@ -1,7 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
   Post,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -21,6 +25,7 @@ export class DriverController {
 
   @Post('/createDriver')
   @UseInterceptors(FilesInterceptor('files', 2))
+  @HttpCode(HttpStatus.CREATED)
   async createDriver(
     @Req() req: Request,
     @UploadedFiles() files: Express.Multer.File[],
@@ -32,5 +37,23 @@ export class DriverController {
       driverCredentials,
       files,
     );
+  }
+
+  @Get('/findDriver')
+  @HttpCode(HttpStatus.FOUND)
+  async findDriverById(@Req() req: Request) {
+    const { user }: any = req;
+    return await this.driverService.findDriverById(user);
+  }
+
+  @Get('/findDrivers')
+  @HttpCode(HttpStatus.FOUND)
+  async findDrivers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) {
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    return await this.driverService.findDrivers(pageNum, limitNum);
   }
 }
