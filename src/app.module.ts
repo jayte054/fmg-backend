@@ -6,7 +6,7 @@ import { AuthModule } from './modules/authModule/authModule';
 import { JwtCookieMiddleware } from './common/middleware/auth.cookie.middleware';
 import { UserModule } from './modules/usersModule/user.module';
 import { BuyerController } from './modules/usersModule/controller/buyer.controller';
-import { SellerController } from './modules/usersModule/controller/seller.controller';
+import { DealerController } from './modules/usersModule/controller/dealer.controller';
 import { CloudinaryModule } from './modules/cloudinaryModule/cloudinary.module';
 
 @Module({
@@ -22,6 +22,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(JwtCookieMiddleware)
-      .forRoutes(BuyerController, SellerController);
+      .forRoutes(BuyerController, DealerController);
   }
 }

@@ -3,15 +3,17 @@ import {
   Column,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RetailScale } from '../utils/user.types';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.entity';
 
 @Entity()
-export class SellerEntity extends BaseEntity {
+export class DealerEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
-  sellerId: string;
+  dealerId: string;
 
   @Column()
   name: string;
@@ -40,8 +42,11 @@ export class SellerEntity extends BaseEntity {
   @Column()
   rating: number;
 
-  @ManyToOne(() => AuthEntity, (user) => user.sellerId, { eager: false })
+  @ManyToOne(() => AuthEntity, (user) => user.dealerId, { eager: false })
   user: AuthEntity;
+
+  @OneToMany(() => ProductEntity, (productId) => productId.dealer)
+  productId: string;
 
   @Column()
   userId: string;

@@ -13,33 +13,33 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
-import { SellerService } from '../service/seller.service';
-import { SellerCredentials, UpdateCredentials } from '../utils/user.types';
+import { DealerService } from '../service/dealer.service';
+import { DealerCredentials, UpdateCredentials } from '../utils/user.types';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
-@Controller('seller')
-export class SellerController {
-  constructor(private sellerService: SellerService) {}
+@Controller('dealer')
+export class DealerController {
+  constructor(private dealerService: DealerService) {}
 
-  @Post('/createSeller')
+  @Post('/createDealer')
   @HttpCode(HttpStatus.CREATED)
-  async createSeller(
-    @Body(ValidationPipe) sellerCredentials: SellerCredentials,
+  async createDealer(
+    @Body(ValidationPipe) dealerCredentials: DealerCredentials,
     @Req() req: Request,
   ) {
     const { user }: any = req;
-    return await this.sellerService.createSeller(user, sellerCredentials);
+    return await this.dealerService.createDealer(user, dealerCredentials);
   }
 
-  @Get('/findSellerById')
+  @Get('/findDealerById')
   @HttpCode(HttpStatus.OK)
-  async findSellerById(@Req() req: Request) {
+  async findDealerById(@Req() req: Request) {
     const { user }: any = req;
-    return await this.sellerService.findSellerById(user.id);
+    return await this.dealerService.findDealerById(user.id);
   }
 
-  @Get('/findSellers')
+  @Get('/findDealers')
   @HttpCode(HttpStatus.FOUND)
   async findBuyers(
     @Req() req: Request,
@@ -50,23 +50,23 @@ export class SellerController {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
 
-    return await this.sellerService.findSellers(user, pageNum, limitNum);
+    return await this.dealerService.findDealers(user, pageNum, limitNum);
   }
 
-  @Put('/updateSeller')
+  @Put('/updateDealer')
   @HttpCode(HttpStatus.OK)
-  async updateSeller(
+  async updateDealer(
     @Req() req: Request,
     @Body(ValidationPipe) updateCredentials: UpdateCredentials,
   ) {
     const { user }: any = req;
-    return await this.sellerService.updateSeller(user, updateCredentials);
+    return await this.dealerService.updateDealer(user, updateCredentials);
   }
 
-  @Delete('/deleteSeller')
+  @Delete('/deleteDealer')
   @HttpCode(HttpStatus.OK)
-  async deleteSeller(@Req() req: Request) {
+  async deleteDealer(@Req() req: Request) {
     const { user }: any = req;
-    return await this.sellerService.deleteSeller(user);
+    return await this.dealerService.deleteDealer(user);
   }
 }

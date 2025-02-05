@@ -1,9 +1,10 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as config from 'config';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.entity';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
-import { SellerEntity } from 'src/modules/usersModule/userEntity/sellerEntity';
+import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: TypeOrmModuleOptions = {
@@ -13,7 +14,13 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   username: process.env.RDS_USERNAME || dbConfig.username,
   password: process.env.RDS_PASSWORD || dbConfig.password,
   database: process.env.RDS_DB_NAME || dbConfig.database,
-  entities: [AuthEntity, BuyerEntity, SellerEntity, DriverEntity],
+  entities: [
+    AuthEntity,
+    BuyerEntity,
+    DealerEntity,
+    DriverEntity,
+    ProductEntity,
+  ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   //   migrations: ['dist/migrations/*.js'],
 };

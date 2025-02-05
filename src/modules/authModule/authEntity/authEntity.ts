@@ -9,7 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../utils/auth.enum';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
-import { SellerEntity } from 'src/modules/usersModule/userEntity/sellerEntity';
+import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 
 @Entity()
@@ -41,10 +41,10 @@ export class AuthEntity extends BaseEntity {
   })
   buyerId: string;
 
-  @OneToMany(() => SellerEntity, (sellerId) => sellerId.user, {
+  @OneToMany(() => DealerEntity, (dealerId) => dealerId.user, {
     eager: true,
   })
-  sellerId: string;
+  dealerId: string;
 
   @OneToMany(() => DriverEntity, (driverId) => driverId.user, {
     eager: true,

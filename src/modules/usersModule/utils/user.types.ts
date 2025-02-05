@@ -39,8 +39,8 @@ export enum RetailScale {
   Small = 'Small-Scale',
 }
 
-export interface SellerResponse {
-  sellerId: string;
+export interface DealerResponse {
+  dealerId: string;
   name: string;
   phoneNumber: string;
   email: string;
@@ -53,7 +53,7 @@ export interface SellerResponse {
   userId: string;
 }
 
-export interface SellerCredentials {
+export interface DealerCredentials {
   name: string;
   phoneNumber: string;
   address: string;
@@ -62,8 +62,8 @@ export interface SellerCredentials {
   rating: number;
 }
 
-export interface sellerResObj {
-  sellers: SellerResponse[];
+export interface DealerResObj {
+  dealers: DealerResponse[];
   total: number;
 }
 

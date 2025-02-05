@@ -1,16 +1,16 @@
 import {
   CreateBuyerDto,
   CreateDriverDto,
-  CreateSellerDto,
+  CreateDealerDto,
   UpdateBuyerDto,
   UpdateDriverDto,
-  UpdateSellerDto,
+  UpdateDealerDto,
 } from '../utils/user.dto';
 import {
   BuyerResponse,
   driverResObj,
   DriverResponse,
-  SellerResponse,
+  DealerResponse,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
@@ -27,18 +27,18 @@ export interface IBuyerRepository {
   deleteBuyer(buyerId: string): Promise<any>;
 }
 
-export interface ISellerRepository {
-  createSeller(createSellerDto: CreateSellerDto): Promise<SellerResponse>;
-  findSellerId(userId: string): Promise<SellerResponse>;
-  findSellers(options: {
+export interface IDealerRepository {
+  createDealer(createDealerDto: CreateDealerDto): Promise<DealerResponse>;
+  findDealerId(userId: string): Promise<DealerResponse>;
+  findDealers(options: {
     skip: number;
     take: number;
-  }): Promise<Promise<{ sellers: SellerResponse[]; total: number }>>;
-  updateSellers(
-    sellerId: string,
-    sellerDto: UpdateSellerDto,
-  ): Promise<SellerResponse>;
-  deleteSeller(sellerId: string): Promise<any>;
+  }): Promise<Promise<{ dealers: DealerResponse[]; total: number }>>;
+  updateDealers(
+    dealerId: string,
+    dealerDto: UpdateDealerDto,
+  ): Promise<DealerResponse>;
+  deleteDealer(dealerId: string): Promise<any>;
 }
 
 export interface IDriverRepository {

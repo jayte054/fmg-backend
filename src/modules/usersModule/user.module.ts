@@ -5,11 +5,11 @@ import { BuyerRepository } from './repository/buyer.repository';
 import { BuyerService } from './service/buyer.service';
 import { BuyerController } from './controller/buyer.controller';
 import { AuthModule } from '../authModule/authModule';
-import { SellerEntity } from './userEntity/sellerEntity';
-import { SellerService } from './service/seller.service';
-import { SellerRepository } from './repository/seller.repository';
+import { DealerEntity } from './userEntity/dealerEntity';
+import { DealerService } from './service/dealer.service';
+import { DealerRepository } from './repository/dealer.repository';
 import { DriverEntity } from './userEntity/driver.entity';
-import { SellerController } from './controller/seller.controller';
+import { DealerController } from './controller/dealer.controller';
 import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
 import { DriverService } from './service/driver.service';
 import { DriverRepository } from './repository/driver.repository';
@@ -19,20 +19,20 @@ import { DriverController } from './controller/driver.controller';
   imports: [
     CloudinaryModule,
     AuthModule,
-    TypeOrmModule.forFeature([BuyerEntity, SellerEntity, DriverEntity]),
+    TypeOrmModule.forFeature([BuyerEntity, DealerEntity, DriverEntity]),
   ],
-  controllers: [BuyerController, SellerController, DriverController],
+  controllers: [BuyerController, DealerController, DriverController],
   providers: [
     BuyerService,
-    SellerService,
+    DealerService,
     DriverService,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
     },
     {
-      provide: 'ISellerRepository',
-      useClass: SellerRepository,
+      provide: 'IDealerRepository',
+      useClass: DealerRepository,
     },
     {
       provide: 'IDriverRepository',

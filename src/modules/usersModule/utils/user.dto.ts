@@ -65,10 +65,10 @@ export class UpdateBuyerDto {
   userId?: string;
 }
 
-export class CreateSellerDto {
+export class CreateDealerDto {
   @IsString()
   @IsNotEmpty()
-  sellerId: string;
+  dealerId: string;
 
   @IsString()
   @IsNotEmpty()
@@ -111,8 +111,8 @@ export class CreateSellerDto {
   userId: string;
 }
 
-export interface UpdateSellerDto {
-  sellerId?: string;
+export interface UpdateDealerDto {
+  dealerId?: string;
 
   name?: string;
 
