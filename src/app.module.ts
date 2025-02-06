@@ -8,9 +8,13 @@ import { UserModule } from './modules/usersModule/user.module';
 import { BuyerController } from './modules/usersModule/controller/buyer.controller';
 import { DealerController } from './modules/usersModule/controller/dealer.controller';
 import { CloudinaryModule } from './modules/cloudinaryModule/cloudinary.module';
+import { DealerRepositoryMiddleware } from './common/middleware/dealer.repository.middleware';
+import { ProductController } from './modules/ProductModule/productController/product.controller';
+import { ProductModule } from './modules/ProductModule/product.module';
 
 @Module({
   imports: [
+    ProductModule,
     CloudinaryModule,
     AuthModule,
     UserModule,
@@ -23,5 +27,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(JwtCookieMiddleware)
       .forRoutes(BuyerController, DealerController);
+
+    consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
   }
 }

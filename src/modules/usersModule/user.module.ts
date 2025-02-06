@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BuyerEntity } from './userEntity/buyer.entity';
 import { BuyerRepository } from './repository/buyer.repository';
@@ -14,6 +14,8 @@ import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
 import { DriverService } from './service/driver.service';
 import { DriverRepository } from './repository/driver.repository';
 import { DriverController } from './controller/driver.controller';
+import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
+import { DealerEntityRepository } from './repository/dealer.entity.repository';
 
 @Module({
   imports: [
@@ -38,7 +40,12 @@ import { DriverController } from './controller/driver.controller';
       provide: 'IDriverRepository',
       useClass: DriverRepository,
     },
+    DealerEntityRepository,
   ],
-  exports: [],
+  exports: [DealerEntityRepository],
 })
-export class UserModule {}
+export class UserModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(DealerRepositoryMiddleware).forRoutes(DealerController);
+  }
+}
