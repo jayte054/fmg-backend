@@ -79,6 +79,9 @@ export class BuyerService {
       this.logger.verbose(`user with id ${user.id} successfully fetched`);
       return this.mapToBuyerResponse(buyer);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error; // Allow known errors to propagate
+      }
       this.logger.error('failed to fetch ');
       throw new InternalServerErrorException('failed to fetch user');
     }

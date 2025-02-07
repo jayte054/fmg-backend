@@ -6,12 +6,16 @@ import {
   UseGuards,
   ValidationPipe,
   Body,
+  Req,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
 import { CreateProductCredentials } from '../utils/products.type';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('products')
@@ -28,5 +32,16 @@ export class ProductController {
       dealer,
       createProductCredentials,
     );
+  }
+
+  @Get('findProductById/:productId')
+  @HttpCode(HttpStatus.OK)
+  async findProductById(
+    @Req() req: Request,
+    @GetDealerDecorator() dealer: DealerEntity,
+    @Param('productId') productId: string,
+  ) {
+    const { user }: any = req;
+    return await this.productService.findProductById(user, dealer, productId);
   }
 }

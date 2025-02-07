@@ -14,4 +14,11 @@ export class ProductRepository extends Repository<ProductEntity> {
     const product = await newProduct.save();
     return product;
   };
+
+  findProductById = async (productId: string) => {
+    const product = await this.findOne({
+      where: { productId },
+    });
+    return product;
+  };
 }

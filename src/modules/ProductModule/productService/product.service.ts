@@ -3,6 +3,8 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { IProductRepository } from '../interface/IProductRepository.interface';
@@ -12,6 +14,7 @@ import {
   ProductResponse,
 } from '../utils/products.type';
 import { CreateProductDto } from '../utils/products.dto';
+import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 
 @Injectable()
 export class ProductService {
@@ -53,6 +56,38 @@ export class ProductService {
     } catch (error) {
       this.logger.error('failed to create product');
       throw new InternalServerErrorException('failed to create product');
+    }
+  };
+
+  findProductById = async (
+    user: AuthEntity,
+    dealer: DealerEntity,
+    productId: string,
+  ): Promise<ProductResponse> => {
+    try {
+      const product = await this.productRepository.findProductById(productId);
+
+      if (!product) {
+        this.logger.log(`product with id ${productId} not found`);
+        throw new NotFoundException('product not found');
+      }
+
+      if (product.dealerId !== dealer.dealerId || dealer.userId !== user.id) {
+        this.logger.log('unauthorized dealer');
+        throw new UnauthorizedException('unauthorized dealer');
+      } else {
+        this.logger.verbose(`product with id ${productId} found successfully`);
+        return this.mapProductResponse(product);
+      }
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error; // Allow known errors to propagate
+      }
+      this.logger.verbose(`product with product id ${productId} not found`);
+      throw new InternalServerErrorException('product not found');
     }
   };
 
