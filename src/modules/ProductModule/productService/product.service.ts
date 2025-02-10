@@ -15,6 +15,7 @@ import {
 } from '../utils/products.type';
 import { CreateProductDto } from '../utils/products.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { productResObj } from '../utils/products.type';
 
 @Injectable()
 export class ProductService {
@@ -88,6 +89,34 @@ export class ProductService {
       }
       this.logger.verbose(`product with product id ${productId} not found`);
       throw new InternalServerErrorException('product not found');
+    }
+  };
+
+  findProducts = async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    data: ProductResponse[];
+    total: number;
+    currentPage: number;
+  }> => {
+    const currentPage = Math.max(page, 1);
+    const currentLimit = Math.max(limit, 1);
+    const skip = (currentPage - 1) * currentLimit;
+
+    try {
+      const { products, total }: productResObj =
+        await this.productRepository.findProducts({ skip, take: limit });
+      return {
+        data: products,
+        total,
+        currentPage: page,
+      };
+    } catch (error) {
+      this.logger.error('error fetching products');
+      throw new InternalServerErrorException(
+        'an error occured, please try again',
+      );
     }
   };
 

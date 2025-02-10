@@ -9,6 +9,7 @@ import {
   Req,
   Get,
   Param,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
@@ -43,5 +44,11 @@ export class ProductController {
   ) {
     const { user }: any = req;
     return await this.productService.findProductById(user, dealer, productId);
+  }
+
+  @Get('/findProducts')
+  @HttpCode(HttpStatus.OK)
+  async findProducs(@Query() page: number, @Query() limit: number) {
+    return await this.productService.findProducts(page, limit);
   }
 }

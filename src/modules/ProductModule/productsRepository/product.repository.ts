@@ -21,4 +21,15 @@ export class ProductRepository extends Repository<ProductEntity> {
     });
     return product;
   };
+
+  findProducts = async (options: { skip: number; take: number }) => {
+    const productsQuery = this.createQueryBuilder('products');
+
+    const [products, total] = await productsQuery
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
+
+    return { products, total };
+  };
 }

@@ -31,3 +31,8 @@ export interface ProductResponse {
 export interface CreateProductCredentials {
   pricePerKg: number;
 }
+
+export interface productResObj {
+  products: ProductResponse[];
+  total: number;
+}
