@@ -1,4 +1,4 @@
-import { CreateProductDto } from '../utils/products.dto';
+import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
 import { ProductResponse } from '../utils/products.type';
 
 export interface IProductRepository {
@@ -8,4 +8,8 @@ export interface IProductRepository {
     skip: number;
     take: number;
   }): Promise<{ products: ProductResponse[]; total: number }>;
+  updateProduct(
+    productId: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<ProductResponse>;
 }

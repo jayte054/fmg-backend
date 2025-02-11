@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ProductEntity } from '../productEntity/product.entity';
 import { DataSource, Repository } from 'typeorm';
-import { CreateProductDto } from '../utils/products.dto';
+import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
 
 @Injectable()
 export class ProductRepository extends Repository<ProductEntity> {
@@ -31,5 +31,13 @@ export class ProductRepository extends Repository<ProductEntity> {
       .getManyAndCount();
 
     return { products, total };
+  };
+
+  updateProduct = async (
+    productId: string,
+    updateProductDto: UpdateProductDto,
+  ) => {
+    await this.update({ productId }, updateProductDto);
+    return await this.findOne({ where: { productId } });
   };
 }

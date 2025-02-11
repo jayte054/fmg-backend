@@ -36,3 +36,12 @@ export interface productResObj {
   products: ProductResponse[];
   total: number;
 }
+
+export interface UpdateProductCredentials {
+  providerName?: string;
+  phoneNumber?: string;
+  scale?: RetailScale;
+  pricePerKg?: number;
+  address?: string;
+  location?: string;
+}

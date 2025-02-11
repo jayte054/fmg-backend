@@ -63,3 +63,18 @@ export class CreateProductDto {
   @IsString()
   dealerId: string;
 }
+
+export class UpdateProductDto {
+  productId?: string;
+  providerName?: string;
+  phoneNumber?: string;
+  scale?: RetailScale;
+  pricePerKg?: number;
+  rating?: number;
+  address?: string;
+  location?: string;
+  linkedDriversId?: DriversArray[];
+  reviews?: Reviewers[];
+  purchases?: number;
+  dealerId?: string;
+}

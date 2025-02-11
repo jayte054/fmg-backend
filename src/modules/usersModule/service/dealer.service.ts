@@ -143,6 +143,9 @@ export class DealerService {
         await this.dealerRepository.updateDealers(dealer.dealerId, updateDto);
       return this.mapToDealerResponse(updatedDealer);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error(`failed to update dealer with id ${user.id}`);
       throw new InternalServerErrorException(
         "failed to update dealer's record",

@@ -10,10 +10,14 @@ import {
   Get,
   Param,
   Query,
+  Put,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
-import { CreateProductCredentials } from '../utils/products.type';
+import {
+  CreateProductCredentials,
+  UpdateProductCredentials,
+} from '../utils/products.type';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
@@ -48,7 +52,26 @@ export class ProductController {
 
   @Get('/findProducts')
   @HttpCode(HttpStatus.OK)
-  async findProducs(@Query() page: number, @Query() limit: number) {
+  async findProducts(@Query() page: number, @Query() limit: number) {
     return await this.productService.findProducts(page, limit);
+  }
+
+  @Put('/updateProduct/:productId')
+  @HttpCode(HttpStatus.OK)
+  async updateProduct(
+    @Req() req: Request,
+    @GetDealerDecorator() dealer: DealerEntity,
+    @Param('productId') productId: string,
+    @Body(ValidationPipe) updateProductCredentials: UpdateProductCredentials,
+  ) {
+    const { user }: any = req;
+    const { dealerId }: DealerEntity = dealer;
+
+    return await this.productService.updateProduct(
+      user,
+      dealerId,
+      productId,
+      updateProductCredentials,
+    );
   }
 }

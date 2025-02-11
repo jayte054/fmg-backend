@@ -12,10 +12,16 @@ import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import {
   CreateProductCredentials,
   ProductResponse,
+  UpdateProductCredentials,
 } from '../utils/products.type';
-import { CreateProductDto } from '../utils/products.dto';
+import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { productResObj } from '../utils/products.type';
+import {
+  DealerResponse,
+  UpdateCredentials,
+} from 'src/modules/usersModule/utils/user.types';
+import { DealerService } from 'src/modules/usersModule/service/dealer.service';
 
 @Injectable()
 export class ProductService {
@@ -23,6 +29,7 @@ export class ProductService {
   constructor(
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
+    private readonly dealerService: DealerService,
   ) {}
 
   createProduct = async (
@@ -119,6 +126,98 @@ export class ProductService {
       );
     }
   };
+
+  updateProduct = async (
+    user: AuthEntity,
+    dealerId: string,
+    productId: string,
+    updateProductCredentials: UpdateProductCredentials,
+  ): Promise<ProductResponse> => {
+    const { providerName, phoneNumber, scale, pricePerKg, address, location } =
+      updateProductCredentials;
+
+    try {
+      const product: ProductResponse =
+        await this.productRepository.findProductById(productId);
+
+      if (!product) {
+        this.logger.warn(`Product with ID ${productId} not found`);
+        throw new NotFoundException('Product not found');
+      }
+
+      if (product.dealerId !== dealerId) {
+        this.logger.warn(
+          `Unauthorized access attempt to product ID ${productId}`,
+        );
+        throw new UnauthorizedException('Unauthorized user access');
+      }
+
+      const updateProductDto: UpdateProductDto = {
+        ...product,
+        providerName: providerName ?? product.providerName,
+        phoneNumber: phoneNumber ?? product.phoneNumber,
+        scale: scale ?? product.scale,
+        pricePerKg: pricePerKg ?? product.pricePerKg,
+        address: address ?? product.address,
+        location: location ?? product.location,
+      };
+
+      const updatedProduct: ProductResponse =
+        await this.productRepository.updateProduct(productId, updateProductDto);
+
+      const shouldUpdateDealer =
+        providerName || phoneNumber || address || location || scale;
+
+      if (shouldUpdateDealer) {
+        await this.updateDealerDetails(user, updateProductDto);
+      }
+
+      if (!updatedProduct) {
+        this.logger.error(`Failed to update product with ID ${productId}`);
+        throw new InternalServerErrorException('Product update failed');
+      }
+
+      this.logger.verbose(`Product update successful for ID ${productId}`);
+      return this.mapProductResponse(updatedProduct);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        `Unexpected error while updating product ID ${productId}: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'An error occurred while updating the product',
+      );
+    }
+  };
+
+  private async updateDealerDetails(
+    user: AuthEntity,
+    updateProductDto: UpdateProductDto,
+  ) {
+    const updateDealerCredentials: UpdateCredentials = {
+      name: updateProductDto.providerName,
+      phoneNumber: updateProductDto.phoneNumber,
+      email: user.email,
+      address: updateProductDto.address,
+      location: updateProductDto.location,
+      scale: updateProductDto.scale,
+    };
+
+    const updatedDealer: DealerResponse = await this.dealerService.updateDealer(
+      user,
+      updateDealerCredentials,
+    );
+
+    if (!updatedDealer) {
+      this.logger.error(`Dealer update failed for user: ${user.email}`);
+      throw new InternalServerErrorException('Dealer update failed');
+    }
+  }
 
   private mapProductResponse = (product: ProductResponse): ProductResponse => {
     return {
