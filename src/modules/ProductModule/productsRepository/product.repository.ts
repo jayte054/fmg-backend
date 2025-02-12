@@ -40,4 +40,8 @@ export class ProductRepository extends Repository<ProductEntity> {
     await this.update({ productId }, updateProductDto);
     return await this.findOne({ where: { productId } });
   };
+
+  deleteProduct = async (productId: string) => {
+    return await this.delete({ productId });
+  };
 }

@@ -11,6 +11,7 @@ import {
   Param,
   Query,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
@@ -73,5 +74,15 @@ export class ProductController {
       productId,
       updateProductCredentials,
     );
+  }
+
+  @Delete('deleteProduct/:productId')
+  @HttpCode(HttpStatus.OK)
+  async deleteProduct(
+    @GetDealerDecorator() dealer: DealerEntity,
+    @Param('productId') productId: string,
+  ) {
+    const { dealerId }: DealerEntity = dealer;
+    return await this.productService.deleteProduct(dealerId, productId);
   }
 }

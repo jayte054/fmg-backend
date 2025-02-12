@@ -219,6 +219,27 @@ export class ProductService {
     }
   }
 
+  deleteProduct = async (
+    dealerId: string,
+    productId: string,
+  ): Promise<string> => {
+    try {
+      const product = await this.productRepository.findProductById(productId);
+
+      if (product.dealerId !== dealerId) {
+        this.logger.log('unathorized access to delete product');
+        throw new UnauthorizedException('unauthorized access');
+      }
+
+      await this.productRepository.deleteProduct(productId);
+      this.logger.verbose(`product with id ${productId} successfully deleted`);
+      return 'product successfully deleted';
+    } catch (error) {
+      this.logger.error('failed to delete product with id ', productId);
+      throw new InternalServerErrorException('failed to delete product');
+    }
+  };
+
   private mapProductResponse = (product: ProductResponse): ProductResponse => {
     return {
       productId: product.productId,

@@ -12,4 +12,5 @@ export interface IProductRepository {
     productId: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductResponse>;
+  deleteProduct(productId: string): Promise<any>;
 }
