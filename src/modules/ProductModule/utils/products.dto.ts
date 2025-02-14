@@ -7,7 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { RetailScale } from 'src/modules/usersModule/utils/user.types';
-import { DriversArray, Reviewers } from './products.type';
+import { DriverDetails, Reviewers } from './products.type';
 import { Type } from 'class-transformer';
 
 export class CreateProductDto {
@@ -48,7 +48,7 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
-  linkedDriversId: DriversArray[];
+  linkedDrivers: DriverDetails[];
 
   @IsNotEmpty()
   @IsArray()
@@ -73,7 +73,7 @@ export class UpdateProductDto {
   rating?: number;
   address?: string;
   location?: string;
-  linkedDriversId?: DriversArray[];
+  linkedDrivers?: DriverDetails[];
   reviews?: Reviewers[];
   purchases?: number;
   dealerId?: string;

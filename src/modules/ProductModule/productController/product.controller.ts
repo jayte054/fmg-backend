@@ -16,6 +16,7 @@ import {
 import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
 import {
+  AddDriverCredential,
   CreateProductCredentials,
   UpdateProductCredentials,
 } from '../utils/products.type';
@@ -84,5 +85,19 @@ export class ProductController {
   ) {
     const { dealerId }: DealerEntity = dealer;
     return await this.productService.deleteProduct(dealerId, productId);
+  }
+
+  @Post('addDriver/:productId')
+  @HttpCode(HttpStatus.OK)
+  async addDriver(
+    @GetDealerDecorator() { dealerId }: DealerEntity,
+    @Param('productId') productId: string,
+    @Body(ValidationPipe) addDriverCredentials: AddDriverCredential,
+  ) {
+    return await this.productService.addDriver(
+      dealerId,
+      productId,
+      addDriverCredentials,
+    );
   }
 }

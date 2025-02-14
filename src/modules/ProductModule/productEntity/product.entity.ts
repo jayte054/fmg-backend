@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DriversArray, Reviewers } from '../utils/products.type';
+import { DriverDetails, Reviewers } from '../utils/products.type';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 
 @Entity()
@@ -36,7 +36,7 @@ export class ProductEntity extends BaseEntity {
   location: string;
 
   @Column('jsonb', { array: true, nullable: true })
-  linkedDriversId: DriversArray[];
+  linkedDrivers: DriverDetails[];
 
   @Column('jsonb', { array: true, nullable: true })
   reviews: Reviewers[];

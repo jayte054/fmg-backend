@@ -1,4 +1,6 @@
 import {
+  BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -10,7 +12,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { IProductRepository } from '../interface/IProductRepository.interface';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import {
+  AddDriverCredential,
   CreateProductCredentials,
+  DriverDetails,
   ProductResponse,
   UpdateProductCredentials,
 } from '../utils/products.type';
@@ -48,7 +52,7 @@ export class ProductService {
         rating: dealer.rating,
         address: dealer.address,
         location: dealer.location,
-        linkedDriversId: [],
+        linkedDrivers: [],
         reviews: [],
         purchases: 0,
         dealerId: dealer.dealerId,
@@ -240,6 +244,85 @@ export class ProductService {
     }
   };
 
+  addDriver = async (
+    dealerId: string,
+    productId: string,
+    addDriverCredential: AddDriverCredential,
+  ): Promise<ProductResponse | string> => {
+    const { driverId, driverName, driverEmail, driverPhoneNumber } =
+      addDriverCredential;
+
+    try {
+      if (!driverId || !driverName || !driverEmail || !driverPhoneNumber) {
+        this.logger.warn('incomplete driver details');
+        throw new BadRequestException('All driver details are required');
+      }
+
+      const product = await this.productRepository.findProductById(productId);
+
+      if (!product) {
+        this.logger.warn(`Product with ID ${productId} not found`);
+        throw new NotFoundException('Product not found');
+      }
+
+      if (product.dealerId !== dealerId) {
+        this.logger.warn(
+          `Unauthorized access attempt to product ID ${productId}`,
+        );
+        throw new UnauthorizedException('Unauthorized user access');
+      }
+
+      const { linkedDrivers } = product;
+
+      const driver: DriverDetails = {
+        driverId,
+        driverName,
+        driverEmail,
+        driverPhoneNumber,
+      };
+
+      const driverExists = product.linkedDrivers.some(
+        (driver) => driver.driverId === driverId,
+      );
+      if (driverExists) {
+        this.logger.warn(
+          `Driver with ID ${driverId} is already linked to product ${productId}`,
+        );
+        throw new ConflictException('Driver is already linked to this product');
+      }
+
+      // const updateProductDto: UpdateProductDto = {
+      //   ...product,
+      //   linkedDrivers: [...linkedDrivers, driver],
+      // };
+
+      const updateProductDto: UpdateProductDto = {
+        productId: product.productId,
+        providerName: product.providerName,
+        phoneNumber: product.phoneNumber,
+        scale: product.scale,
+        pricePerKg: product.pricePerKg,
+        rating: product.rating,
+        address: product.address,
+        location: product.location,
+        linkedDrivers: [...linkedDrivers, driver], // Add new driver
+        reviews: product.reviews,
+        purchases: product.purchases,
+        dealerId: product.dealerId,
+      };
+
+      const addDriver: ProductResponse = await this.productRepository.addDriver(
+        productId,
+        updateProductDto,
+      );
+
+      return this.mapProductResponse(addDriver);
+    } catch (error) {
+      this.logger.error('failed to add driver to product with id ', productId);
+      throw new InternalServerErrorException('failed to add driver');
+    }
+  };
+
   private mapProductResponse = (product: ProductResponse): ProductResponse => {
     return {
       productId: product.productId,
@@ -250,7 +333,7 @@ export class ProductService {
       rating: product.rating,
       address: product.address,
       location: product.location,
-      linkedDriversId: product.linkedDriversId,
+      linkedDrivers: product.linkedDrivers,
       reviews: product.reviews,
       purchases: product.purchases,
       dealerId: product.dealerId,

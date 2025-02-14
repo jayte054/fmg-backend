@@ -44,4 +44,9 @@ export class ProductRepository extends Repository<ProductEntity> {
   deleteProduct = async (productId: string) => {
     return await this.delete({ productId });
   };
+
+  addDriver = async (productId: string, updateProductDto: UpdateProductDto) => {
+    await this.update({ productId }, updateProductDto);
+    return await this.findOne({ where: { productId } });
+  };
 }

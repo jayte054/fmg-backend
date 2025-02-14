@@ -1,11 +1,15 @@
 import { RetailScale } from 'src/modules/usersModule/utils/user.types';
 
-export interface DriversArray {
-  driver1Id: string;
-  driver2Id: string;
-  driver3Id: string;
-  driver4Id: string;
+export interface DriverDetails {
+  driverId: string;
+  driverName: string;
+  driverEmail: string;
+  driverPhoneNumber: number;
 }
+
+// export interface DriversArray {
+//   driver: DriverDetails;
+// }
 
 export interface Reviewers {
   name: string;
@@ -22,7 +26,7 @@ export interface ProductResponse {
   rating: number;
   address: string;
   location: string;
-  linkedDriversId: DriversArray[];
+  linkedDrivers: DriverDetails[];
   reviews: Reviewers[];
   purchases: number;
   dealerId: string;
@@ -44,4 +48,11 @@ export interface UpdateProductCredentials {
   pricePerKg?: number;
   address?: string;
   location?: string;
+}
+
+export interface AddDriverCredential {
+  driverId: string;
+  driverName: string;
+  driverEmail: string;
+  driverPhoneNumber: number;
 }
