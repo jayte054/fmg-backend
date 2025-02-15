@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { IDealerRepository } from '../interface/user.interface';
@@ -28,14 +29,13 @@ export class DealerService {
     user: AuthEntity,
     dealerCredentials: DealerCredentials,
   ): Promise<DealerResponse> => {
-    const { name, phoneNumber, address, location, scale, rating } =
-      dealerCredentials;
+    const { name, address, location, scale, rating } = dealerCredentials;
 
     try {
       const createDealerDto: CreateDealerDto = {
         dealerId: uuidV4(),
         name,
-        phoneNumber,
+        phoneNumber: user.phoneNumber,
         email: user.email,
         address,
         location,
@@ -59,18 +59,32 @@ export class DealerService {
     }
   };
 
-  findDealerById = async (user: AuthEntity): Promise<DealerResponse> => {
+  findDealerById = async (
+    user: AuthEntity,
+    dealerId: string,
+  ): Promise<DealerResponse> => {
     try {
-      const dealer = await this.dealerRepository.findDealerId(user.id);
+      const dealer = await this.dealerRepository.findDealerId(dealerId);
 
       if (!dealer) {
         this.logger.log(`dealer with id ${user.id} not found`);
         throw new NotFoundException('user not found');
       }
 
+      if (dealer.userId !== user.id) {
+        this.logger.warn('Unauthorized user access');
+        throw new UnauthorizedException('Unauthorized access');
+      }
+
       this.logger.verbose(`user with id ${user.id} fetched successfully`);
       return this.mapToDealerResponse(dealer);
     } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
       this.logger.error(`error finding dealer with id ${user.id}`);
       throw new InternalServerErrorException('failed to find dealer');
     }
@@ -96,6 +110,7 @@ export class DealerService {
           take: limit,
         });
 
+      this.logger.verbose('dealers profile successfully fetched');
       return {
         data: dealers,
         total,
@@ -109,13 +124,19 @@ export class DealerService {
 
   updateDealer = async (
     user: AuthEntity,
+    dealerId: string,
     updateCredentials: UpdateCredentials,
   ): Promise<DealerResponse> => {
     try {
-      const dealer = await this.dealerRepository.findDealerId(user.id);
+      const dealer = await this.dealerRepository.findDealerId(dealerId);
 
       if (!dealer) {
         throw new NotFoundException(`dealer with id ${user.id}not found`);
+      }
+
+      if (dealer.userId !== user.id) {
+        this.logger.warn('Unauthorized user access');
+        throw new UnauthorizedException('Unauthorized access');
       }
 
       dealer.name = updateCredentials.name || dealer.name;
@@ -140,10 +161,13 @@ export class DealerService {
       };
 
       const updatedDealer: DealerResponse =
-        await this.dealerRepository.updateDealers(dealer.dealerId, updateDto);
+        await this.dealerRepository.updateDealer(dealer.dealerId, updateDto);
       return this.mapToDealerResponse(updatedDealer);
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
       this.logger.error(`failed to update dealer with id ${user.id}`);
@@ -153,17 +177,33 @@ export class DealerService {
     }
   };
 
-  deleteDealer = async (user: AuthEntity): Promise<string> => {
+  deleteDealer = async (
+    user: AuthEntity,
+    dealerId: string,
+  ): Promise<string> => {
     try {
-      const dealer = await this.dealerRepository.findDealerId(user.id);
+      const dealer = await this.dealerRepository.findDealerId(dealerId);
       if (!dealer) {
         this.logger.log(`dealer with id ${user.id} not found`);
         throw new NotFoundException(`dealer with id ${user.id} not found`);
       }
+
+      if (dealer.userId !== user.id) {
+        this.logger.warn('Unauthorized user access');
+        throw new UnauthorizedException('Unauthorized access');
+      }
+
       const result = await this.dealerRepository.deleteDealer(dealer.dealerId);
 
       if (result) return `dealer profile successfully deleted`;
     } catch (error) {
+      console.log(error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
       this.logger.error('failed to delete dealer profile');
       throw new InternalServerErrorException('failed to delete dealer profile');
     }

@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
   Query,
@@ -32,11 +33,14 @@ export class DealerController {
     return await this.dealerService.createDealer(user, dealerCredentials);
   }
 
-  @Get('/findDealerById')
+  @Get('/findDealerById/:dealerId')
   @HttpCode(HttpStatus.OK)
-  async findDealerById(@Req() req: Request) {
+  async findDealerById(
+    @Req() req: Request,
+    @Param('dealerId') dealerId: string,
+  ) {
     const { user }: any = req;
-    return await this.dealerService.findDealerById(user.id);
+    return await this.dealerService.findDealerById(user.id, dealerId);
   }
 
   @Get('/findDealers')
@@ -53,20 +57,25 @@ export class DealerController {
     return await this.dealerService.findDealers(user, pageNum, limitNum);
   }
 
-  @Put('/updateDealer')
+  @Put('/updateDealer/:dealerId')
   @HttpCode(HttpStatus.OK)
   async updateDealer(
     @Req() req: Request,
+    @Param('dealerId') dealerId: string,
     @Body(ValidationPipe) updateCredentials: UpdateCredentials,
   ) {
     const { user }: any = req;
-    return await this.dealerService.updateDealer(user, updateCredentials);
+    return await this.dealerService.updateDealer(
+      user,
+      dealerId,
+      updateCredentials,
+    );
   }
 
-  @Delete('/deleteDealer')
+  @Delete('/deleteDealer/:dealerId')
   @HttpCode(HttpStatus.OK)
-  async deleteDealer(@Req() req: Request) {
+  async deleteDealer(@Req() req: Request, @Param('dealerId') dealerId: string) {
     const { user }: any = req;
-    return await this.dealerService.deleteDealer(user);
+    return await this.dealerService.deleteDealer(user, dealerId);
   }
 }

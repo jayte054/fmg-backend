@@ -21,7 +21,7 @@ export class AuthEntity extends BaseEntity {
   @Column()
   phoneNumber: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()

@@ -29,12 +29,12 @@ export interface IBuyerRepository {
 
 export interface IDealerRepository {
   createDealer(createDealerDto: CreateDealerDto): Promise<DealerResponse>;
-  findDealerId(userId: string): Promise<DealerResponse>;
+  findDealerId(dealerId: string): Promise<DealerResponse>;
   findDealers(options: {
     skip: number;
     take: number;
   }): Promise<Promise<{ dealers: DealerResponse[]; total: number }>>;
-  updateDealers(
+  updateDealer(
     dealerId: string,
     dealerDto: UpdateDealerDto,
   ): Promise<DealerResponse>;

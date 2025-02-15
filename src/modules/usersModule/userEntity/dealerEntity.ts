@@ -12,7 +12,7 @@ import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.e
 
 @Entity()
 export class DealerEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   dealerId: string;
 
   @Column()

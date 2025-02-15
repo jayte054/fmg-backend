@@ -17,4 +17,8 @@ export interface IProductRepository {
     productId: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductResponse>;
+  removeDriver(
+    productId: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<ProductResponse>;
 }

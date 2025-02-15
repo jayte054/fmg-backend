@@ -100,4 +100,18 @@ export class ProductController {
       addDriverCredentials,
     );
   }
+
+  @Put('removeDriver/:productId/:driverId')
+  @HttpCode(HttpStatus.OK)
+  async removeDriver(
+    @GetDealerDecorator() { dealerId }: DealerEntity,
+    @Param('driverId') driverId: string,
+    @Param('productId') productId: string,
+  ) {
+    return await this.productService.removeDriver(
+      dealerId,
+      productId,
+      driverId,
+    );
+  }
 }

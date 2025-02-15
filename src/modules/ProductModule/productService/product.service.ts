@@ -173,7 +173,7 @@ export class ProductService {
         providerName || phoneNumber || address || location || scale;
 
       if (shouldUpdateDealer) {
-        await this.updateDealerDetails(user, updateProductDto);
+        await this.updateDealerDetails(user, dealerId, updateProductDto);
       }
 
       if (!updatedProduct) {
@@ -201,6 +201,7 @@ export class ProductService {
 
   private async updateDealerDetails(
     user: AuthEntity,
+    dealerId: string,
     updateProductDto: UpdateProductDto,
   ) {
     const updateDealerCredentials: UpdateCredentials = {
@@ -214,6 +215,7 @@ export class ProductService {
 
     const updatedDealer: DealerResponse = await this.dealerService.updateDealer(
       user,
+      dealerId,
       updateDealerCredentials,
     );
 
@@ -239,6 +241,9 @@ export class ProductService {
       this.logger.verbose(`product with id ${productId} successfully deleted`);
       return 'product successfully deleted';
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       this.logger.error('failed to delete product with id ', productId);
       throw new InternalServerErrorException('failed to delete product');
     }
@@ -318,8 +323,65 @@ export class ProductService {
 
       return this.mapProductResponse(addDriver);
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
       this.logger.error('failed to add driver to product with id ', productId);
       throw new InternalServerErrorException('failed to add driver');
+    }
+  };
+
+  removeDriver = async (
+    dealerId: string,
+    productId: string,
+    driverId: string,
+  ): Promise<ProductResponse> => {
+    try {
+      const product: ProductResponse =
+        await this.productRepository.findProductById(productId);
+
+      if (!product) {
+        this.logger.warn(`Product with ID ${productId} not found`);
+        throw new NotFoundException('Product not found');
+      }
+
+      if (product.dealerId !== dealerId) {
+        this.logger.log(
+          'unauthorized access to product by dealer with id ',
+          dealerId,
+        );
+        throw new UnauthorizedException('Unauthorized access');
+      }
+      const { linkedDrivers } = product;
+      const updatedLinkedDrivers: DriverDetails[] = linkedDrivers.filter(
+        (driver) => driver.driverId !== driverId,
+      );
+
+      product.linkedDrivers = updatedLinkedDrivers;
+
+      const updateProductDto: UpdateProductDto = {
+        ...product,
+        // linkedDrivers: updatedLinkedDrivers,
+      };
+
+      const removeDriver: ProductResponse =
+        await this.productRepository.removeDriver(productId, updateProductDto);
+
+      return this.mapProductResponse(removeDriver);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+      this.logger.error('failed to remove driver from product id', productId);
+      throw new InternalServerErrorException('failed to remove driver');
     }
   };
 

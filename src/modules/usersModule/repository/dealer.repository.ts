@@ -15,9 +15,9 @@ export class DealerRepository extends Repository<DealerEntity> {
     return dealer;
   };
 
-  findDealerId = async (userId: string) => {
+  findDealerId = async (dealerId: string) => {
     const dealer = await this.findOne({
-      where: { userId },
+      where: { dealerId },
     });
     return dealer;
   };

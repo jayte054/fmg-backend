@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 // import * as config from 'config';
@@ -31,6 +31,12 @@ export class AuthService {
     const { email, password, phoneNumber, role } = authCredentialsDto;
 
     try {
+      const existingUser = await this.authRepository.findUser(email);
+      console.log(existingUser);
+      if (existingUser) {
+        this.logger.log(`user with email ${email} already exists`);
+        throw new ConflictException('user already exists');
+      }
       const salt = await bcrypt.genSalt();
       const authId = uuidv4();
       const user: SignupDto = {
@@ -53,6 +59,7 @@ export class AuthService {
         isAdmin: newUser.isAdmin,
       };
     } catch (error) {
+      console.log(error);
       this.logger.error('error signing up');
       return error;
     }

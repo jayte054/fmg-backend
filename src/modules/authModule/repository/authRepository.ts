@@ -77,4 +77,11 @@ export class AuthRepository extends Repository<AuthEntity> {
       return null;
     }
   };
+
+  findUser = async (email: string) => {
+    return await this.createQueryBuilder('auth')
+      .where('auth.email = :email', { email })
+      .getOne();
+    // return await this.findOne({ where: { email } });
+  };
 }
