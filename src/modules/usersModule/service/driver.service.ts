@@ -98,7 +98,9 @@ export class DriverService {
       );
       return this.mapDriverResponse(driver);
     } catch (error) {
-      console.log(error);
+      if (error instanceof Error) {
+        throw error;
+      }
       this.logger.error('failed to create new driver');
       throw new InternalServerErrorException(
         'an error occurred when creating new driver',
@@ -118,6 +120,9 @@ export class DriverService {
 
       return this.mapDriverResponse(driver);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error(`failed to find driver with id ${user.id}`);
       throw new InternalServerErrorException('failed to find driver');
     }
@@ -137,6 +142,9 @@ export class DriverService {
 
       return this.mapDriverResponse(driver);
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error(`failed to find driver with id ${user.id}`);
       throw new InternalServerErrorException('failed to find driver');
     }
@@ -193,6 +201,11 @@ export class DriverService {
         throw new NotFoundException('driver profile not found');
       }
 
+      if (driver.userId !== user.id) {
+        this.logger.warn('unauthorized access');
+        throw new UnauthorizedException('unauthorized access');
+      }
+
       if (file) {
         const newDriversLicense: any =
           await this.cloudinaryService.uploadImage(file);
@@ -230,6 +243,12 @@ export class DriverService {
 
       return this.mapDriverResponse(updateDriver);
     } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
       this.logger.error('failed to update driver profile');
       throw new InternalServerErrorException('failde to update driver');
     }

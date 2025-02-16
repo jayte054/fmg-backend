@@ -122,6 +122,29 @@ export class DealerService {
     }
   };
 
+  findDealerById2 = async (
+    user: AuthEntity,
+    dealerId: string,
+  ): Promise<DealerResponse> => {
+    try {
+      const dealer = await this.dealerRepository.findDealerId(dealerId);
+
+      if (!dealer) {
+        this.logger.log(`dealer with id ${user.id} not found`);
+        throw new NotFoundException('user not found');
+      }
+
+      this.logger.verbose(`user with id ${user.id} fetched successfully`);
+      return this.mapToDealerResponse(dealer);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`error finding dealer with id ${user.id}`);
+      throw new InternalServerErrorException('failed to find dealer');
+    }
+  };
+
   updateDealer = async (
     user: AuthEntity,
     dealerId: string,
