@@ -55,7 +55,10 @@ export class ProductController {
 
   @Get('/findProducts')
   @HttpCode(HttpStatus.OK)
-  async findProducts(@Query() page: number, @Query() limit: number) {
+  async findProducts(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
     return await this.productService.findProducts(page, limit);
   }
 
@@ -88,7 +91,7 @@ export class ProductController {
     return await this.productService.deleteProduct(dealerId, productId);
   }
 
-  @Post('addDriver/:productId')
+  @Put('addDriver/:productId')
   @HttpCode(HttpStatus.OK)
   async addDriver(
     @GetDealerDecorator() { dealerId }: DealerEntity,

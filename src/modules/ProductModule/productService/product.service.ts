@@ -259,7 +259,6 @@ export class ProductService {
   ): Promise<ProductResponse | string> => {
     const { driverId, driverName, driverEmail, driverPhoneNumber } =
       addDriverCredential;
-
     try {
       if (!driverId || !driverName || !driverEmail || !driverPhoneNumber) {
         this.logger.warn('incomplete driver details');
