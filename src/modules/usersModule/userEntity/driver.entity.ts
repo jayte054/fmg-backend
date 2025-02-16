@@ -28,11 +28,14 @@ export class DriverEntity extends BaseEntity {
   @Column()
   address: string;
 
-  @Column()
+  @Column({ type: 'enum', enum: VehicleType })
   vehicle: VehicleType;
 
-  @Column()
+  @Column({ unique: true })
   vehicleNumber: string;
+
+  @Column({ unique: true })
+  driversLicenseNumber: string;
 
   @Column()
   role: string;
@@ -48,6 +51,7 @@ export class DriverEntity extends BaseEntity {
 
   @ManyToOne(() => AuthEntity, (user) => user.driverId, {
     eager: false,
+    onDelete: 'CASCADE',
   })
   user: AuthEntity;
 

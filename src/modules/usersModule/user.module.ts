@@ -28,6 +28,7 @@ import { DealerEntityRepository } from './repository/dealer.entity.repository';
     BuyerService,
     DealerService,
     DriverService,
+    DealerEntityRepository,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
@@ -40,7 +41,6 @@ import { DealerEntityRepository } from './repository/dealer.entity.repository';
       provide: 'IDriverRepository',
       useClass: DriverRepository,
     },
-    DealerEntityRepository,
   ],
   exports: [DealerEntityRepository],
 })

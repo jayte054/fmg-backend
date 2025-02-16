@@ -1,22 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { cloudinary } from '../config/cloudinary.config';
+import { cloudinary } from '../cloudinaryConfig/cloudinaryConfig';
 import { CloudinaryResponse } from '../cloudinaryResponse/cloudinary.response';
-import streamifier from 'streamifier';
 
+export { cloudinary };
 @Injectable()
 export class CloudinaryService {
   async uploadImage(file: Express.Multer.File): Promise<CloudinaryResponse> {
+    if (!file || !file.buffer) {
+      throw new Error('File buffer is missing');
+    }
+
+    const byteArrayBuffer = file.buffer;
+
     return new Promise<CloudinaryResponse>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        },
-      );
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: 'image',
+            width: 500, // Set desired width
+            height: 500, // Set desired height
+            crop: 'fill', // Ensures the image is resized and cropped to fit
+          }, // Ensures it's processed as an image
+          (error, result) => {
+            if (error) {
+              console.error('Cloudinary Upload Error:', error);
+              reject(error);
+            } else {
+              resolve(result as CloudinaryResponse);
+            }
+          },
+        )
+        .end(byteArrayBuffer);
     });
   }
 

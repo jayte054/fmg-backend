@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
   Query,
@@ -49,6 +50,16 @@ export class DriverController {
   async findDriverById(@Req() req: Request) {
     const { user }: any = req;
     return await this.driverService.findDriverById(user);
+  }
+
+  @Get('/findDriver/:driverId')
+  @HttpCode(HttpStatus.FOUND)
+  async findDriverById2(
+    @Req() req: Request,
+    @Param('driverId') driverId: string,
+  ) {
+    const { user }: any = req;
+    return await this.driverService.findDriverById2(user, driverId);
   }
 
   @Get('/findDrivers')

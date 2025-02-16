@@ -23,7 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload): Promise<AuthEntity> {
     const { id, email, phoneNumber, role, isAdmin } = payload;
-
     const userQueryBuilder = this.authRepository.createQueryBuilder('user');
     userQueryBuilder
       .select([
@@ -37,7 +36,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       .where('user.email = :email', { email, id, phoneNumber, role, isAdmin });
 
     const user = await userQueryBuilder.getOne();
-
     if (!user) {
       throw new UnauthorizedException('unauthorized');
     } else {

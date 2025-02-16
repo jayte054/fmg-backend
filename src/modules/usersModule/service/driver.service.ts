@@ -17,6 +17,10 @@ import {
 import { CreateDriverDto, UpdateDriverDto } from '../utils/user.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { CloudinaryService } from 'src/modules/cloudinaryModule/cloudinaryService/cloudinary.service';
+import axios from 'axios';
+import { config } from 'dotenv';
+
+config();
 
 @Injectable()
 export class DriverService {
@@ -32,18 +36,43 @@ export class DriverService {
     driverCredentials: CreateDriverCredentials,
     files: Express.Multer.File[],
   ): Promise<DriverResponse> => {
-    const { firstName, lastName, vehicleNumber, address, vehicle } =
-      driverCredentials;
+    const {
+      firstName,
+      lastName,
+      vehicleNumber,
+      address,
+      vehicle,
+      driversLicenseNumber,
+    } = driverCredentials;
     try {
       if (!files || files.length < 2) {
-        throw new InternalServerErrorException('both files should be provided');
+        throw new Error('both files should be provided');
       }
 
+      // const verificationResponse =
+      //   await this.verifyDriversLicense(driversLicenseNumber);
+
+      // const testResult = await this.verifyLivenessAndLicense(
+      //   'test-token',
+      //   driversLicenseNumber,
+      //   true,
+      // );
+      // if (!verificationResponse || verificationResponse.status !== 'success') {
+      //   throw new InternalServerErrorException(
+      //     'Driver’s license verification failed',
+      //   );
+      // }
+      // if (!testResult) {
+      //   throw new InternalServerErrorException(
+      //     'Driver’s license verification failed',
+      //   );
+      // }
+
       const [driversLicenseFile, imageFile] = files;
-      const driversLicense: any =
+      const driversLicense =
         await this.cloudinaryService.uploadImage(driversLicenseFile);
 
-      const imageUrl: any = await this.cloudinaryService.uploadImage(imageFile);
+      const imageUrl = await this.cloudinaryService.uploadImage(imageFile);
 
       const createDriverDto: CreateDriverDto = {
         driverId: uuidv4(),
@@ -53,9 +82,10 @@ export class DriverService {
         email: user.email,
         vehicle,
         vehicleNumber,
+        driversLicenseNumber,
         address,
-        driversLicense,
-        imageUrl,
+        driversLicense: driversLicense.secure_url,
+        imageUrl: imageUrl.secure_url,
         role: user.role,
         isAdmin: user.isAdmin,
         userId: user.id,
@@ -68,6 +98,7 @@ export class DriverService {
       );
       return this.mapDriverResponse(driver);
     } catch (error) {
+      console.log(error);
       this.logger.error('failed to create new driver');
       throw new InternalServerErrorException(
         'an error occurred when creating new driver',
@@ -80,6 +111,25 @@ export class DriverService {
       const driver: DriverResponse = await this.driverRepository.findDriverById(
         user.id,
       );
+      if (!driver) {
+        this.logger.verbose(`driver profile with id ${user.id} does not exist`);
+        throw new NotFoundException('driver profile not found');
+      }
+
+      return this.mapDriverResponse(driver);
+    } catch (error) {
+      this.logger.error(`failed to find driver with id ${user.id}`);
+      throw new InternalServerErrorException('failed to find driver');
+    }
+  };
+
+  findDriverById2 = async (
+    user: AuthEntity,
+    driverId: string,
+  ): Promise<DriverResponse> => {
+    try {
+      const driver: DriverResponse =
+        await this.driverRepository.findDriverById2(driverId);
       if (!driver) {
         this.logger.verbose(`driver profile with id ${user.id} does not exist`);
         throw new NotFoundException('driver profile not found');
@@ -257,6 +307,94 @@ export class DriverService {
     const publicId = filename.split('.')[0];
     return publicId;
   }
+
+  private verifyDriversLicense = async (driversLicenseNumber: string) => {
+    try {
+      const response = await axios.post(
+        'https://api.youverify.co/v2/identity/verify',
+        {
+          license_number: driversLicenseNumber,
+          country: 'NG',
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.you_verify_api_key}`,
+          },
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error verifying drivers license ', error);
+      return null;
+    }
+  };
+
+  private verifyLivenessAndLicense = async (
+    livenessToken: string,
+    driversLicenseNumber: string,
+    testMode = false,
+  ) => {
+    try {
+      let livenessResponse;
+
+      if (testMode) {
+        // Mock response for testing
+        livenessResponse = {
+          data: { success: true, message: 'Test liveness verified' },
+        };
+      } else {
+        // Call Youverify API
+        livenessResponse = await axios.post(
+          'https://api.youverify.co/v2/liveness/verify',
+          { token: livenessToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.you_verify_api_key}`,
+            },
+          },
+        );
+      }
+
+      if (!livenessResponse.data.success) {
+        this.logger.error('Liveness check failed');
+        return { success: false, message: 'Liveness check failed' };
+      }
+
+      // Mock License Verification in Test Mode
+      let licenseResponse;
+      if (testMode) {
+        licenseResponse = {
+          data: { success: true, message: 'Test license verified' },
+        };
+      } else {
+        licenseResponse = await axios.post(
+          'https://api.youverify.co/v2/identity/verify',
+          {
+            license_number: driversLicenseNumber,
+            country: 'NG',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.you_verify_api_key}`,
+            },
+          },
+        );
+      }
+
+      return {
+        success: true,
+        livenessResult: livenessResponse.data,
+        licenseResult: licenseResponse.data,
+      };
+    } catch (error) {
+      this.logger.error('Error verifying liveness and driver’s license', error);
+      return { success: false, message: 'Verification failed', error };
+    }
+  };
 
   private mapDriverResponse = (
     driverResponse: DriverResponse,

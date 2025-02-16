@@ -126,6 +126,8 @@ export interface CreateDriverCredentials {
 
   vehicleNumber: string;
 
+  driversLicenseNumber: string;
+
   driversLicense: Express.Multer.File;
 
   file: Express.Multer.File;

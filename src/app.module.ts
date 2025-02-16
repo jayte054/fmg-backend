@@ -11,6 +11,7 @@ import { CloudinaryModule } from './modules/cloudinaryModule/cloudinary.module';
 import { DealerRepositoryMiddleware } from './common/middleware/dealer.repository.middleware';
 import { ProductController } from './modules/ProductModule/productController/product.controller';
 import { ProductModule } from './modules/ProductModule/product.module';
+import { DriverController } from './modules/usersModule/controller/driver.controller';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(JwtCookieMiddleware)
-      .forRoutes(BuyerController, DealerController);
+      .forRoutes(BuyerController, DealerController, DriverController);
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
   }

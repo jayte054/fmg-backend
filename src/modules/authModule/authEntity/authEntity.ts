@@ -38,18 +38,21 @@ export class AuthEntity extends BaseEntity {
 
   @OneToMany(() => BuyerEntity, (buyerId) => buyerId.user, {
     eager: true,
+    cascade: true,
   })
-  buyerId: string;
+  buyerId: BuyerEntity[];
 
   @OneToMany(() => DealerEntity, (dealerId) => dealerId.user, {
     eager: true,
+    cascade: true,
   })
-  dealerId: string;
+  dealerId: DealerEntity[];
 
   @OneToMany(() => DriverEntity, (driverId) => driverId.user, {
     eager: true,
+    cascade: true,
   })
-  driverId: string;
+  driverId: DriverEntity[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

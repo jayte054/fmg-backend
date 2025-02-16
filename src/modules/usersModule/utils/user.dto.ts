@@ -170,6 +170,10 @@ export class CreateDriverDto {
 
   @IsString()
   @IsNotEmpty()
+  driversLicenseNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
   role: string;
 
   @IsString()

@@ -45,6 +45,7 @@ export interface IDriverRepository {
   createDriver(createDriverDto: CreateDriverDto): Promise<DriverResponse>;
   findDriverById(userId: string): Promise<DriverResponse>;
   findDrivers(options: { skip: number; take: number }): Promise<driverResObj>;
+  findDriverById2(driverId: string): Promise<DriverResponse>;
   updateDriver(
     driverId: string,
     updateDto: UpdateDriverDto,
