@@ -10,12 +10,13 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { IProductRepository } from '../interface/IProductRepository.interface';
-import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import {
   AddDriverCredential,
   CreateProductCredentials,
   DriverDetails,
   ProductResponse,
+  Reviewers,
   UpdateProductCredentials,
 } from '../utils/products.type';
 import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
@@ -52,12 +53,13 @@ export class ProductService {
         rating: dealer.rating,
         address: dealer.address,
         location: dealer.location,
-        linkedDrivers: [],
-        reviews: [],
+        linkedDrivers: [] as DriverDetails[],
+        reviews: [] as Reviewers[],
         purchases: 0,
         dealerId: dealer.dealerId,
       };
 
+      console.log(createProductDto);
       const product: ProductResponse =
         await this.productRepository.createProduct(createProductDto);
 
@@ -66,6 +68,7 @@ export class ProductService {
         return this.mapProductResponse(product);
       }
     } catch (error) {
+      console.log(error);
       this.logger.error('failed to create product');
       throw new InternalServerErrorException('failed to create product');
     }

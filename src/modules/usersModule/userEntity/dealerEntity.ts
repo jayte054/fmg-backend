@@ -45,9 +45,11 @@ export class DealerEntity extends BaseEntity {
   @ManyToOne(() => AuthEntity, (user) => user.dealerId, { eager: false })
   user: AuthEntity;
 
-  @OneToMany(() => ProductEntity, (productId) => productId.dealer)
-  productId: string;
+  @OneToMany(() => ProductEntity, (products) => products.dealer, {
+    eager: true,
+  })
+  products: ProductEntity[];
 
-  @Column()
+  @Column('uuid')
   userId: string;
 }

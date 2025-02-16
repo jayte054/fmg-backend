@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as config from 'config';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.entity';
+import { ProductEntity } from '../modules/ProductModule/productEntity/product.entity';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
@@ -22,5 +22,5 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     ProductEntity,
   ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
-  //   migrations: ['dist/migrations/*.js'],
+  migrations: ['dist/migrations/*.js'],
 };

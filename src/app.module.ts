@@ -27,7 +27,12 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(JwtCookieMiddleware)
-      .forRoutes(BuyerController, DealerController, DriverController);
+      .forRoutes(
+        BuyerController,
+        DealerController,
+        DriverController,
+        ProductController,
+      );
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
   }

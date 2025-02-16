@@ -3,6 +3,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -20,7 +21,7 @@ export class ProductEntity extends BaseEntity {
   @Column()
   phoneNumber: string;
 
-  @Column()
+  @Column({ type: 'enum', enum: RetailScale })
   scale: RetailScale;
 
   @Column()
@@ -35,16 +36,17 @@ export class ProductEntity extends BaseEntity {
   @Column()
   location: string;
 
-  @Column('jsonb', { array: true, nullable: true })
+  @Column({ type: 'jsonb', default: [] })
   linkedDrivers: DriverDetails[];
 
-  @Column('jsonb', { array: true, nullable: true })
+  @Column({ type: 'jsonb', default: [] })
   reviews: Reviewers[];
 
   @Column()
   purchases: number;
 
-  @ManyToOne(() => DealerEntity, (dealer) => dealer.productId, { eager: false })
+  @ManyToOne(() => DealerEntity, (dealer) => dealer.products, { eager: false })
+  @JoinColumn({ name: 'dealerId' })
   dealer: DealerEntity;
 
   @Column()

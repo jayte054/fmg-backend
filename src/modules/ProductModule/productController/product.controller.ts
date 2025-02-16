@@ -21,7 +21,7 @@ import {
   UpdateProductCredentials,
 } from '../utils/products.type';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
-import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
@@ -35,6 +35,7 @@ export class ProductController {
     @Body(ValidationPipe) createProductCredentials: CreateProductCredentials,
     @GetDealerDecorator() dealer: DealerEntity,
   ) {
+    console.log(dealer.dealerId);
     return await this.productService.createProduct(
       dealer,
       createProductCredentials,
