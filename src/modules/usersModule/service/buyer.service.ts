@@ -58,7 +58,6 @@ export class BuyerService {
 
       return this.mapToBuyerResponse(buyer);
     } catch (error) {
-      console.log(error);
       this.logger.error('failed to create new buyer');
       if (error instanceof DuplicateException) {
         throw error;
@@ -150,7 +149,6 @@ export class BuyerService {
       );
       return this.mapToBuyerResponse(updateBuyer);
     } catch (error) {
-      console.log(error);
       this.logger.error('failed to update buyer details');
       throw new InternalServerErrorException('failed to update buyer details');
     }

@@ -63,7 +63,6 @@ export class AuthRepository extends Repository<AuthEntity> {
       .where('user.email = :email', { email });
 
     const user = await queryBuilder.getOne();
-    console.log(user);
     const userValidation = await user.validatePassword(password);
     if (user && userValidation) {
       return {

@@ -12,9 +12,13 @@ import { DealerRepositoryMiddleware } from './common/middleware/dealer.repositor
 import { ProductController } from './modules/ProductModule/productController/product.controller';
 import { ProductModule } from './modules/ProductModule/product.module';
 import { DriverController } from './modules/usersModule/controller/driver.controller';
+import { BuyerRepositoryMiddleware } from './common/middleware/buyer.repository.middleware';
+import { PurchaseController } from './modules/purchaseModule/purchaseController/purchase.controller';
+import { PurchaseModule } from './modules/purchaseModule/purchase.module';
 
 @Module({
   imports: [
+    PurchaseModule,
     ProductModule,
     CloudinaryModule,
     AuthModule,
@@ -32,8 +36,11 @@ export class AppModule implements NestModule {
         DealerController,
         DriverController,
         ProductController,
+        PurchaseController,
       );
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
+
+    consumer.apply(BuyerRepositoryMiddleware).forRoutes(PurchaseController);
   }
 }

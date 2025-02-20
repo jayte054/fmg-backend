@@ -59,7 +59,6 @@ export class ProductService {
         dealerId: dealer.dealerId,
       };
 
-      console.log(createProductDto);
       const product: ProductResponse =
         await this.productRepository.createProduct(createProductDto);
 
@@ -68,7 +67,6 @@ export class ProductService {
         return this.mapProductResponse(product);
       }
     } catch (error) {
-      console.log(error);
       this.logger.error('failed to create product');
       throw new InternalServerErrorException('failed to create product');
     }

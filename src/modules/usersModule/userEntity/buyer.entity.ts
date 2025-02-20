@@ -1,9 +1,11 @@
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { PurchaseEntity } from 'src/modules/purchaseModule/purchaseEntity/purchase.entity';
 import {
   BaseEntity,
   Column,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
@@ -42,6 +44,11 @@ export class BuyerEntity extends BaseEntity {
     eager: false,
   })
   user: AuthEntity;
+
+  @OneToMany(() => PurchaseEntity, (purchases) => purchases.buyer, {
+    eager: true,
+  })
+  purchases: PurchaseEntity[];
 
   @Column()
   userId: string;

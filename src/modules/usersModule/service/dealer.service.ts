@@ -220,7 +220,6 @@ export class DealerService {
 
       if (result) return `dealer profile successfully deleted`;
     } catch (error) {
-      console.log(error);
       if (
         error instanceof NotFoundException ||
         error instanceof UnauthorizedException

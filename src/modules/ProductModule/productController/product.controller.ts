@@ -35,7 +35,6 @@ export class ProductController {
     @Body(ValidationPipe) createProductCredentials: CreateProductCredentials,
     @GetDealerDecorator() dealer: DealerEntity,
   ) {
-    console.log(dealer.dealerId);
     return await this.productService.createProduct(
       dealer,
       createProductCredentials,

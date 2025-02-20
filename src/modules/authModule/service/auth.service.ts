@@ -32,7 +32,6 @@ export class AuthService {
 
     try {
       const existingUser = await this.authRepository.findUser(email);
-      console.log(existingUser);
       if (existingUser) {
         this.logger.log(`user with email ${email} already exists`);
         throw new ConflictException('user already exists');
@@ -59,7 +58,6 @@ export class AuthService {
         isAdmin: newUser.isAdmin,
       };
     } catch (error) {
-      console.log(error);
       this.logger.error('error signing up');
       return error;
     }
@@ -100,7 +98,6 @@ export class AuthService {
       };
       return responsePayload;
     } catch (error) {
-      console.log(error);
       this.logger.error('error signing in');
       throw new Error('incorrect user details');
     }

@@ -16,6 +16,7 @@ import { DriverRepository } from './repository/driver.repository';
 import { DriverController } from './controller/driver.controller';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
 import { DealerEntityRepository } from './repository/dealer.entity.repository';
+import { BuyerEntityRepository } from './repository/buyer.entity.repository';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DealerEntityRepository } from './repository/dealer.entity.repository';
     DealerService,
     DriverService,
     DealerEntityRepository,
+    BuyerEntityRepository,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
@@ -42,7 +44,7 @@ import { DealerEntityRepository } from './repository/dealer.entity.repository';
       useClass: DriverRepository,
     },
   ],
-  exports: [DealerEntityRepository],
+  exports: [DealerEntityRepository, BuyerEntityRepository],
 })
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -10,7 +10,6 @@ export const GetDealerDecorator = createParamDecorator(
   async (Data: unknown, ctx: ExecutionContext): Promise<DealerEntity> => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
-    console.log(user);
     if (!user) {
       throw new UnauthorizedException('Dealer unauthorized');
     }

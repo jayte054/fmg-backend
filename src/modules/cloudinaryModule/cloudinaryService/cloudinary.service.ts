@@ -23,7 +23,6 @@ export class CloudinaryService {
           }, // Ensures it's processed as an image
           (error, result) => {
             if (error) {
-              console.error('Cloudinary Upload Error:', error);
               reject(error);
             } else {
               resolve(result as CloudinaryResponse);

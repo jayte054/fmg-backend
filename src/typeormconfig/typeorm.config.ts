@@ -5,6 +5,7 @@ import { ProductEntity } from '../modules/ProductModule/productEntity/product.en
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { PurchaseEntity } from 'src/modules/purchaseModule/purchaseEntity/purchase.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: TypeOrmModuleOptions = {
@@ -20,6 +21,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     DealerEntity,
     DriverEntity,
     ProductEntity,
+    PurchaseEntity,
   ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   migrations: ['dist/migrations/*.js'],
