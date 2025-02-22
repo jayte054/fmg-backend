@@ -14,4 +14,9 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
     const purchase = await newPurchase.save();
     return purchase;
   };
+
+  findPurchaseById = async (purchaseId: string) => {
+    const product = await this.findOne({ where: { purchaseId } });
+    return product;
+  };
 }

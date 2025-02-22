@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
+  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -12,6 +15,7 @@ import { PurchaseService } from '../purchaseService/purchase.service';
 import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { CreatePurchaseCredentials } from '../utils/purchase.type';
+import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
 @Controller('purchase')
@@ -28,5 +32,16 @@ export class PurchaseController {
       buyer,
       createPurchaseCredentials,
     );
+  }
+
+  @Get('findPurchaseById/:purchaseId')
+  @HttpCode(HttpStatus.OK)
+  async findPurchaseById(
+    @Param('purchaseId') purchaseId: string,
+    @GetBuyerDecorator() buyer: BuyerEntity,
+    @Req() req: Request,
+  ) {
+    const { user }: any = req;
+    return await this.purchaseService.findPurchaseById(purchaseId, buyer, user);
   }
 }

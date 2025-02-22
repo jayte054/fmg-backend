@@ -5,4 +5,6 @@ export interface IPurchaseRepository {
   createPurchase(
     createPurchaseDto: CreatePurchaseDto,
   ): Promise<PurchaseResponse>;
+
+  findPurchaseById(purchaseId: string): Promise<PurchaseResponse>;
 }

@@ -3,6 +3,8 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { IPurchaseRepository } from '../interface/IPurchaseRepository.interface';
@@ -12,6 +14,7 @@ import {
   PurchaseResponse,
 } from '../utils/purchase.type';
 import { CreatePurchaseDto } from '../utils/purchase.dto';
+import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 
 @Injectable()
 export class PurchaseService {
@@ -53,6 +56,36 @@ export class PurchaseService {
     } catch (error) {
       this.logger.error('failed to complete purchase by dealer', buyer.buyerId);
       throw new InternalServerErrorException('failed to complete purchase');
+    }
+  };
+
+  findPurchaseById = async (
+    purchaseId: string,
+    buyer: BuyerEntity,
+    user: AuthEntity,
+  ) => {
+    try {
+      const purchase =
+        await this.purchaseRepository.findPurchaseById(purchaseId);
+
+      if (!purchase) {
+        this.logger.warn(`purchase with id ${purchaseId} not found`);
+        throw new NotFoundException(`purchase record not found`);
+      }
+      if (purchase.buyerId !== buyer.buyerId || buyer.userId !== user.id) {
+        this.logger.warn(`user with id ${buyer.buyerId} not found`);
+        throw new UnauthorizedException('unauthorized access');
+      } else {
+        this.logger.verbose(
+          `purchase with id ${purchaseId} successfully fetched`,
+        );
+        return this.mapPurchaseResponse(purchase);
+      }
+    } catch (error) {
+      this.logger.error(
+        `an error occurred when fetching purchase order with id ${purchaseId}`,
+      );
+      throw new InternalServerErrorException('an error occurred');
     }
   };
 
