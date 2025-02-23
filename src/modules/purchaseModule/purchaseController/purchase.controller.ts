@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
   ValidationPipe,
@@ -43,5 +44,14 @@ export class PurchaseController {
   ) {
     const { user }: any = req;
     return await this.purchaseService.findPurchaseById(purchaseId, buyer, user);
+  }
+
+  @Get('findPurchases')
+  @HttpCode(HttpStatus.OK)
+  async findPurchases(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+  ) {
+    return await this.purchaseService.findPurchases(page, limit);
   }
 }

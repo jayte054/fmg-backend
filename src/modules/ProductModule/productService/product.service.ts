@@ -119,12 +119,22 @@ export class ProductService {
     try {
       const { products, total }: productResObj =
         await this.productRepository.findProducts({ skip, take: limit });
+
+      if (!products) {
+        this.logger.warn('products not found');
+        throw new NotFoundException('products not found');
+      }
+      this.logger.verbose('purchases fetched successfully');
+
       return {
         data: products,
         total,
         currentPage: page,
       };
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       this.logger.error('error fetching products');
       throw new InternalServerErrorException(
         'an error occured, please try again',

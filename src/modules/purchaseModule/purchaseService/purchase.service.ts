@@ -11,6 +11,7 @@ import { IPurchaseRepository } from '../interface/IPurchaseRepository.interface'
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
+  PurchaseResObj,
   PurchaseResponse,
 } from '../utils/purchase.type';
 import { CreatePurchaseDto } from '../utils/purchase.dto';
@@ -86,6 +87,48 @@ export class PurchaseService {
         `an error occurred when fetching purchase order with id ${purchaseId}`,
       );
       throw new InternalServerErrorException('an error occurred');
+    }
+  };
+
+  findPurchases = async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    data: PurchaseResponse[];
+    total: number;
+    currentPage: number;
+  }> => {
+    const currentPage = Math.max(page, 1);
+    const currentLimit = Math.max(limit, 1);
+    const skip = (currentPage - 1) * currentLimit;
+
+    try {
+      const { purchases, total }: PurchaseResObj =
+        await this.purchaseRepository.findPurchases({
+          skip,
+          take: limit,
+        });
+
+      if (!purchases) {
+        this.logger.warn('purchases not found');
+        throw new NotFoundException('purchases not found');
+      }
+
+      this.logger.verbose('purchases fetched successfully');
+
+      return {
+        data: purchases,
+        total,
+        currentPage: page,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('error fetching purchases');
+      throw new InternalServerErrorException(
+        'an error occured, please try again',
+      );
     }
   };
 

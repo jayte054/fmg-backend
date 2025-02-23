@@ -56,3 +56,8 @@ export interface CreatePurchaseCredentials {
 
   address?: string;
 }
+
+export interface PurchaseResObj {
+  purchases: PurchaseResponse[];
+  total: number;
+}

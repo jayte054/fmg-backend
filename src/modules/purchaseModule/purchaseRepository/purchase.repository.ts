@@ -19,4 +19,15 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
     const product = await this.findOne({ where: { purchaseId } });
     return product;
   };
+
+  findPurchases = async (options: { skip: number; take: number }) => {
+    const purchaseQuery = this.createQueryBuilder('purchases');
+
+    const [purchases, total] = await purchaseQuery
+      .skip(options.skip)
+      .take(options.take)
+      .getManyAndCount();
+
+    return { purchases, total };
+  };
 }

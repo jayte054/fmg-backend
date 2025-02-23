@@ -1,5 +1,5 @@
 import { CreatePurchaseDto } from '../utils/purchase.dto';
-import { PurchaseResponse } from '../utils/purchase.type';
+import { PurchaseResObj, PurchaseResponse } from '../utils/purchase.type';
 
 export interface IPurchaseRepository {
   createPurchase(
@@ -7,4 +7,8 @@ export interface IPurchaseRepository {
   ): Promise<PurchaseResponse>;
 
   findPurchaseById(purchaseId: string): Promise<PurchaseResponse>;
+  findPurchases(options: {
+    skip: number;
+    take: number;
+  }): Promise<PurchaseResObj>;
 }
