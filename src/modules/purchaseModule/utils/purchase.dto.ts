@@ -45,3 +45,17 @@ export class CreatePurchaseDto {
   @IsNotEmpty()
   buyerId: string;
 }
+
+export class UpdatePurchaseDto {
+  purchaseId?: string;
+  productId?: string;
+  price?: string;
+  priceType?: PriceType;
+  cylinderType?: CylinderType;
+  purchaseType?: PurchaseType;
+  buyerName?: string;
+  address?: string;
+  location?: string;
+  purchaseDate?: string;
+  buyerId?: string;
+}

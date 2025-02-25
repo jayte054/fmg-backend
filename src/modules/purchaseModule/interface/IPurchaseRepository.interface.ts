@@ -1,4 +1,4 @@
-import { CreatePurchaseDto } from '../utils/purchase.dto';
+import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { PurchaseResObj, PurchaseResponse } from '../utils/purchase.type';
 
 export interface IPurchaseRepository {
@@ -11,4 +11,8 @@ export interface IPurchaseRepository {
     skip: number;
     take: number;
   }): Promise<PurchaseResObj>;
+  updatePurchase(
+    purchaseId: string,
+    updatePurchaseDto: UpdatePurchaseDto,
+  ): Promise<PurchaseResponse>;
 }

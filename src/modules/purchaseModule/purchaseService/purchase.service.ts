@@ -13,8 +13,9 @@ import {
   CreatePurchaseCredentials,
   PurchaseResObj,
   PurchaseResponse,
+  UpdatePurchaseCredentials,
 } from '../utils/purchase.type';
-import { CreatePurchaseDto } from '../utils/purchase.dto';
+import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 
 @Injectable()
@@ -129,6 +130,70 @@ export class PurchaseService {
       throw new InternalServerErrorException(
         'an error occured, please try again',
       );
+    }
+  };
+
+  updatePurchase = async (
+    buyerId: string,
+    purchaseId: string,
+    updatePurchaseCredentials: UpdatePurchaseCredentials,
+  ): Promise<PurchaseResponse> => {
+    const { price, priceType, purchaseType, cylinderType, address } =
+      updatePurchaseCredentials;
+
+    try {
+      const purchase: PurchaseResponse =
+        await this.purchaseRepository.findPurchaseById(purchaseId);
+
+      if (!purchase) {
+        this.logger.warn(`purchase with id ${purchaseId} does not exist`);
+        throw new NotFoundException(`purchase not found`);
+      }
+
+      if (purchase.buyerId !== buyerId) {
+        this.logger.warn(`Unauthorized access attempt by buyer ID: ${buyerId}`);
+        throw new UnauthorizedException(
+          'User is not authorized to update this purchase.',
+        );
+      }
+
+      const updatePurchaseDto: UpdatePurchaseDto = {
+        purchaseId: purchase.purchaseId,
+        productId: purchase.productId,
+        price: price ?? purchase.price,
+        priceType: priceType ?? purchase.priceType,
+        cylinderType: cylinderType ?? purchase.cylinderType,
+        buyerName: purchase.buyerName,
+        address: address ?? purchase.address,
+        location: purchase.location,
+        purchaseType: purchaseType ?? purchase.purchaseType,
+        purchaseDate: purchase.purchaseDate,
+        buyerId: purchase.buyerId,
+      };
+
+      const newPurchase = await this.purchaseRepository.updatePurchase(
+        purchaseId,
+        updatePurchaseDto,
+      );
+
+      if (newPurchase) {
+        this.logger.verbose(
+          `purchase with id ${purchaseId} updated successfully`,
+        );
+        return this.mapPurchaseResponse(newPurchase);
+      }
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        'an error occured while updating purchase with id ',
+        purchaseId,
+      );
+      throw new InternalServerErrorException('an error occurred');
     }
   };
 

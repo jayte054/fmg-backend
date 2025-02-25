@@ -61,3 +61,11 @@ export interface PurchaseResObj {
   purchases: PurchaseResponse[];
   total: number;
 }
+
+export interface UpdatePurchaseCredentials {
+  price?: string;
+  cylinderType?: CylinderType;
+  priceType?: PriceType;
+  purchaseType?: PurchaseType;
+  address?: string;
+}

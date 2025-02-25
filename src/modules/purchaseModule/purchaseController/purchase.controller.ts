@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -15,7 +16,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { PurchaseService } from '../purchaseService/purchase.service';
 import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
-import { CreatePurchaseCredentials } from '../utils/purchase.type';
+import { CreatePurchaseCredentials, UpdatePurchaseCredentials } from '../utils/purchase.type';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
@@ -53,5 +54,18 @@ export class PurchaseController {
     @Query('limit') limit: number,
   ) {
     return await this.purchaseService.findPurchases(page, limit);
+  }
+
+  @Put('/updatePurchase/:purchaseId')
+  async updatePurchase(
+    @Param('purchaseId') purchaseId: string,
+    @GetBuyerDecorator() { buyerId }: BuyerEntity,
+    @Body() updatePurchaseCredentials: UpdatePurchaseCredentials
+  ) {
+    return await this.purchaseService.updatePurchase(
+      buyerId,
+      purchaseId,
+      updatePurchaseCredentials,
+    );
   }
 }

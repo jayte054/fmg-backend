@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
-import { CreatePurchaseDto } from '../utils/purchase.dto';
+import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 
 @Injectable()
 export class PurchaseRepository extends Repository<PurchaseEntity> {
@@ -29,5 +29,18 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
       .getManyAndCount();
 
     return { purchases, total };
+  };
+
+  updatePurchase = async (
+    purchaseId: string,
+    updatePurchaseDto: UpdatePurchaseDto,
+  ) => {
+    const updateResult = await this.update({ purchaseId }, updatePurchaseDto);
+
+    if (updateResult.affected === 0) {
+      throw new NotFoundException(`Purchase with ID ${purchaseId} not found`);
+    }
+
+    return await this.findOne({ where: { purchaseId } });
   };
 }
