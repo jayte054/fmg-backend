@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -16,7 +17,10 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { PurchaseService } from '../purchaseService/purchase.service';
 import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
-import { CreatePurchaseCredentials, UpdatePurchaseCredentials } from '../utils/purchase.type';
+import {
+  CreatePurchaseCredentials,
+  UpdatePurchaseCredentials,
+} from '../utils/purchase.type';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
@@ -57,15 +61,25 @@ export class PurchaseController {
   }
 
   @Put('/updatePurchase/:purchaseId')
+  @HttpCode(HttpStatus.OK)
   async updatePurchase(
     @Param('purchaseId') purchaseId: string,
     @GetBuyerDecorator() { buyerId }: BuyerEntity,
-    @Body() updatePurchaseCredentials: UpdatePurchaseCredentials
+    @Body() updatePurchaseCredentials: UpdatePurchaseCredentials,
   ) {
     return await this.purchaseService.updatePurchase(
       buyerId,
       purchaseId,
       updatePurchaseCredentials,
     );
+  }
+
+  @Delete('/deletePurchase/:purchaseId')
+  @HttpCode(HttpStatus.OK)
+  async deletePurchase(
+    @Param('purchaseId') purchaseId: string,
+    @GetBuyerDecorator() { buyerId }: BuyerEntity,
+  ) {
+    return await this.purchaseService.deletePurchase(purchaseId, buyerId);
   }
 }

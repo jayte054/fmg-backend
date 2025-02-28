@@ -43,4 +43,9 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
 
     return await this.findOne({ where: { purchaseId } });
   };
+
+  deletePurchase = async (purchaseId: string) => {
+    await this.delete({ purchaseId });
+    return 'purchase deleted successfully';
+  };
 }

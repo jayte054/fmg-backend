@@ -15,4 +15,5 @@ export interface IPurchaseRepository {
     purchaseId: string,
     updatePurchaseDto: UpdatePurchaseDto,
   ): Promise<PurchaseResponse>;
+  deletePurchase(purchaseId: string): Promise<string>;
 }

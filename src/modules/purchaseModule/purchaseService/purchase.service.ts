@@ -197,6 +197,43 @@ export class PurchaseService {
     }
   };
 
+  deletePurchase = async (
+    purchaseId: string,
+    buyerId: string,
+  ): Promise<string> => {
+    try {
+      const purchase =
+        await this.purchaseRepository.findPurchaseById(purchaseId);
+
+      if (!purchase) {
+        this.logger.warn(`purchase with id ${purchaseId} not found`);
+      }
+
+      if (purchase.buyerId !== buyerId) {
+        this.logger.warn('unauthorized access to purchase');
+        throw new UnauthorizedException(
+          'user not authorized to delete purchase',
+        );
+      }
+
+      const response = await this.purchaseRepository.deletePurchase(purchaseId);
+
+      return response;
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      this.logger.error(
+        'an error occured while deleting purchase with id ',
+        purchaseId,
+      );
+      throw new InternalServerErrorException('an error occurred');
+    }
+  };
+
   private mapPurchaseResponse = (
     purchaseResponse: PurchaseResponse,
   ): PurchaseResponse => {
