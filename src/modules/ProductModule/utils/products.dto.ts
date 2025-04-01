@@ -42,8 +42,7 @@ export class CreateProductDto {
   address: string;
 
   @IsNotEmpty()
-  @IsString()
-  location: string;
+  location: { latitude: number; longitude: number };
 
   @IsNotEmpty()
   @IsArray()
@@ -72,7 +71,7 @@ export class UpdateProductDto {
   pricePerKg?: number;
   rating?: number;
   address?: string;
-  location?: string;
+  location?: { latitude: number; longitude: number };
   linkedDrivers?: DriverDetails[];
   reviews?: Reviewers[];
   purchases?: number;

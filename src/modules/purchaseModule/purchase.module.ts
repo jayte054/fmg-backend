@@ -6,9 +6,16 @@ import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repositor
 import { PurchaseController } from './purchaseController/purchase.controller';
 import { PurchaseRepository } from './purchaseRepository/purchase.repository';
 import { PurchaseService } from './purchaseService/purchase.service';
+import { NotificationModule } from '../notificationModule/notification.module';
+import { ProductModule } from '../ProductModule/product.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseEntity]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([PurchaseEntity]),
+    UserModule,
+    NotificationModule,
+    ProductModule,
+  ],
   controllers: [PurchaseController],
   providers: [
     PurchaseService,

@@ -26,9 +26,8 @@ export class CreateBuyerDto {
   @IsNotEmpty()
   address: string;
 
-  @IsString()
   @IsNotEmpty()
-  location: string;
+  location: { latitude: number; longitude: number };
 
   @IsString()
   @IsNotEmpty()
@@ -56,7 +55,7 @@ export class UpdateBuyerDto {
 
   address?: string;
 
-  location?: string;
+  location?: { latitude: number; longitude: number };
 
   role?: string;
 
@@ -86,9 +85,8 @@ export class CreateDealerDto {
   @IsNotEmpty()
   address: string;
 
-  @IsString()
   @IsNotEmpty()
-  location: string;
+  location: { latitude: number; longitude: number };
 
   @IsString()
   @IsNotEmpty()
@@ -122,7 +120,7 @@ export interface UpdateDealerDto {
 
   address?: string;
 
-  location?: string;
+  location?: { latitude: number; longitude: number };
 
   role?: string;
 

@@ -33,8 +33,8 @@ export class ProductEntity extends BaseEntity {
   @Column()
   address: string;
 
-  @Column()
-  location: string;
+  @Column({ type: 'jsonb', default: [] })
+  location: { latitude: number; longitude: number };
 
   @Column({ type: 'jsonb', default: [] })
   linkedDrivers: DriverDetails[];

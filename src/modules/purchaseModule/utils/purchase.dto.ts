@@ -34,8 +34,7 @@ export class CreatePurchaseDto {
   @IsNotEmpty()
   address: string;
 
-  @IsString()
-  location?: string;
+  location?: { latitude: number; longitude: number };
 
   @IsString()
   @IsNotEmpty()
@@ -55,7 +54,7 @@ export class UpdatePurchaseDto {
   purchaseType?: PurchaseType;
   buyerName?: string;
   address?: string;
-  location?: string;
+  location?: { latitude: number; longitude: number };
   purchaseDate?: string;
   buyerId?: string;
 }

@@ -24,7 +24,7 @@ import { DealerRepository } from '../usersModule/repository/dealer.repository';
       useClass: DealerRepository,
     },
   ],
-  exports: [],
+  exports: [ProductService],
 })
 export class ProductModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

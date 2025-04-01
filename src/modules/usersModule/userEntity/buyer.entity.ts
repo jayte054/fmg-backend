@@ -31,8 +31,8 @@ export class BuyerEntity extends BaseEntity {
   @Column()
   address: string;
 
-  @Column()
-  location: string;
+  @Column({ type: 'jsonb' })
+  location: { latitude: number; longitude: number };
 
   @Column()
   role: string;

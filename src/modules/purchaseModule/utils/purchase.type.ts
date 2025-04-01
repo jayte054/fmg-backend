@@ -36,7 +36,7 @@ export interface PurchaseResponse {
 
   address: string;
 
-  location: string;
+  location: { latitude: number; longitude: number };
 
   purchaseDate: string;
 

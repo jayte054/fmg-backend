@@ -17,6 +17,8 @@ import {
 } from '../utils/purchase.type';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { ProductService } from 'src/modules/ProductModule/productService/product.service';
+import { PushNotificationService } from 'src/modules/notificationModule/notificationService/push-notification.service';
 
 @Injectable()
 export class PurchaseService {
@@ -24,12 +26,17 @@ export class PurchaseService {
   constructor(
     @Inject('IPurchaseRepository')
     private readonly purchaseRepository: IPurchaseRepository,
+    private readonly productService: ProductService,
+    private readonly pushNotificationService: PushNotificationService,
   ) {}
 
   createPurchase = async (
     buyer: BuyerEntity,
     createPurchaseCredentials: CreatePurchaseCredentials,
-  ): Promise<PurchaseResponse> => {
+  ): Promise<{
+    purchaseResponse: PurchaseResponse;
+    notificationResponse: any;
+  }> => {
     const { price, purchaseType, cylinderType, priceType, address, productId } =
       createPurchaseCredentials;
 
@@ -51,9 +58,28 @@ export class PurchaseService {
       const purchase: PurchaseResponse =
         await this.purchaseRepository.createPurchase(createPurchaseDto);
 
+      const product =
+        await this.productService.findProductByPurchaseService(productId);
+      if (!product) return;
+
+      const { linkedDrivers } = product;
+
       if (purchase) {
+        const sendNotificationResponse =
+          await this.pushNotificationService.sendNotification({
+            purchaseId: purchase.purchaseId,
+            productId: purchase.productId,
+            driverId: linkedDrivers[0].driverId,
+            message:
+              ' a new purchase has been made, you are required for delivery',
+          });
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
-        return this.mapPurchaseResponse(purchase);
+        const purchaseResponse = this.mapPurchaseResponse(purchase);
+
+        return {
+          notificationResponse: sendNotificationResponse,
+          purchaseResponse,
+        };
       }
     } catch (error) {
       this.logger.error('failed to complete purchase by dealer', buyer.buyerId);

@@ -35,8 +35,8 @@ export class PurchaseEntity extends BaseEntity {
   @Column()
   address: string;
 
-  @Column({ nullable: true })
-  location: string;
+  @Column({ nullable: true, type: 'jsonb' })
+  location: { latitude: number; longitude: number };
 
   @Column()
   purchaseDate: string;

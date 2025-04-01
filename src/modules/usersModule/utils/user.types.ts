@@ -4,7 +4,7 @@ export interface BuyerResponse {
   lastName: string;
   phoneNumber: string;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
   email: string;
   role: string;
   isAdmin: boolean;
@@ -19,7 +19,7 @@ export interface BuyerCredentials {
   role: string;
   isAdmin: boolean;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
 }
 
 export interface Usertype {
@@ -45,7 +45,7 @@ export interface DealerResponse {
   phoneNumber: string;
   email: string;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
   role: string;
   isAdmin: boolean;
   scale: RetailScale;
@@ -57,7 +57,7 @@ export interface DealerCredentials {
   name: string;
   phoneNumber: string;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
   scale: RetailScale;
   rating: number;
 }
@@ -77,7 +77,7 @@ export interface UpdateCredentials {
   phoneNumber: string;
   email: string;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
   scale: RetailScale;
 }
 

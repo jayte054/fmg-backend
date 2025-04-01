@@ -25,7 +25,7 @@ export interface ProductResponse {
   pricePerKg: number;
   rating: number;
   address: string;
-  location: string;
+  location: { latitude: number; longitude: number };
   linkedDrivers: DriverDetails[];
   reviews: Reviewers[];
   purchases: number;
@@ -47,7 +47,7 @@ export interface UpdateProductCredentials {
   scale?: RetailScale;
   pricePerKg?: number;
   address?: string;
-  location?: string;
+  location?: { latitude: number; longitude: number };
 }
 
 export interface AddDriverCredential {

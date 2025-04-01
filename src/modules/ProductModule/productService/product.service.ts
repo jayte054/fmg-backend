@@ -104,6 +104,39 @@ export class ProductService {
     }
   };
 
+  findProductByPurchaseService = async (
+    productId: string,
+  ): Promise<ProductResponse> => {
+    try {
+      const product = await this.productRepository.findProductById(productId);
+
+      if (!product) {
+        this.logger.log(`product with id ${productId} not found`);
+        throw new NotFoundException('product not found');
+      }
+
+      if (product.linkedDrivers.length > 1) {
+        const firstDriver = product.linkedDrivers.shift(); // Remove the first driver
+        product.linkedDrivers.push(firstDriver!); // Add it to the end
+
+        this.logger.verbose(
+          `Product with ID ${productId} found and linked drivers rotated`,
+        );
+      }
+
+      return this.mapProductResponse(product);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error; // Allow known errors to propagate
+      }
+      this.logger.verbose(`product with product id ${productId} not found`);
+      throw new InternalServerErrorException('product not found');
+    }
+  };
+
   findProducts = async (
     page: number = 1,
     limit: number = 10,
