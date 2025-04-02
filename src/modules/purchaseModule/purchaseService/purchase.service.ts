@@ -66,10 +66,10 @@ export class PurchaseService {
 
       if (purchase) {
         const sendNotificationResponse =
-          await this.pushNotificationService.sendNotification({
+          await this.pushNotificationService.sendDriverNotification({
             purchaseId: purchase.purchaseId,
             productId: purchase.productId,
-            driverId: linkedDrivers[0].driverId,
+            id: linkedDrivers[0].driverId,
             message:
               ' a new purchase has been made, you are required for delivery',
           });

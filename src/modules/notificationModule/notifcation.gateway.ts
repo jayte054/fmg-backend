@@ -39,8 +39,15 @@ export class NotificationGateway {
     this.logger.log(`Driver ${driverId} regitered with socket ${client.id}`);
   }
 
-  sendNotification(driverId: string, message: string, metadata?: any) {
+  sendDriverNotification(driverId: string, message: string, metadata?: any) {
     const socketId = this.driverSockets.get(driverId);
+    if (socketId) {
+      this.server.to(socketId).emit('notification', { message, metadata });
+    }
+  }
+
+  sendUserNotification(id: string, message: string, metadata?: any) {
+    const socketId = this.driverSockets.get(id);
     if (socketId) {
       this.server.to(socketId).emit('notification', { message, metadata });
     }

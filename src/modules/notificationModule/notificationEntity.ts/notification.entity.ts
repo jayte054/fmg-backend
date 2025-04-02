@@ -11,7 +11,7 @@ export class PushNotificationEntity {
   notificationId: string;
 
   @Column()
-  driverId: string;
+  id: string;
 
   @Column()
   purchaseId: string;

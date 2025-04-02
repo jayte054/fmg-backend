@@ -15,15 +15,15 @@ export class PushNotificationService {
     private notificationGateway: NotificationGateway,
   ) {}
 
-  async sendNotification(pushNotificationDto: PushNotificationDto) {
-    const { purchaseId, productId, driverId, message, metadata } =
+  async sendDriverNotification(pushNotificationDto: PushNotificationDto) {
+    const { purchaseId, productId, id, message, metadata } =
       pushNotificationDto;
 
     const notification = this.notificationRepository.create({
       notificationId: uuidV4(),
       purchaseId,
       productId,
-      driverId,
+      id,
       message,
       metadata,
       isRead: false,
@@ -32,7 +32,7 @@ export class PushNotificationService {
 
     await this.notificationRepository.save(notification);
 
-    this.notificationGateway.sendNotification(driverId, message, metadata);
+    this.notificationGateway.sendDriverNotification(id, message, metadata);
     this.logger.log('notification sent successfully');
     return notification;
   }
@@ -40,10 +40,48 @@ export class PushNotificationService {
   getDriverNotification = async (
     driverId: string,
   ): Promise<PushNotificationEntity[]> => {
-    return this.notificationRepository.find({
-      where: { driverId, isRead: false },
+    const notification = this.notificationRepository.find({
+      where: { id: driverId, isRead: false },
       order: { createdAt: 'DESC' },
     });
+    this.logger.verbose('notification fetched successfully');
+    return notification;
+  };
+
+  sendUserNotification = async (pushNotificationDto: PushNotificationDto) => {
+    const { purchaseId, productId, id, message, metadata } =
+      pushNotificationDto;
+
+    const notification = this.notificationRepository.create({
+      notificationId: uuidV4(),
+      purchaseId,
+      productId,
+      id,
+      message,
+      metadata,
+      isRead: false,
+      createdAt: new Date(),
+    });
+
+    await this.notificationRepository.save(notification);
+
+    this.notificationGateway.sendUserNotification(id, message, metadata);
+    this.logger.log('notification sent successfully');
+    return notification;
+  };
+
+  getUserNotification = async (
+    userId: string,
+  ): Promise<PushNotificationEntity[]> => {
+    const notification = await this.notificationRepository.find({
+      where: {
+        id: userId,
+        isRead: false,
+      },
+      order: { createdAt: 'DESC' },
+    });
+    this.logger.verbose('notification fetched successfully');
+    return notification;
   };
 
   async markNotificationAsRead(notificationId: string) {

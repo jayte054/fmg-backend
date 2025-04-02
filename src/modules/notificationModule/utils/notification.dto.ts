@@ -11,7 +11,7 @@ export class PushNotificationDto {
 
   @IsString()
   @IsNotEmpty()
-  driverId: string;
+  id: string;
 
   @IsString()
   @IsNotEmpty()
