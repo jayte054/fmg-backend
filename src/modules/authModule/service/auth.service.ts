@@ -15,6 +15,7 @@ import {
 } from '../utils/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
+import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     @Inject('IAuthRepository')
     private readonly authRepository: IAuthRepository,
     private jwtService: JwtService,
+    private readonly mailerService: MailerService,
   ) {}
 
   signUp = async (
@@ -49,6 +51,7 @@ export class AuthService {
       };
 
       const newUser = await this.authRepository.signup(user);
+      await this.mailerService.sendWelcomeMail(email);
       this.logger.verbose('user created successfully');
       return {
         id: newUser.id,
