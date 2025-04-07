@@ -14,7 +14,7 @@ export class NotificationGateway {
   @WebSocketServer()
   server: Server;
 
-  private driverSockets = new Map<string, string>();
+  private clientSockets = new Map<string, string>();
 
   handleConnection(client: Socket) {
     this.logger.log(`client connected: ${client.id}`);
@@ -22,9 +22,10 @@ export class NotificationGateway {
 
   handleDisconnect(client: Socket) {
     this.logger.warn(`client disconnected: ${client.id}`);
-    for (const [driverId, socketId] of this.driverSockets.entries()) {
+    for (const [clientId, socketId] of this.clientSockets.entries()) {
       if (socketId === client.id) {
-        this.driverSockets.delete(driverId);
+        this.clientSockets.delete(clientId);
+        this.logger.log(`Removed socket mapping for ${clientId}`);
         break;
       }
     }
@@ -35,21 +36,36 @@ export class NotificationGateway {
     @MessageBody() driverId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    this.driverSockets.set(driverId, client.id);
-    this.logger.log(`Driver ${driverId} regitered with socket ${client.id}`);
+    this.clientSockets.set(driverId, client.id);
+    this.logger.log(`User ${driverId} registered with socket ${client.id}`);
   }
 
   sendDriverNotification(driverId: string, message: string, metadata?: any) {
-    const socketId = this.driverSockets.get(driverId);
+    const socketId = this.clientSockets.get(driverId);
     if (socketId) {
       this.server.to(socketId).emit('notification', { message, metadata });
+      this.logger.log(`socket found for driver ${driverId}`);
+    } else {
+      this.logger.warn(`Socket for driver ${driverId} not found`);
     }
   }
 
-  sendUserNotification(id: string, message: string, metadata?: any) {
-    const socketId = this.driverSockets.get(id);
+  @SubscribeMessage('registerUser')
+  registerUser(
+    @MessageBody() userId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.clientSockets.set(userId, client.id);
+    this.logger.log(`Driver ${userId} registered with socket ${client.id}`);
+  }
+
+  sendUserNotification(userId: string, message: string, metadata?: any) {
+    const socketId = this.clientSockets.get(userId);
     if (socketId) {
       this.server.to(socketId).emit('notification', { message, metadata });
+      this.logger.log(`Socket for user ${userId} found`);
+    } else {
+      this.logger.warn(`Socket for user ${userId} not found`);
     }
   }
 }

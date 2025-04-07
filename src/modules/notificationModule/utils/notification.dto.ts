@@ -20,3 +20,28 @@ export class PushNotificationDto {
   @IsString()
   metadata?: any;
 }
+
+export class UserPushNotificationDto {
+  @IsString()
+  @IsNotEmpty()
+  purchaseId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  buyerId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  productName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  driverName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+
+  @IsString()
+  metadata?: any;
+}

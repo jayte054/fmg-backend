@@ -7,6 +7,7 @@ import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { PurchaseEntity } from 'src/modules/purchaseModule/purchaseEntity/purchase.entity';
 import { PushNotificationEntity } from 'src/modules/notificationModule/notificationEntity.ts/notification.entity';
+import { UserPushNotificationEntity } from 'src/modules/notificationModule/notificationEntity.ts/userNotification.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: TypeOrmModuleOptions = {
@@ -24,6 +25,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     ProductEntity,
     PurchaseEntity,
     PushNotificationEntity,
+    UserPushNotificationEntity,
   ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   migrations: ['dist/migrations/*.js'],

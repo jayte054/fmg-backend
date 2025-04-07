@@ -35,7 +35,8 @@ export class PurchaseService {
     createPurchaseCredentials: CreatePurchaseCredentials,
   ): Promise<{
     purchaseResponse: PurchaseResponse;
-    notificationResponse: any;
+    driverNotificationResponse: any;
+    userNotificationResponse: any;
   }> => {
     const { price, purchaseType, cylinderType, priceType, address, productId } =
       createPurchaseCredentials;
@@ -65,19 +66,45 @@ export class PurchaseService {
       const { linkedDrivers } = product;
 
       if (purchase) {
-        const sendNotificationResponse =
+        const sendDriverNotificationResponse =
           await this.pushNotificationService.sendDriverNotification({
             purchaseId: purchase.purchaseId,
             productId: purchase.productId,
             id: linkedDrivers[0].driverId,
-            message:
-              ' a new purchase has been made, you are required for delivery',
+            message: ` a new purchase has been made, you are required for delivery, 
+                find attached the details: 
+                customer name: ${buyer.firstName + buyer.lastName},
+                customer PhoneNumber: ${buyer.phoneNumber},
+                customer address: ${buyer.address},
+                customer location: ${buyer.location},
+                purchase type: ${purchaseType},
+                cylinder type: ${cylinderType},
+                price: ${price}`,
+          });
+
+        const sendUserNotification =
+          await this.pushNotificationService.sendUserNotification({
+            purchaseId: purchase.purchaseId,
+            buyerId: buyer.buyerId,
+            productName: product.providerName,
+            driverName: linkedDrivers[0].driverName,
+            message: `
+              your new purchase has been made, you are required for delivery, 
+                find attached the details: 
+                customer name: ${buyer.firstName + buyer.lastName},
+                customer PhoneNumber: ${buyer.phoneNumber},
+                customer address: ${buyer.address},
+                customer location: ${buyer.location},
+                purchase type: ${purchaseType},
+                cylinder type: ${cylinderType},
+                price: ${price}`,
           });
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);
 
         return {
-          notificationResponse: sendNotificationResponse,
+          driverNotificationResponse: sendDriverNotificationResponse,
+          userNotificationResponse: sendUserNotification,
           purchaseResponse,
         };
       }

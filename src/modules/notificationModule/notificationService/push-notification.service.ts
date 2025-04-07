@@ -4,7 +4,11 @@ import { v4 as uuidV4 } from 'uuid';
 import { PushNotificationEntity } from '../notificationEntity.ts/notification.entity';
 import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notifcation.gateway';
-import { PushNotificationDto } from '../utils/notification.dto';
+import {
+  PushNotificationDto,
+  UserPushNotificationDto,
+} from '../utils/notification.dto';
+import { UserPushNotificationEntity } from '../notificationEntity.ts/userNotification.entity';
 
 @Injectable()
 export class PushNotificationService {
@@ -12,6 +16,9 @@ export class PushNotificationService {
   constructor(
     @InjectRepository(PushNotificationEntity)
     private notificationRepository: Repository<PushNotificationEntity>,
+    @InjectRepository(UserPushNotificationEntity)
+    private userNotificationRepository: Repository<UserPushNotificationEntity>,
+
     private notificationGateway: NotificationGateway,
   ) {}
 
@@ -48,34 +55,37 @@ export class PushNotificationService {
     return notification;
   };
 
-  sendUserNotification = async (pushNotificationDto: PushNotificationDto) => {
-    const { purchaseId, productId, id, message, metadata } =
+  sendUserNotification = async (
+    pushNotificationDto: UserPushNotificationDto,
+  ) => {
+    const { purchaseId, buyerId, productName, driverName, message, metadata } =
       pushNotificationDto;
 
-    const notification = this.notificationRepository.create({
+    const notification = this.userNotificationRepository.create({
       notificationId: uuidV4(),
       purchaseId,
-      productId,
-      id,
+      buyerId,
+      productName,
+      driverName,
       message,
       metadata,
       isRead: false,
       createdAt: new Date(),
     });
 
-    await this.notificationRepository.save(notification);
+    await this.userNotificationRepository.save(notification);
 
-    this.notificationGateway.sendUserNotification(id, message, metadata);
+    this.notificationGateway.sendUserNotification(buyerId, message, metadata);
     this.logger.log('notification sent successfully');
     return notification;
   };
 
   getUserNotification = async (
     userId: string,
-  ): Promise<PushNotificationEntity[]> => {
-    const notification = await this.notificationRepository.find({
+  ): Promise<UserPushNotificationEntity[]> => {
+    const notification = await this.userNotificationRepository.find({
       where: {
-        id: userId,
+        buyerId: userId,
         isRead: false,
       },
       order: { createdAt: 'DESC' },
