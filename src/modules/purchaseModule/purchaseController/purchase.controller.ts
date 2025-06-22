@@ -34,7 +34,6 @@ export class PurchaseController {
     @GetBuyerDecorator() buyer: BuyerEntity,
     @Body(ValidationPipe) createPurchaseCredentials: CreatePurchaseCredentials,
   ) {
-    console.log('purchase')
     return await this.purchaseService.createPurchase(
       buyer,
       createPurchaseCredentials,

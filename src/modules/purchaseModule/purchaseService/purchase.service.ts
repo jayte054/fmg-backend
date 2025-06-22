@@ -6,7 +6,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
 import { IPurchaseRepository } from '../interface/IPurchaseRepository.interface';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import {
@@ -44,7 +43,6 @@ export class PurchaseService {
 
     validatePurchaseTypes(purchaseType, cylinderType, priceType);
 
-    console.log(purchaseType)
     try {
       const createPurchaseDto: CreatePurchaseDto = {
         // purchaseId: uuidv4(),
@@ -59,16 +57,13 @@ export class PurchaseService {
         purchaseDate: Date.now().toLocaleString(),
         buyerId: buyer.buyerId,
       };
-      console.log(createPurchaseDto)
 
       const purchase =
         await this.purchaseRepository.createPurchase(createPurchaseDto);
-        console.log('purchase', purchase);
 
       const product =
         await this.productService.findProductByPurchaseService(productId);
       if (!product) return;
-      console.log(product)
 
       const { linkedDrivers } = product;
 
@@ -90,7 +85,6 @@ export class PurchaseService {
             address: buyer.address,
             location: buyer.location,
           });
-        console.log('driver notification', sendDriverNotificationResponse);
 
         const sendUserNotification =
           await this.pushNotificationService.sendUserNotification({
