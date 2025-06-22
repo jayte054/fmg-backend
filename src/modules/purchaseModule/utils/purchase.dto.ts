@@ -2,9 +2,9 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { CylinderType, PriceType, PurchaseType } from './purchase.type';
 
 export class CreatePurchaseDto {
-  @IsString()
-  @IsNotEmpty()
-  purchaseId: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // purchaseId: string;
 
   @IsString()
   @IsNotEmpty()
@@ -20,7 +20,7 @@ export class CreatePurchaseDto {
 
   @IsString()
   @IsNotEmpty()
-  cylinderType: CylinderType;
+  cylinder: CylinderType;
 
   @IsString()
   @IsNotEmpty()

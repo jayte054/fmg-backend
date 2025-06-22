@@ -170,7 +170,7 @@ export class ProductService {
       }
       this.logger.error('error fetching products');
       throw new InternalServerErrorException(
-        'an error occured, please try again',
+        'an error occurred, please try again',
       );
     }
   };
@@ -277,7 +277,7 @@ export class ProductService {
       const product = await this.productRepository.findProductById(productId);
 
       if (product.dealerId !== dealerId) {
-        this.logger.log('unathorized access to delete product');
+        this.logger.log('unauthorized access to delete product');
         throw new UnauthorizedException('unauthorized access');
       }
 

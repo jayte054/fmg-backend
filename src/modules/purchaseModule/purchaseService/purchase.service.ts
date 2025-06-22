@@ -19,6 +19,7 @@ import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { ProductService } from 'src/modules/ProductModule/productService/product.service';
 import { PushNotificationService } from 'src/modules/notificationModule/notificationService/push-notification.service';
+import { validatePurchaseTypes } from '../utils/utils';
 
 @Injectable()
 export class PurchaseService {
@@ -41,13 +42,16 @@ export class PurchaseService {
     const { price, purchaseType, cylinderType, priceType, address, productId } =
       createPurchaseCredentials;
 
+    validatePurchaseTypes(purchaseType, cylinderType, priceType);
+
+    console.log(purchaseType)
     try {
       const createPurchaseDto: CreatePurchaseDto = {
-        purchaseId: uuidv4(),
+        // purchaseId: uuidv4(),
         productId,
         price,
         priceType,
-        cylinderType,
+        cylinder: cylinderType,
         purchaseType,
         buyerName: buyer.firstName + ' ' + buyer.lastName,
         address: buyer.address || address,
@@ -55,13 +59,16 @@ export class PurchaseService {
         purchaseDate: Date.now().toLocaleString(),
         buyerId: buyer.buyerId,
       };
+      console.log(createPurchaseDto)
 
-      const purchase: PurchaseResponse =
+      const purchase =
         await this.purchaseRepository.createPurchase(createPurchaseDto);
+        console.log('purchase', purchase);
 
       const product =
         await this.productService.findProductByPurchaseService(productId);
       if (!product) return;
+      console.log(product)
 
       const { linkedDrivers } = product;
 
@@ -80,7 +87,10 @@ export class PurchaseService {
                 purchase type: ${purchaseType},
                 cylinder type: ${cylinderType},
                 price: ${price}`,
+            address: buyer.address,
+            location: buyer.location,
           });
+        console.log('driver notification', sendDriverNotificationResponse);
 
         const sendUserNotification =
           await this.pushNotificationService.sendUserNotification({
@@ -98,6 +108,8 @@ export class PurchaseService {
                 purchase type: ${purchaseType},
                 cylinder type: ${cylinderType},
                 price: ${price}`,
+            address: buyer.address,
+            location: buyer.location,
           });
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);
@@ -109,7 +121,7 @@ export class PurchaseService {
         };
       }
     } catch (error) {
-      this.logger.error('failed to complete purchase by dealer', buyer.buyerId);
+      this.logger.error('failed to complete purchase by buyer', buyer.buyerId);
       throw new InternalServerErrorException('failed to complete purchase');
     }
   };

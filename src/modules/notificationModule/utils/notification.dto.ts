@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class PushNotificationDto {
   @IsString()
@@ -16,6 +16,13 @@ export class PushNotificationDto {
   @IsString()
   @IsNotEmpty()
   message: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsOptional()
+  location?: { [key: string]: unknown };
 
   @IsString()
   metadata?: any;
@@ -41,6 +48,13 @@ export class UserPushNotificationDto {
   @IsString()
   @IsNotEmpty()
   message: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsOptional()
+  location: { [key: string]: unknown };
 
   @IsString()
   metadata?: any;

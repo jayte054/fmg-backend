@@ -83,7 +83,7 @@ export class AuthService {
       };
 
       const accessToken = this.jwtService.sign(payload);
-      this.logger.verbose(' JWT token successfuly generated');
+      this.logger.verbose(' JWT token successfully generated');
 
       response.cookie('jwt', accessToken, {
         httpOnly: true,

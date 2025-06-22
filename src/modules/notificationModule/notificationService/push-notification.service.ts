@@ -23,7 +23,7 @@ export class PushNotificationService {
   ) {}
 
   async sendDriverNotification(pushNotificationDto: PushNotificationDto) {
-    const { purchaseId, productId, id, message, metadata } =
+    const { purchaseId, productId, id, message, metadata, address, location } =
       pushNotificationDto;
 
     const notification = this.notificationRepository.create({
@@ -32,16 +32,23 @@ export class PushNotificationService {
       productId,
       id,
       message,
+      address,
+      location,
       metadata,
       isRead: false,
       createdAt: new Date(),
     });
+    try {
+      await this.notificationRepository.save(notification);
+      console.log(notification);
+      this.notificationGateway.sendDriverNotification(id, message, metadata);
+      this.logger.log('notification sent successfully');
+      console.log(notification);
 
-    await this.notificationRepository.save(notification);
-
-    this.notificationGateway.sendDriverNotification(id, message, metadata);
-    this.logger.log('notification sent successfully');
-    return notification;
+      return notification;
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   getDriverNotification = async (
@@ -58,8 +65,16 @@ export class PushNotificationService {
   sendUserNotification = async (
     pushNotificationDto: UserPushNotificationDto,
   ) => {
-    const { purchaseId, buyerId, productName, driverName, message, metadata } =
-      pushNotificationDto;
+    const {
+      purchaseId,
+      buyerId,
+      productName,
+      driverName,
+      message,
+      metadata,
+      address,
+      location,
+    } = pushNotificationDto;
 
     const notification = this.userNotificationRepository.create({
       notificationId: uuidV4(),
@@ -68,6 +83,8 @@ export class PushNotificationService {
       productName,
       driverName,
       message,
+      address,
+      location,
       metadata,
       isRead: false,
       createdAt: new Date(),

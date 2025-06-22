@@ -16,11 +16,13 @@ export const GetBuyerDecorator = createParamDecorator(
 
     const buyerRepository: Repository<BuyerEntity> = request.buyerRepository;
 
-    const buyer = await buyerRepository.findOne({
-      where: { userId: user.id },
-    });
+    const buyer = await buyerRepository
+      .createQueryBuilder('buyer')
+      .where('buyer.userId = :userId', { userId: user.id })
+      .getOne();
+
     if (!buyer) {
-      throw new UnauthorizedException('buyer record not found');
+      throw new UnauthorizedException('Buyer record not found');
     }
 
     return buyer;

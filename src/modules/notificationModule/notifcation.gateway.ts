@@ -17,7 +17,19 @@ export class NotificationGateway {
   private clientSockets = new Map<string, string>();
 
   handleConnection(client: Socket) {
-    this.logger.log(`client connected: ${client.id}`);
+    const id = (client.handshake.query.userId ||
+      client.handshake.query.driverId) as string;
+
+    if (!id) {
+      this.logger.warn(
+        '❌ Connection rejected: userId or driverId not provided',
+      );
+      client.disconnect();
+      return;
+    }
+
+    this.clientSockets.set(id, client.id);
+    this.logger.log(`✅ Connected: ${id} (socketId: ${client.id})`);
   }
 
   handleDisconnect(client: Socket) {
@@ -41,6 +53,7 @@ export class NotificationGateway {
   }
 
   sendDriverNotification(driverId: string, message: string, metadata?: any) {
+    console.log(driverId);
     const socketId = this.clientSockets.get(driverId);
     if (socketId) {
       this.server.to(socketId).emit('notification', { message, metadata });

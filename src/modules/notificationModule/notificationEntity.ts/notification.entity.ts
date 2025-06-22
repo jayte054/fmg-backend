@@ -26,7 +26,7 @@ export class PushNotificationEntity {
   address: string;
 
   @Column({ type: 'jsonb' })
-  location: { latitude: number; longitude: number };
+  location?: { latitude: number; longitude: number };
 
   @Column()
   isRead: boolean;

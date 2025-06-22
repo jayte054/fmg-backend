@@ -12,11 +12,7 @@ import { UserPushNotificationEntity } from './notificationEntity.ts/userNotifica
       UserPushNotificationEntity,
     ]),
   ],
-  providers: [
-    PushNotificationService,
-    UserPushNotificationEntity,
-    NotificationGateway,
-  ],
+  providers: [PushNotificationService, NotificationGateway],
   controllers: [],
   exports: [PushNotificationService, NotificationGateway],
 })

@@ -50,6 +50,6 @@ export class BuyerEntity extends BaseEntity {
   })
   purchases: PurchaseEntity[];
 
-  @Column()
+  @Column('uuid')
   userId: string;
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
@@ -11,7 +11,7 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
 
   createPurchase = async (createPurchaseDto: CreatePurchaseDto) => {
     const newPurchase = this.create(createPurchaseDto);
-    const purchase = await newPurchase.save();
+    const purchase = await this.save(newPurchase);
     return purchase;
   };
 
