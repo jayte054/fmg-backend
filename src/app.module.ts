@@ -15,6 +15,7 @@ import { DriverController } from './modules/usersModule/controller/driver.contro
 import { BuyerRepositoryMiddleware } from './common/middleware/buyer.repository.middleware';
 import { PurchaseController } from './modules/purchaseModule/purchaseController/purchase.controller';
 import { PurchaseModule } from './modules/purchaseModule/purchase.module';
+import { DriverRepositoryMiddleware } from './common/middleware/driver.repository.middleware';
 
 @Module({
   imports: [
@@ -41,6 +42,8 @@ export class AppModule implements NestModule {
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
 
-    consumer.apply(BuyerRepositoryMiddleware).forRoutes(PurchaseController);
+    consumer
+      .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
+      .forRoutes(PurchaseController);
   }
 }

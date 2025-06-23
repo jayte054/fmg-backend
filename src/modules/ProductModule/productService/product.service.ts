@@ -108,7 +108,7 @@ export class ProductService {
     productId: string,
   ): Promise<ProductResponse> => {
     try {
-      const product = await this.productRepository.findProductById(productId);
+      const product = await this.productRepository.findProduct(productId);
 
       if (!product) {
         this.logger.log(`product with id ${productId} not found`);
@@ -119,6 +119,7 @@ export class ProductService {
         const firstDriver = product.linkedDrivers.shift(); // Remove the first driver
         product.linkedDrivers.push(firstDriver!); // Add it to the end
 
+        await this.productRepository.saveProduct(product);
         this.logger.verbose(
           `Product with ID ${productId} found and linked drivers rotated`,
         );

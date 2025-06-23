@@ -1,4 +1,9 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { CylinderType, PriceType, PurchaseType } from './purchase.type';
 
 export class CreatePurchaseDto {
@@ -10,7 +15,7 @@ export class CreatePurchaseDto {
   @IsNotEmpty()
   productId: string;
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   price: string;
 
@@ -43,6 +48,10 @@ export class CreatePurchaseDto {
   @IsString()
   @IsNotEmpty()
   buyerId: string;
+
+  @IsString()
+  @IsOptional()
+  metadata: Record<string, string>;
 }
 
 export class UpdatePurchaseDto {
@@ -57,4 +66,5 @@ export class UpdatePurchaseDto {
   location?: { latitude: number; longitude: number };
   purchaseDate?: string;
   buyerId?: string;
+  metadata?: Record<string, string>;
 }

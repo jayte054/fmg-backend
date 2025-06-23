@@ -18,7 +18,8 @@ export class NotificationGateway {
 
   handleConnection(client: Socket) {
     const id = (client.handshake.query.userId ||
-      client.handshake.query.driverId) as string;
+      client.handshake.query.driverId ||
+      client.handshake.query.dealerId) as string;
 
     if (!id) {
       this.logger.warn(
@@ -79,6 +80,29 @@ export class NotificationGateway {
       this.logger.log(`Socket for user ${userId} found`);
     } else {
       this.logger.warn(`Socket for user ${userId} not found`);
+    }
+  }
+
+  @SubscribeMessage('registerDealer')
+  registerDealer(
+    @MessageBody() dealerId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.clientSockets.set(dealerId, client.id);
+    this.logger.log(`Dealer ${dealerId} registered with socket ${client.id}`);
+  }
+
+  sendDealerNotification(
+    dealerId: string,
+    message: string,
+    metadata?: Record<string, string>,
+  ) {
+    const socketId = this.clientSockets.get(dealerId);
+    if (socketId) {
+      this.server.to(socketId).emit('notification', { message, metadata });
+      this.logger.log(`socket for dealer ${dealerId} found`);
+    } else {
+      this.logger.warn(`socket for driver ${dealerId} not found`);
     }
   }
 }

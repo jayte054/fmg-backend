@@ -11,9 +11,6 @@ export class PushNotificationEntity {
   notificationId: string;
 
   @Column()
-  id: string;
-
-  @Column()
   purchaseId: string;
 
   @Column()
@@ -32,7 +29,7 @@ export class PushNotificationEntity {
   isRead: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata?: any;
+  metadata?: Record<string, string>;
 
   @CreateDateColumn()
   createdAt: Date;

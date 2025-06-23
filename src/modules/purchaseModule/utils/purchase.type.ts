@@ -1,3 +1,9 @@
+import {
+  DriverDetails,
+  ProductResponse,
+} from 'src/modules/ProductModule/utils/products.type';
+import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+
 export enum PurchaseType {
   debut_order = 'debut order',
   cylinder_swap_order = ' cylinder swap order ', //customer swaps cylinder with vendor
@@ -41,6 +47,8 @@ export interface PurchaseResponse {
   purchaseDate: string;
 
   buyerId: string;
+
+  metadata?: Record<string, string>;
 }
 
 export interface CreatePurchaseCredentials {
@@ -68,4 +76,32 @@ export interface UpdatePurchaseCredentials {
   priceType?: PriceType;
   purchaseType?: PurchaseType;
   address?: string;
+}
+
+export interface NotificationDto {
+  purchase: PurchaseResponse;
+  product: ProductResponse;
+  buyer: BuyerEntity;
+  price: string;
+  purchaseType: string;
+  cylinderType: string;
+  priceType?: string;
+  address?: string;
+  linkedDrivers: DriverDetails[];
+  dealerId?: string;
+}
+
+export interface UserNotificationResponse {
+  notificationId: string;
+  driverName?: string;
+  buyerId?: string;
+  purchaseId: string;
+  dealerId?: string;
+  productName?: string;
+  message: string;
+  address: string;
+  location: { latitude: number; longitude: number };
+  isRead: boolean;
+  createdAt: string;
+  metadata: Record<string, unknown>;
 }

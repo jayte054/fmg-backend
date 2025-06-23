@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';

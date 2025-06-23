@@ -10,9 +10,13 @@ import { IPurchaseRepository } from '../interface/IPurchaseRepository.interface'
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
+  CylinderType,
+  NotificationDto,
+  PriceType,
   PurchaseResObj,
   PurchaseResponse,
   UpdatePurchaseCredentials,
+  UserNotificationResponse,
 } from '../utils/purchase.type';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
@@ -35,8 +39,8 @@ export class PurchaseService {
     createPurchaseCredentials: CreatePurchaseCredentials,
   ): Promise<{
     purchaseResponse: PurchaseResponse;
-    driverNotificationResponse: any;
-    userNotificationResponse: any;
+    driverNotificationResponse: UserNotificationResponse;
+    userNotificationResponse: UserNotificationResponse;
   }> => {
     const { price, purchaseType, cylinderType, priceType, address, productId } =
       createPurchaseCredentials;
@@ -44,67 +48,56 @@ export class PurchaseService {
     validatePurchaseTypes(purchaseType, cylinderType, priceType);
 
     try {
-      const createPurchaseDto: CreatePurchaseDto = {
-        // purchaseId: uuidv4(),
-        productId,
-        price,
-        priceType,
-        cylinder: cylinderType,
-        purchaseType,
-        buyerName: buyer.firstName + ' ' + buyer.lastName,
-        address: buyer.address || address,
-        location: buyer.location,
-        purchaseDate: Date.now().toLocaleString(),
-        buyerId: buyer.buyerId,
-      };
-
-      const purchase =
-        await this.purchaseRepository.createPurchase(createPurchaseDto);
-
       const product =
         await this.productService.findProductByPurchaseService(productId);
       if (!product) return;
 
       const { linkedDrivers } = product;
 
-      if (purchase) {
-        const sendDriverNotificationResponse =
-          await this.pushNotificationService.sendDriverNotification({
-            purchaseId: purchase.purchaseId,
-            productId: purchase.productId,
-            id: linkedDrivers[0].driverId,
-            message: ` a new purchase has been made, you are required for delivery, 
-                find attached the details: 
-                customer name: ${buyer.firstName + buyer.lastName},
-                customer PhoneNumber: ${buyer.phoneNumber},
-                customer address: ${buyer.address},
-                customer location: ${buyer.location},
-                purchase type: ${purchaseType},
-                cylinder type: ${cylinderType},
-                price: ${price}`,
-            address: buyer.address,
-            location: buyer.location,
-          });
+      console.log(Object.keys(PriceType[priceType]));
+      const createPurchaseDto: CreatePurchaseDto = {
+        productId,
+        price:
+          priceType === PriceType[priceType]
+            ? price
+            : String(
+                product.pricePerKg *
+                  parseFloat(CylinderType[cylinderType].slice(0, -2)),
+              ),
+        priceType,
+        cylinder: CylinderType[cylinderType],
+        purchaseType,
+        buyerName: buyer.firstName + ' ' + buyer.lastName,
+        address: buyer.address || address,
+        location: buyer.location,
+        purchaseDate: Date.now().toLocaleString(),
+        buyerId: buyer.buyerId,
+        metadata: {
+          driverId: linkedDrivers[0].driverId,
+          purchaseTitle: `${buyer.firstName}/${cylinderType}/${purchaseType}`,
+        },
+      };
 
-        const sendUserNotification =
-          await this.pushNotificationService.sendUserNotification({
-            purchaseId: purchase.purchaseId,
-            buyerId: buyer.buyerId,
-            productName: product.providerName,
-            driverName: linkedDrivers[0].driverName,
-            message: `
-              your new purchase has been made, you are required for delivery, 
-                find attached the details: 
-                customer name: ${buyer.firstName + buyer.lastName},
-                customer PhoneNumber: ${buyer.phoneNumber},
-                customer address: ${buyer.address},
-                customer location: ${buyer.location},
-                purchase type: ${purchaseType},
-                cylinder type: ${cylinderType},
-                price: ${price}`,
-            address: buyer.address,
-            location: buyer.location,
-          });
+      const purchase =
+        await this.purchaseRepository.createPurchase(createPurchaseDto);
+
+      if (purchase) {
+        const notificationDto: NotificationDto = {
+          purchase,
+          buyer,
+          product,
+          linkedDrivers,
+          price,
+          purchaseType,
+          cylinderType,
+          dealerId: product.dealerId,
+        };
+
+        const sendDriverNotificationResponse =
+          await this.sendProduct(notificationDto);
+
+        const sendUserNotification = await this.sendUser(notificationDto);
+
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);
 
@@ -115,6 +108,7 @@ export class PurchaseService {
         };
       }
     } catch (error) {
+      console.log(error);
       this.logger.error('failed to complete purchase by buyer', buyer.buyerId);
       throw new InternalServerErrorException('failed to complete purchase');
     }
@@ -152,7 +146,7 @@ export class PurchaseService {
 
   findPurchases = async (
     page: number = 1,
-    limit: number = 10,
+    limit: number = 30,
   ): Promise<{
     data: PurchaseResponse[];
     total: number;
@@ -256,6 +250,30 @@ export class PurchaseService {
     }
   };
 
+  deliverPurchase = async (
+    driverId: string,
+    purchaseId: string,
+    delivery: boolean,
+  ): Promise<{ Ok: boolean }> => {
+    const purchase = await this.purchaseRepository.findPurchaseById(purchaseId);
+
+    const metadata = { ...purchase.metadata };
+    metadata.delivery = String(Object.values(delivery));
+
+    const deliverPurchase = await this.purchaseRepository.updatePurchase(
+      purchaseId,
+      {
+        metadata,
+      },
+    );
+
+    if (deliverPurchase) {
+      return { Ok: true };
+    } else {
+      return { Ok: false };
+    }
+  };
+
   deletePurchase = async (
     purchaseId: string,
     buyerId: string,
@@ -298,26 +316,111 @@ export class PurchaseService {
   ): PurchaseResponse => {
     return {
       purchaseId: purchaseResponse.purchaseId,
-
       productId: purchaseResponse.productId,
-
       price: purchaseResponse.price,
-
       priceType: purchaseResponse.priceType,
-
       cylinderType: purchaseResponse.cylinderType,
-
       purchaseType: purchaseResponse.purchaseType,
-
       buyerName: purchaseResponse.buyerName,
-
       address: purchaseResponse.address,
-
       location: purchaseResponse.location,
-
       purchaseDate: purchaseResponse.purchaseDate,
-
       buyerId: purchaseResponse.buyerId,
+      metadata: purchaseResponse.metadata,
+    };
+  };
+
+  private sendProduct = async (
+    notificationDto: NotificationDto,
+  ): Promise<UserNotificationResponse> => {
+    const {
+      purchase,
+      buyer,
+      product,
+      linkedDrivers,
+      price,
+      purchaseType,
+      cylinderType,
+    } = notificationDto;
+
+    const notification =
+      await this.pushNotificationService.sendProductNotification({
+        purchaseId: purchase.purchaseId,
+        productId: product.productId,
+        driverId: linkedDrivers[0].driverId,
+        dealerId: product.dealerId,
+        buyerId: buyer.buyerId,
+        message: `
+          your new purchase has been made, you are required for delivery, 
+            find attached the details: 
+            customer name: ${buyer.firstName + buyer.lastName},
+            customer PhoneNumber: ${buyer.phoneNumber},
+            customer address: ${buyer.address},
+            customer location: ${buyer.location},
+            purchase type: ${purchaseType},
+            cylinder type: ${cylinderType},
+            price: ${price}`,
+        address: buyer.address,
+        location: buyer.location,
+      });
+
+    return {
+      notificationId: notification.notificationId,
+      purchaseId: notification.purchaseId,
+      message: notification.message,
+      address: notification.address,
+      location: notification.location,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt.toLocaleString(),
+      metadata: notification.metadata,
+    };
+  };
+
+  private sendUser = async (
+    notificationDto: NotificationDto,
+  ): Promise<UserNotificationResponse> => {
+    const {
+      purchase,
+      buyer,
+      product,
+      linkedDrivers,
+      price,
+      purchaseType,
+      cylinderType,
+    } = notificationDto;
+
+    const notification =
+      await this.pushNotificationService.sendUserNotification({
+        purchaseId: purchase.purchaseId,
+        buyerId: buyer.buyerId,
+        productName: product.providerName,
+        driverName: linkedDrivers[0].driverName,
+        message: `
+          your new purchase has been made, you are required for delivery, 
+            find attached the details: 
+            customer name: ${buyer.firstName + buyer.lastName},
+            customer PhoneNumber: ${buyer.phoneNumber},
+            customer address: ${buyer.address},
+            customer location: ${buyer.location},
+            purchase type: ${purchaseType},
+            cylinder type: ${cylinderType},
+            price: ${price}`,
+        address: buyer.address,
+        location: buyer.location,
+      });
+
+    return {
+      notificationId: notification.notificationId,
+      driverName: linkedDrivers[0].driverName,
+      buyerId: notification.buyerId,
+      purchaseId: notification.purchaseId,
+      productName: notification.productName,
+      message: notification.message,
+      address: notification.address,
+      location: notification.location,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt.toLocaleString(),
+      metadata: notification.metadata,
     };
   };
 }

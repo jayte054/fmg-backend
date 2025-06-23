@@ -45,6 +45,9 @@ export class PurchaseEntity extends BaseEntity {
   @JoinColumn({ name: 'buyerId' })
   buyer: BuyerEntity;
 
+  @Column({ type: 'jsonb', nullable: true })
+  metadata?: Record<string, string>;
+
   @Column()
   buyerId: string;
 }

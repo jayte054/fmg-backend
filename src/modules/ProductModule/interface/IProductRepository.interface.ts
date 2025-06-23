@@ -1,3 +1,4 @@
+import { ProductEntity } from '../productEntity/product.entity';
 import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
 import { ProductResponse } from '../utils/products.type';
 
@@ -21,4 +22,6 @@ export interface IProductRepository {
     productId: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductResponse>;
+  saveProduct(product: ProductEntity): Promise<ProductEntity>;
+  findProduct(productId: string): Promise<ProductEntity>;
 }

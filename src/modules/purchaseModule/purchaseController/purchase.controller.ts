@@ -22,6 +22,8 @@ import {
   UpdatePurchaseCredentials,
 } from '../utils/purchase.type';
 import { Request } from 'express';
+import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
+import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('purchase')
@@ -71,6 +73,20 @@ export class PurchaseController {
       buyerId,
       purchaseId,
       updatePurchaseCredentials,
+    );
+  }
+
+  @Put('/deliverPurchase/:purchaseId')
+  @HttpCode(HttpStatus.OK)
+  async deliverPurchase(
+    @Param('purchaseId') purchaseId: string,
+    @GetDriverDecorator() { driverId }: DriverEntity,
+    @Body() delivery: boolean,
+  ) {
+    return await this.purchaseService.deliverPurchase(
+      driverId,
+      purchaseId,
+      delivery,
     );
   }
 

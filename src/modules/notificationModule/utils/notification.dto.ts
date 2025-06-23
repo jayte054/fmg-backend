@@ -11,7 +11,15 @@ export class PushNotificationDto {
 
   @IsString()
   @IsNotEmpty()
-  id: string;
+  driverId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  dealerId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  buyerId: string;
 
   @IsString()
   @IsNotEmpty()
@@ -25,7 +33,7 @@ export class PushNotificationDto {
   location?: { [key: string]: unknown };
 
   @IsString()
-  metadata?: any;
+  metadata?: Record<string, string>;
 }
 
 export class UserPushNotificationDto {

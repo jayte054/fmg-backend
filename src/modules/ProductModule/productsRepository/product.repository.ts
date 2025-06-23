@@ -57,4 +57,8 @@ export class ProductRepository extends Repository<ProductEntity> {
     await this.update({ productId }, updateProductDto);
     return await this.findOne({ where: { productId } });
   };
+
+  saveProduct = async (product: ProductEntity) => await this.save(product);
+  findProduct = async (productId: string) =>
+    await this.findOne({ where: { productId } });
 }

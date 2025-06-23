@@ -22,44 +22,80 @@ export class PushNotificationService {
     private notificationGateway: NotificationGateway,
   ) {}
 
-  async sendDriverNotification(pushNotificationDto: PushNotificationDto) {
-    const { purchaseId, productId, id, message, metadata, address, location } =
-      pushNotificationDto;
+  async sendProductNotification(pushNotificationDto: PushNotificationDto) {
+    const {
+      purchaseId,
+      productId,
+      message,
+      metadata,
+      address,
+      location,
+      driverId,
+      dealerId,
+      buyerId,
+    } = pushNotificationDto;
 
     const notification = this.notificationRepository.create({
       notificationId: uuidV4(),
       purchaseId,
       productId,
-      id,
       message,
       address,
       location,
-      metadata,
+      metadata: { driverId, dealerId, buyerId },
       isRead: false,
       createdAt: new Date(),
     });
     try {
       await this.notificationRepository.save(notification);
-      console.log(notification);
-      this.notificationGateway.sendDriverNotification(id, message, metadata);
+      this.notificationGateway.sendDriverNotification(
+        driverId,
+        message,
+        metadata,
+      );
+      this.notificationGateway.sendDealerNotification(
+        dealerId,
+        message,
+        metadata,
+      );
       this.logger.log('notification sent successfully');
-      console.log(notification);
 
       return notification;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   getDriverNotification = async (
     driverId: string,
   ): Promise<PushNotificationEntity[]> => {
-    const notification = this.notificationRepository.find({
-      where: { id: driverId, isRead: false },
+    const notifications = await this.notificationRepository.find({
+      where: { isRead: false },
       order: { createdAt: 'DESC' },
     });
-    this.logger.verbose('notification fetched successfully');
-    return notification;
+
+    const driverNotification = notifications.filter(
+      (notification) => notification?.metadata?.driverId === driverId,
+    );
+
+    this.logger.verbose('driver notification fetched successfully');
+    return driverNotification;
+  };
+
+  getDealerNotification = async (
+    dealerId: string,
+  ): Promise<PushNotificationEntity[]> => {
+    const notifications = await this.notificationRepository.find({
+      where: { isRead: false },
+      order: { createdAt: 'DESC' },
+    });
+
+    const driverNotification = notifications.filter(
+      (notification) => notification?.metadata?.dealerId === dealerId,
+    );
+
+    this.logger.verbose('driver notification fetched successfully');
+    return driverNotification;
   };
 
   sendUserNotification = async (
