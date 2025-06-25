@@ -10,7 +10,6 @@ export const GetDriverDecorator = createParamDecorator(
   async (Data: unknown, ctx: ExecutionContext): Promise<DriverEntity> => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
-    console.log(user);
     if (!user) {
       throw new UnauthorizedException('Dealer unauthorized');
     }

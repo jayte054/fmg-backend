@@ -20,8 +20,22 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
     return product;
   };
 
-  findRawPurchases = async () => {
-    return await this.find();
+  find = async () => this.find();
+
+  findRawPurchases = async (page: number = 1, limit: number = 10) => {
+    const skip = (page - 1) * limit;
+    const take = Math.max(limit, 1);
+    const purchases = await this.findAndCount({
+      skip,
+      take,
+      order: { purchaseDate: 'DESC' },
+    });
+    return {
+      data: purchases[0],
+      total: purchases[1],
+      page,
+      limit,
+    };
   };
 
   findPurchases = async (options: { skip: number; take: number }) => {

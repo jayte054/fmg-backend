@@ -19,11 +19,14 @@ import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
+  FindPurchaseByIdInterface,
   UpdatePurchaseCredentials,
 } from '../utils/purchase.type';
 import { Request } from 'express';
 import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
+import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
+import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('purchase')
@@ -64,16 +67,43 @@ export class PurchaseController {
 
   @Get('findPurchaseByBuyerId')
   @HttpCode(HttpStatus.OK)
-  async findPurchaseByBuyerId(@GetBuyerDecorator() { buyerId }: BuyerEntity) {
-    return await this.purchaseService.findPurchasesByBuyerId(buyerId);
+  async findPurchaseByBuyerId(
+    @Query() findPurchaseByIdInterface: FindPurchaseByIdInterface,
+    @GetBuyerDecorator() { buyerId }: BuyerEntity,
+  ) {
+    return await this.purchaseService.findPurchasesByBuyerId({
+      buyerId,
+      page: findPurchaseByIdInterface.page,
+      limit: findPurchaseByIdInterface.limit,
+    });
   }
 
   @Get('findPurchaseByDriverId')
   @HttpCode(HttpStatus.OK)
   async findPurchaseByDriverId(
+    @Query() findPurchaseByIdInterface: FindPurchaseByIdInterface,
     @GetDriverDecorator() { driverId }: DriverEntity,
   ) {
-    return await this.purchaseService.findPurchasesByDriverId(driverId);
+    return await this.purchaseService.findPurchasesByDriverId({
+      driverId,
+      page: findPurchaseByIdInterface.page,
+      limit: findPurchaseByIdInterface.limit,
+    });
+  }
+
+  @Get('findPurchaseByProductId/:productId')
+  @HttpCode(HttpStatus.OK)
+  async findPurchaseByProductId(
+    @Param('productId') productId: string,
+    @GetDealerDecorator() { dealerId }: DealerEntity,
+    @Query() findPurchaseByIdInterface: FindPurchaseByIdInterface,
+  ) {
+    return await this.purchaseService.findPurchasesByProductId({
+      productId,
+      dealerId,
+      page: findPurchaseByIdInterface.page,
+      limit: findPurchaseByIdInterface.limit,
+    });
   }
 
   @Put('/updatePurchase/:purchaseId')

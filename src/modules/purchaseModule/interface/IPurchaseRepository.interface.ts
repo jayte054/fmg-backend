@@ -8,7 +8,11 @@ export interface IPurchaseRepository {
   ): Promise<PurchaseResponse>;
 
   findPurchaseById(purchaseId: string): Promise<PurchaseResponse>;
-  findRawPurchases(): Promise<PurchaseEntity[]>;
+  findRawPurchases(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedPurchaseResponse>;
+  find(): Promise<PurchaseEntity[]>;
   findPurchases(options: {
     skip: number;
     take: number;
@@ -18,4 +22,11 @@ export interface IPurchaseRepository {
     updatePurchaseDto: UpdatePurchaseDto,
   ): Promise<PurchaseResponse>;
   deletePurchase(purchaseId: string): Promise<string>;
+}
+
+export interface PaginatedPurchaseResponse {
+  data: PurchaseEntity[];
+  total: number;
+  page: string;
+  limit: string;
 }

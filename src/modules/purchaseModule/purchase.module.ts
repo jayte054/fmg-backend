@@ -9,6 +9,7 @@ import { PurchaseService } from './purchaseService/purchase.service';
 import { NotificationModule } from '../notificationModule/notification.module';
 import { ProductModule } from '../ProductModule/product.module';
 import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
+import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
 
 @Module({
   imports: [
@@ -30,7 +31,11 @@ import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.reposit
 export class PurchaseModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
+      .apply(
+        BuyerRepositoryMiddleware,
+        DriverRepositoryMiddleware,
+        DealerRepositoryMiddleware,
+      )
       .forRoutes(PurchaseController);
   }
 }

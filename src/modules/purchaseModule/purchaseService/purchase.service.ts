@@ -6,11 +6,15 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IPurchaseRepository } from '../interface/IPurchaseRepository.interface';
+import {
+  IPurchaseRepository,
+  PaginatedPurchaseResponse,
+} from '../interface/IPurchaseRepository.interface';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
   CylinderType,
+  FindPurchaseByIdInterface,
   NotificationDto,
   PriceType,
   PurchaseResObj,
@@ -23,6 +27,7 @@ import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { ProductService } from 'src/modules/ProductModule/productService/product.service';
 import { PushNotificationService } from 'src/modules/notificationModule/notificationService/push-notification.service';
 import { validatePurchaseTypes } from '../utils/utils';
+// import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
 export class PurchaseService {
@@ -146,14 +151,20 @@ export class PurchaseService {
     }
   };
 
-  findPurchasesByDriverId = async (driverId: string) => {
-    const purchases = await this.purchaseRepository.findRawPurchases();
+  findPurchasesByDriverId = async (
+    findPurchaseByIdInterface: FindPurchaseByIdInterface,
+  ) => {
+    const { driverId, page, limit } = findPurchaseByIdInterface;
+    const purchases = await this.purchaseRepository.findRawPurchases(
+      parseInt(page),
+      parseInt(limit),
+    );
 
-    if (purchases.length === 0) {
+    if (purchases.data.length === 0) {
       this.logger.warn('there are no purchases');
       throw new NotFoundException('empty purchases');
     }
-    const driversPurchases = purchases.filter((purchase) => {
+    const driversPurchases = purchases.data.filter((purchase) => {
       return purchase?.metadata?.driverId === driverId;
     });
 
@@ -167,18 +178,30 @@ export class PurchaseService {
         new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
     );
 
-    return sortedPurchases;
+    this.logger.log(`driver ${driverId} successfully fetched purchases`);
+    return {
+      data: sortedPurchases,
+      total: sortedPurchases.length,
+      page,
+      limit,
+    };
   };
 
-  findPurchasesByBuyerId = async (buyerId: string) => {
-    const purchases = await this.purchaseRepository.findRawPurchases();
+  findPurchasesByBuyerId = async (
+    findPurchaseByIdInterface: FindPurchaseByIdInterface,
+  ): Promise<PaginatedPurchaseResponse> => {
+    const { buyerId, page, limit } = findPurchaseByIdInterface;
+    const purchases = await this.purchaseRepository.findRawPurchases(
+      parseInt(page),
+      parseInt(limit),
+    );
 
-    if (purchases.length === 0) {
+    if (purchases.data.length === 0) {
       this.logger.warn('there are no purchases');
       throw new NotFoundException('empty purchases');
     }
 
-    const buyersPurchases = purchases.filter((purchase) => {
+    const buyersPurchases = purchases.data.filter((purchase) => {
       return purchase.buyerId === buyerId;
     });
 
@@ -187,10 +210,55 @@ export class PurchaseService {
       throw new NotFoundException('empty purchases');
     }
 
-    return buyersPurchases.sort(
+    const sortedPurchases = buyersPurchases.sort(
       (a: any, b: any) =>
         new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
     );
+
+    return {
+      data: sortedPurchases,
+      total: sortedPurchases.length,
+      page,
+      limit,
+    };
+  };
+
+  findPurchasesByProductId = async (
+    findPurchaseByIdInterface: FindPurchaseByIdInterface,
+  ): Promise<PaginatedPurchaseResponse> => {
+    const { productId, dealerId, page, limit } = findPurchaseByIdInterface;
+    const purchases = await this.purchaseRepository.findRawPurchases(
+      parseInt(page),
+      parseInt(limit),
+    );
+
+    if (purchases.data.length === 0) {
+      this.logger.warn(`no purchases for product ${productId}`);
+      throw new NotFoundException('there are no purchases');
+    }
+
+    const productPurchases = purchases.data
+      .filter((purchase) => purchase.productId === productId)
+      .sort(
+        (a, b) =>
+          new Date(b.purchaseDate).getTime() -
+          new Date(a.purchaseDate).getTime(),
+      );
+
+    if (productPurchases.length === 0) {
+      this.logger.warn(`no purchases for product ${productId}`);
+      throw new NotFoundException('there are no purchases');
+    }
+
+    this.logger.log(
+      `dealer ${dealerId} successfully fetched product ${productId}`,
+    );
+    return {
+      data: productPurchases,
+      total: productPurchases.length,
+      page,
+      limit,
+    };
   };
 
   findPurchases = async (

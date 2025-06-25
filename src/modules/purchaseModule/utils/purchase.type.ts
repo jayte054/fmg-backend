@@ -105,3 +105,12 @@ export interface UserNotificationResponse {
   createdAt: string;
   metadata: Record<string, unknown>;
 }
+
+export interface FindPurchaseByIdInterface {
+  productId?: string;
+  dealerId?: string;
+  buyerId?: string;
+  driverId?: string;
+  page: string;
+  limit: string;
+}
