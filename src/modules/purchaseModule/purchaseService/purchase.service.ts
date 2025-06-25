@@ -54,11 +54,10 @@ export class PurchaseService {
 
       const { linkedDrivers } = product;
 
-      console.log(Object.keys(PriceType[priceType]));
       const createPurchaseDto: CreatePurchaseDto = {
         productId,
         price:
-          priceType === PriceType[priceType]
+          priceType === PriceType.custom_price
             ? price
             : String(
                 product.pricePerKg *
@@ -157,7 +156,6 @@ export class PurchaseService {
     const driversPurchases = purchases.filter((purchase) => {
       return purchase?.metadata?.driverId === driverId;
     });
-
 
     if (driversPurchases.length === 0) {
       this.logger.warn('there are no purchases for driver', driverId);

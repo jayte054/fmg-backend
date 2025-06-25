@@ -12,8 +12,8 @@ export enum PurchaseType {
 }
 
 export enum PriceType {
-  cylinder_price = 'Cylinder Price',
-  custom_price = 'Custom Price',
+  cylinder_price = 'cylinder_price',
+  custom_price = 'custom_price',
 }
 
 export enum CylinderType {
