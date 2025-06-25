@@ -8,6 +8,7 @@ import { PurchaseRepository } from './purchaseRepository/purchase.repository';
 import { PurchaseService } from './purchaseService/purchase.service';
 import { NotificationModule } from '../notificationModule/notification.module';
 import { ProductModule } from '../ProductModule/product.module';
+import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
 
 @Module({
   imports: [
@@ -28,6 +29,8 @@ import { ProductModule } from '../ProductModule/product.module';
 })
 export class PurchaseModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BuyerRepositoryMiddleware).forRoutes(PurchaseController);
+    consumer
+      .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
+      .forRoutes(PurchaseController);
   }
 }

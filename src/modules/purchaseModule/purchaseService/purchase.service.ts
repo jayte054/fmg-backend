@@ -70,11 +70,14 @@ export class PurchaseService {
         buyerName: buyer.firstName + ' ' + buyer.lastName,
         address: buyer.address || address,
         location: buyer.location,
-        purchaseDate: Date.now().toLocaleString(),
+        purchaseDate: new Date().toLocaleString(),
         buyerId: buyer.buyerId,
         metadata: {
           driverId: linkedDrivers[0].driverId,
+          buyerId: buyer.buyerId,
           purchaseTitle: `${buyer.firstName}/${cylinderType}/${purchaseType}`,
+          phoneNumber: buyer.phoneNumber,
+          driver_phoneNumber: linkedDrivers[0].driverPhoneNumber.toString(),
         },
       };
 
@@ -144,9 +147,57 @@ export class PurchaseService {
     }
   };
 
+  findPurchasesByDriverId = async (driverId: string) => {
+    const purchases = await this.purchaseRepository.findRawPurchases();
+
+    if (purchases.length === 0) {
+      this.logger.warn('there are no purchases');
+      throw new NotFoundException('empty purchases');
+    }
+    const driversPurchases = purchases.filter((purchase) => {
+      return purchase?.metadata?.driverId === driverId;
+    });
+
+
+    if (driversPurchases.length === 0) {
+      this.logger.warn('there are no purchases for driver', driverId);
+      throw new NotFoundException('empty purchases');
+    }
+
+    const sortedPurchases = driversPurchases.sort(
+      (a, b) =>
+        new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
+    );
+
+    return sortedPurchases;
+  };
+
+  findPurchasesByBuyerId = async (buyerId: string) => {
+    const purchases = await this.purchaseRepository.findRawPurchases();
+
+    if (purchases.length === 0) {
+      this.logger.warn('there are no purchases');
+      throw new NotFoundException('empty purchases');
+    }
+
+    const buyersPurchases = purchases.filter((purchase) => {
+      return purchase.buyerId === buyerId;
+    });
+
+    if (buyersPurchases.length === 0) {
+      this.logger.warn('there are no purchases for buyer', buyerId);
+      throw new NotFoundException('empty purchases');
+    }
+
+    return buyersPurchases.sort(
+      (a: any, b: any) =>
+        new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
+    );
+  };
+
   findPurchases = async (
     page: number = 1,
-    limit: number = 30,
+    limit: number = 10,
   ): Promise<{
     data: PurchaseResponse[];
     total: number;
@@ -181,7 +232,7 @@ export class PurchaseService {
       }
       this.logger.error('error fetching purchases');
       throw new InternalServerErrorException(
-        'an error occured, please try again',
+        'an error occurred, please try again',
       );
     }
   };
@@ -215,7 +266,7 @@ export class PurchaseService {
         productId: purchase.productId,
         price: price ?? purchase.price,
         priceType: priceType ?? purchase.priceType,
-        cylinderType: cylinderType ?? purchase.cylinderType,
+        cylinderType: cylinderType ?? purchase.cylinder,
         buyerName: purchase.buyerName,
         address: address ?? purchase.address,
         location: purchase.location,
@@ -319,7 +370,7 @@ export class PurchaseService {
       productId: purchaseResponse.productId,
       price: purchaseResponse.price,
       priceType: purchaseResponse.priceType,
-      cylinderType: purchaseResponse.cylinderType,
+      cylinder: purchaseResponse.cylinder,
       purchaseType: purchaseResponse.purchaseType,
       buyerName: purchaseResponse.buyerName,
       address: purchaseResponse.address,

@@ -62,6 +62,20 @@ export class PurchaseController {
     return await this.purchaseService.findPurchases(page, limit);
   }
 
+  @Get('findPurchaseByBuyerId')
+  @HttpCode(HttpStatus.OK)
+  async findPurchaseByBuyerId(@GetBuyerDecorator() { buyerId }: BuyerEntity) {
+    return await this.purchaseService.findPurchasesByBuyerId(buyerId);
+  }
+
+  @Get('findPurchaseByDriverId')
+  @HttpCode(HttpStatus.OK)
+  async findPurchaseByDriverId(
+    @GetDriverDecorator() { driverId }: DriverEntity,
+  ) {
+    return await this.purchaseService.findPurchasesByDriverId(driverId);
+  }
+
   @Put('/updatePurchase/:purchaseId')
   @HttpCode(HttpStatus.OK)
   async updatePurchase(

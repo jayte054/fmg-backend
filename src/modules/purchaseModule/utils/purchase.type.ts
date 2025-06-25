@@ -34,7 +34,7 @@ export interface PurchaseResponse {
 
   priceType: PriceType;
 
-  cylinderType: CylinderType;
+  cylinder: CylinderType;
 
   purchaseType: PurchaseType;
 

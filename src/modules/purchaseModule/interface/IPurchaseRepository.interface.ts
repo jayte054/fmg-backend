@@ -1,3 +1,4 @@
+import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
 import { PurchaseResObj, PurchaseResponse } from '../utils/purchase.type';
 
@@ -7,6 +8,7 @@ export interface IPurchaseRepository {
   ): Promise<PurchaseResponse>;
 
   findPurchaseById(purchaseId: string): Promise<PurchaseResponse>;
+  findRawPurchases(): Promise<PurchaseEntity[]>;
   findPurchases(options: {
     skip: number;
     take: number;

@@ -20,6 +20,10 @@ export class PurchaseRepository extends Repository<PurchaseEntity> {
     return product;
   };
 
+  findRawPurchases = async () => {
+    return await this.find();
+  };
+
   findPurchases = async (options: { skip: number; take: number }) => {
     const purchaseQuery = this.createQueryBuilder('purchases');
 
