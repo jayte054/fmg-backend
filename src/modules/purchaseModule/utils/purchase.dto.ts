@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNotEmpty,
   IsNumberString,
   IsOptional,
@@ -135,4 +136,16 @@ export class FindPurchaseByIdDto {
   @IsNotEmpty()
   page: string;
   limit: string;
+}
+
+export class DeliveryPurchaseDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  delivery: boolean;
 }

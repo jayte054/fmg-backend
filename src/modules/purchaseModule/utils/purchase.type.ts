@@ -114,3 +114,4 @@ export interface FindPurchaseByIdInterface {
   page: string;
   limit: string;
 }
+

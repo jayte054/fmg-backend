@@ -463,13 +463,14 @@ export class PurchaseService {
   deliverPurchase = async (
     driverId: string,
     purchaseId: string,
+    token: string,
     delivery: boolean,
   ): Promise<{ Ok: boolean }> => {
     const purchase = await this.purchaseRepository.findPurchaseById(purchaseId);
 
     await this.tokenService.verifyToken(
       purchase.metadata?.tokenId,
-      purchase.metadata?.token,
+      token,
       purchase.purchaseId,
     );
 

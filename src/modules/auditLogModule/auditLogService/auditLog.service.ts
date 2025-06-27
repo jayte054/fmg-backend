@@ -12,16 +12,19 @@ export class AuditLogService {
 
   log = async (logInterface: AuditLogInterface): Promise<AuditLogEntity> => {
     const { logCategory, description, email, details } = logInterface;
+    try {
+      const newLog = await this.auditLogRepository.createLog({
+        logCategory,
+        description,
+        email,
+        details,
+        createdAt: new Date(),
+      });
 
-    const newLog = await this.auditLogRepository.createLog({
-      logCategory,
-      description,
-      email,
-      details,
-      createdAt: new Date(),
-    });
-
-    return newLog;
+      return newLog;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   findLogs = async (logFilter: LogFilterInterface) => {

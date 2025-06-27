@@ -27,7 +27,10 @@ import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
-import { FindPurchaseByIdDto } from '../utils/purchase.dto';
+import {
+  DeliveryPurchaseDto,
+  FindPurchaseByIdDto,
+} from '../utils/purchase.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Purchase')
@@ -159,11 +162,13 @@ export class PurchaseController {
   async deliverPurchase(
     @Param('purchaseId') purchaseId: string,
     @GetDriverDecorator() { driverId }: DriverEntity,
-    @Body() delivery: boolean,
+    @Body() deliveryPurchaseDto: DeliveryPurchaseDto,
   ) {
+    const { delivery, token } = deliveryPurchaseDto;
     return await this.purchaseService.deliverPurchase(
       driverId,
       purchaseId,
+      token,
       delivery,
     );
   }
