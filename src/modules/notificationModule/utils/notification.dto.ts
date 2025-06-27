@@ -67,3 +67,10 @@ export class UserPushNotificationDto {
   @IsString()
   metadata?: any;
 }
+
+export interface TokenNotificationInterface {
+  email: string;
+  token: string;
+  expiration: string;
+  purchaseTitle: string;
+}

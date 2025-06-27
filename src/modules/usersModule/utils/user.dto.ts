@@ -2,9 +2,9 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { RetailScale, VehicleType } from './user.types';
 
 export class CreateBuyerDto {
-  @IsString()
-  @IsNotEmpty()
-  buyerId: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // buyerId: string;
 
   @IsString()
   @IsNotEmpty()

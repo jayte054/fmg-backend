@@ -8,9 +8,14 @@ import { ProductRepository } from './productsRepository/product.repository';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
 import { DealerService } from '../usersModule/service/dealer.service';
 import { DealerRepository } from '../usersModule/repository/dealer.repository';
+import { AuditLogModule } from '../auditLogModule/auditLog.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProductEntity]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([ProductEntity]),
+    UserModule,
+    AuditLogModule,
+  ],
   controllers: [ProductController],
   providers: [
     ProductService,

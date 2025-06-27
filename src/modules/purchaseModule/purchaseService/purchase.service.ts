@@ -27,6 +27,11 @@ import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { ProductService } from 'src/modules/ProductModule/productService/product.service';
 import { PushNotificationService } from 'src/modules/notificationModule/notificationService/push-notification.service';
 import { validatePurchaseTypes } from '../utils/utils';
+import { TokenService } from 'src/modules/tokenModule/tokenService/token.service';
+import { TokenType } from 'src/modules/tokenModule/utils/token.interface';
+import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -37,6 +42,9 @@ export class PurchaseService {
     private readonly purchaseRepository: IPurchaseRepository,
     private readonly productService: ProductService,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly tokenService: TokenService,
+    private readonly mailerService: MailerService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   createPurchase = async (
@@ -51,6 +59,11 @@ export class PurchaseService {
       createPurchaseCredentials;
 
     validatePurchaseTypes(purchaseType, cylinderType, priceType);
+
+    const { tokenId, token, expiresAt } = await this.tokenService.createToken(
+      TokenType.delivery_token,
+      buyer.buyerId,
+    );
 
     try {
       const product =
@@ -82,6 +95,9 @@ export class PurchaseService {
           purchaseTitle: `${buyer.firstName}/${cylinderType}/${purchaseType}`,
           phoneNumber: buyer.phoneNumber,
           driver_phoneNumber: linkedDrivers[0].driverPhoneNumber.toString(),
+          tokenId,
+          token,
+          token_expiration: expiresAt,
         },
       };
 
@@ -100,13 +116,34 @@ export class PurchaseService {
           dealerId: product.dealerId,
         };
 
+        await this.tokenService.updateToken(tokenId, purchase.purchaseId);
+
+        // const tokenNotificationInterface = {
+        //   token,
+        //   email: buyer.email,
+        //   expiration: expiresAt,
+        //   purchaseTitle: purchase?.metadata?.purchaseTitle,
+        // };
+
         const sendDriverNotificationResponse =
           await this.sendProduct(notificationDto);
 
         const sendUserNotification = await this.sendUser(notificationDto);
 
+        // await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
+
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);
+
+        await this.auditLogService.log({
+          logCategory: LogCategory.PURCHASE,
+          description: 'post purchase',
+          email: buyer.email,
+          details: {
+            purchaseType,
+            priceType,
+          },
+        });
 
         return {
           driverNotificationResponse: sendDriverNotificationResponse,
@@ -141,6 +178,15 @@ export class PurchaseService {
         this.logger.verbose(
           `purchase with id ${purchaseId} successfully fetched`,
         );
+
+        await this.auditLogService.log({
+          logCategory: LogCategory.PURCHASE,
+          description: 'find purchase',
+          email: buyer.email ?? user.email,
+          details: {
+            purchaseId,
+          },
+        });
         return this.mapPurchaseResponse(purchase);
       }
     } catch (error) {
@@ -178,6 +224,15 @@ export class PurchaseService {
         new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
     );
 
+    await this.auditLogService.log({
+      logCategory: LogCategory.PURCHASE,
+      description: 'find purchase',
+      details: {
+        driverId,
+        purchases: sortedPurchases.length.toString(),
+      },
+    });
+
     this.logger.log(`driver ${driverId} successfully fetched purchases`);
     return {
       data: sortedPurchases,
@@ -214,6 +269,15 @@ export class PurchaseService {
       (a: any, b: any) =>
         new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
     );
+
+    await this.auditLogService.log({
+      logCategory: LogCategory.PURCHASE,
+      description: 'find purchase',
+      details: {
+        buyerId,
+        purchases: sortedPurchases.length.toString(),
+      },
+    });
 
     return {
       data: sortedPurchases,
@@ -253,6 +317,17 @@ export class PurchaseService {
     this.logger.log(
       `dealer ${dealerId} successfully fetched product ${productId}`,
     );
+
+    await this.auditLogService.log({
+      logCategory: LogCategory.PURCHASE,
+      description: 'find purchase',
+      details: {
+        productId,
+        dealerId,
+        purchases: productPurchases.length.toString(),
+      },
+    });
+
     return {
       data: productPurchases,
       total: productPurchases.length,
@@ -286,6 +361,14 @@ export class PurchaseService {
       }
 
       this.logger.verbose('purchases fetched successfully');
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.PURCHASE,
+        description: 'find purchases',
+        details: {
+          purchases: purchases.length.toString(),
+        },
+      });
 
       return {
         data: purchases,
@@ -350,6 +433,16 @@ export class PurchaseService {
         this.logger.verbose(
           `purchase with id ${purchaseId} updated successfully`,
         );
+
+        await this.auditLogService.log({
+          logCategory: LogCategory.PURCHASE,
+          description: 'find purchases',
+          details: {
+            purchaseId,
+            buyerId,
+          },
+        });
+
         return this.mapPurchaseResponse(newPurchase);
       }
     } catch (error) {
@@ -374,8 +467,15 @@ export class PurchaseService {
   ): Promise<{ Ok: boolean }> => {
     const purchase = await this.purchaseRepository.findPurchaseById(purchaseId);
 
+    await this.tokenService.verifyToken(
+      purchase.metadata?.tokenId,
+      purchase.metadata?.token,
+      purchase.purchaseId,
+    );
+
     const metadata = { ...purchase.metadata };
     metadata.delivery = String(Object.values(delivery));
+    metadata.deliveryDate = new Date().toLocaleDateString();
 
     const deliverPurchase = await this.purchaseRepository.updatePurchase(
       purchaseId,
@@ -385,11 +485,22 @@ export class PurchaseService {
     );
 
     if (deliverPurchase) {
+      await this.auditLogService.log({
+        logCategory: LogCategory.PURCHASE,
+        description: 'deliver purchases',
+        details: {
+          purchaseId,
+          driverId,
+          delivery: Object.values(delivery).toString(),
+        },
+      });
       return { Ok: true };
     } else {
       return { Ok: false };
     }
   };
+
+  verifyPurchaseToken = async () => {};
 
   deletePurchase = async (
     purchaseId: string,
@@ -411,6 +522,15 @@ export class PurchaseService {
       }
 
       const response = await this.purchaseRepository.deletePurchase(purchaseId);
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.PURCHASE,
+        description: 'delete purchase',
+        details: {
+          purchaseId,
+          buyerId,
+        },
+      });
 
       return response;
     } catch (error) {

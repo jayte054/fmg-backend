@@ -8,6 +8,8 @@ import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { PurchaseEntity } from 'src/modules/purchaseModule/purchaseEntity/purchase.entity';
 import { PushNotificationEntity } from 'src/modules/notificationModule/notificationEntity.ts/notification.entity';
 import { UserPushNotificationEntity } from 'src/modules/notificationModule/notificationEntity.ts/userNotification.entity';
+import { TokenEntity } from 'src/modules/tokenModule/tokenEntity/token.entity';
+import { AuditLogEntity } from 'src/modules/auditLogModule/auditLogEntity/auditLog.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: TypeOrmModuleOptions = {
@@ -26,6 +28,8 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     PurchaseEntity,
     PushNotificationEntity,
     UserPushNotificationEntity,
+    TokenEntity,
+    AuditLogEntity,
   ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   migrations: ['dist/migrations/*.js'],

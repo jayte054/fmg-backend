@@ -16,9 +16,10 @@ export class BuyerRepository extends Repository<BuyerEntity> {
   };
 
   findBuyerById = async (userId: string) => {
-    const buyer = await this.findOne({
-      where: { userId },
-    });
+    const query = this.createQueryBuilder('buyer');
+    const buyer = await query
+      .where('buyer.userId = :userId', { userId })
+      .getOne();
     return buyer;
   };
 

@@ -23,13 +23,17 @@ import {
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Product')
 @UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductController {
   constructor(private productService: ProductService) {}
 
   @Post('/createProduct')
+  @ApiOperation({ summary: 'created new product' })
+  @ApiResponse({ status: 201, description: 'user created a new product' })
   @HttpCode(HttpStatus.CREATED)
   async createProduct(
     @Body(ValidationPipe) createProductCredentials: CreateProductCredentials,
@@ -42,6 +46,8 @@ export class ProductController {
   }
 
   @Get('findProductById/:productId')
+  @ApiOperation({ summary: 'find product' })
+  @ApiResponse({ status: 200, description: 'user fetched a single product' })
   @HttpCode(HttpStatus.OK)
   async findProductById(
     @Req() req: Request,
@@ -53,6 +59,8 @@ export class ProductController {
   }
 
   @Get('/findProducts')
+  @ApiOperation({ summary: 'find products' })
+  @ApiResponse({ status: 200, description: 'user fetched products' })
   @HttpCode(HttpStatus.OK)
   async findProducts(
     @Query('page') page: number,
@@ -62,6 +70,8 @@ export class ProductController {
   }
 
   @Put('/updateProduct/:productId')
+  @ApiOperation({ summary: 'update product' })
+  @ApiResponse({ status: 200, description: 'user updated product' })
   @HttpCode(HttpStatus.OK)
   async updateProduct(
     @Req() req: Request,
@@ -81,6 +91,8 @@ export class ProductController {
   }
 
   @Delete('deleteProduct/:productId')
+  @ApiOperation({ summary: 'delete product' })
+  @ApiResponse({ status: 200, description: 'user deleted product' })
   @HttpCode(HttpStatus.OK)
   async deleteProduct(
     @GetDealerDecorator() dealer: DealerEntity,
@@ -91,6 +103,8 @@ export class ProductController {
   }
 
   @Put('addDriver/:productId')
+  @ApiOperation({ summary: 'add driver' })
+  @ApiResponse({ status: 200, description: 'user added a driver' })
   @HttpCode(HttpStatus.OK)
   async addDriver(
     @GetDealerDecorator() { dealerId }: DealerEntity,
@@ -105,6 +119,8 @@ export class ProductController {
   }
 
   @Put('removeDriver/:productId/:driverId')
+  @ApiOperation({ summary: 'remove driver' })
+  @ApiResponse({ status: 200, description: 'user removed driver' })
   @HttpCode(HttpStatus.OK)
   async removeDriver(
     @GetDealerDecorator() { dealerId }: DealerEntity,

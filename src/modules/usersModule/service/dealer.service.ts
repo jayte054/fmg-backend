@@ -16,6 +16,8 @@ import {
   UpdateCredentials,
 } from '../utils/user.types';
 import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 
 @Injectable()
 export class DealerService {
@@ -23,6 +25,7 @@ export class DealerService {
   constructor(
     @Inject('IDealerRepository')
     private readonly dealerRepository: IDealerRepository,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   createDealer = async (
@@ -50,6 +53,15 @@ export class DealerService {
       if (dealer) {
         this.logger.verbose('dealer profile created successfully');
       }
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyer created',
+        email: user.email,
+        details: {
+          message: 'buyer created successfully',
+        },
+      });
       return this.mapToDealerResponse(dealer);
     } catch (error) {
       this.logger.error('failed to create dealer');
@@ -77,6 +89,14 @@ export class DealerService {
       }
 
       this.logger.verbose(`user with id ${user.id} fetched successfully`);
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'dealer fetched',
+        email: user.email,
+        details: {
+          message: 'dealer fetched successfully',
+        },
+      });
       return this.mapToDealerResponse(dealer);
     } catch (error) {
       if (
@@ -110,6 +130,15 @@ export class DealerService {
           take: limit,
         });
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'dealer deleted',
+        email: user.email,
+        details: {
+          message: 'dealers fetched successfully',
+        },
+      });
+
       this.logger.verbose('dealers profile successfully fetched');
       return {
         data: dealers,
@@ -135,6 +164,15 @@ export class DealerService {
       }
 
       this.logger.verbose(`user with id ${user.id} fetched successfully`);
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'dealer fetched 2',
+        email: user.email,
+        details: {
+          message: 'dealer fetched successfully 2',
+        },
+      });
       return this.mapToDealerResponse(dealer);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -185,6 +223,15 @@ export class DealerService {
 
       const updatedDealer: DealerResponse =
         await this.dealerRepository.updateDealer(dealer.dealerId, updateDto);
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'dealer updated',
+        email: user.email,
+        details: {
+          message: 'dealer updated successfully',
+        },
+      });
       return this.mapToDealerResponse(updatedDealer);
     } catch (error) {
       if (
@@ -218,6 +265,14 @@ export class DealerService {
 
       const result = await this.dealerRepository.deleteDealer(dealer.dealerId);
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'dealer deleted',
+        email: user.email,
+        details: {
+          message: 'dealer deleted successfully',
+        },
+      });
       if (result) return `dealer profile successfully deleted`;
     } catch (error) {
       if (

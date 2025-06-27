@@ -27,6 +27,8 @@ import {
   UpdateCredentials,
 } from 'src/modules/usersModule/utils/user.types';
 import { DealerService } from 'src/modules/usersModule/service/dealer.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 
 @Injectable()
 export class ProductService {
@@ -35,6 +37,7 @@ export class ProductService {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
     private readonly dealerService: DealerService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   createProduct = async (
@@ -63,6 +66,15 @@ export class ProductService {
         await this.productRepository.createProduct(createProductDto);
 
       if (product) {
+        await this.auditLogService.log({
+          logCategory: LogCategory.PRODUCT,
+          description: 'create product',
+          email: dealer.email,
+          details: {
+            user: product.providerName,
+            scale: product.scale,
+          },
+        });
         this.logger.verbose('product created successfully');
         return this.mapProductResponse(product);
       }
@@ -89,6 +101,15 @@ export class ProductService {
         this.logger.log('unauthorized dealer');
         throw new UnauthorizedException('unauthorized dealer');
       } else {
+        await this.auditLogService.log({
+          logCategory: LogCategory.PRODUCT,
+          description: 'find product',
+          email: dealer.email,
+          details: {
+            user: product.providerName,
+            scale: product.scale,
+          },
+        });
         this.logger.verbose(`product with id ${productId} found successfully`);
         return this.mapProductResponse(product);
       }
@@ -160,6 +181,14 @@ export class ProductService {
       }
       this.logger.verbose('purchases fetched successfully');
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.PRODUCT,
+        description: 'find products',
+        details: {
+          count: total.toString(),
+        },
+      });
+
       return {
         data: products,
         total,
@@ -226,6 +255,15 @@ export class ProductService {
         throw new InternalServerErrorException('Product update failed');
       }
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.PRODUCT,
+        description: 'update product',
+        email: user.email,
+        details: {
+          product: productId,
+        },
+      });
+
       this.logger.verbose(`Product update successful for ID ${productId}`);
       return this.mapProductResponse(updatedProduct);
     } catch (error) {
@@ -284,6 +322,16 @@ export class ProductService {
 
       await this.productRepository.deleteProduct(productId);
       this.logger.verbose(`product with id ${productId} successfully deleted`);
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.PRODUCT,
+        description: 'delete product',
+        details: {
+          dealerId,
+          productId,
+        },
+      });
+
       return 'product successfully deleted';
     } catch (error) {
       if (error instanceof UnauthorizedException) {
@@ -365,6 +413,16 @@ export class ProductService {
         updateProductDto,
       );
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.PRODUCT,
+        description: 'add driver',
+        details: {
+          dealerId,
+          productId,
+          driverId,
+        },
+      });
+
       return this.mapProductResponse(addDriver);
     } catch (error) {
       if (
@@ -415,6 +473,16 @@ export class ProductService {
 
       const removeDriver: ProductResponse =
         await this.productRepository.removeDriver(productId, updateProductDto);
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.PRODUCT,
+        description: 'remove driver',
+        details: {
+          dealerId,
+          productId,
+          driverId,
+        },
+      });
 
       return this.mapProductResponse(removeDriver);
     } catch (error) {

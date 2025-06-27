@@ -6,7 +6,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { v4 as uuidV4 } from 'uuid';
 import { IBuyerRepository } from '../interface/user.interface';
 import {
   BuyerCredentials,
@@ -16,6 +15,8 @@ import {
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
 import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { DuplicateException } from 'src/common/exceptions/exceptions';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 
 @Injectable()
 export class BuyerService {
@@ -23,6 +24,7 @@ export class BuyerService {
   constructor(
     @Inject('IBuyerRepository')
     private readonly buyerRepository: IBuyerRepository,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   createBuyer = async (
@@ -31,7 +33,6 @@ export class BuyerService {
   ): Promise<BuyerResponse> => {
     const { firstName, lastName, address, location } = buyerCredentials;
     const createBuyerDto: CreateBuyerDto = {
-      buyerId: uuidV4(),
       email: user.email,
       firstName,
       lastName,
@@ -44,6 +45,7 @@ export class BuyerService {
     };
     try {
       const duplicateBuyer = await this.buyerRepository.findBuyerById(user.id);
+      console.log(duplicateBuyer);
       if (duplicateBuyer) {
         this.logger.debug('buyer profile has already been created');
         throw new DuplicateException(
@@ -56,8 +58,17 @@ export class BuyerService {
 
       this.logger.verbose('buyer profile created successfully');
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyer created',
+        email: user.email,
+        details: {
+          message: 'buyer created successfully',
+        },
+      });
       return this.mapToBuyerResponse(buyer);
     } catch (error) {
+      console.log(error);
       this.logger.error('failed to create new buyer');
       if (error instanceof DuplicateException) {
         throw error;
@@ -76,6 +87,14 @@ export class BuyerService {
       }
 
       this.logger.verbose(`user with id ${user.id} successfully fetched`);
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyer fetched',
+        email: user.email,
+        details: {
+          message: 'buyer fetched successfully',
+        },
+      });
       return this.mapToBuyerResponse(buyer);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -100,6 +119,15 @@ export class BuyerService {
           skip,
           take: limit,
         });
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyers fetched',
+        details: {
+          count: total.toString(),
+        },
+      });
+
       return {
         data: buyers,
         total,
@@ -147,6 +175,14 @@ export class BuyerService {
         updateDto.buyerId,
         updateDto,
       );
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyer updated',
+        email: user.email,
+        details: {
+          message: 'buyer updated successfully',
+        },
+      });
       return this.mapToBuyerResponse(updateBuyer);
     } catch (error) {
       this.logger.error('failed to update buyer details');
@@ -166,6 +202,14 @@ export class BuyerService {
       this.logger.verbose(
         `buyer with id ${user.id} profile deleted successfully`,
       );
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'buyer deleted',
+        email: user.email,
+        details: {
+          message: 'buyer deleted successfully',
+        },
+      });
       return 'buyer profile successfully deleted';
     } catch (error) {
       this.logger.error(`failed to delete buyer profile`);

@@ -27,13 +27,18 @@ import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { FindPurchaseByIdDto } from '../utils/purchase.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Purchase')
 @UseGuards(JwtAuthGuard)
 @Controller('purchase')
 export class PurchaseController {
   constructor(private purchaseService: PurchaseService) {}
 
   @Post('createPurchase')
+  @ApiOperation({ summary: 'created new purchase' })
+  @ApiResponse({ status: 201, description: 'user created new purchase' })
   @HttpCode(HttpStatus.CREATED)
   async createPurchase(
     @GetBuyerDecorator() buyer: BuyerEntity,
@@ -46,6 +51,8 @@ export class PurchaseController {
   }
 
   @Get('findPurchaseById/:purchaseId')
+  @ApiOperation({ summary: 'fetched purchase' })
+  @ApiResponse({ status: 200, description: 'user fetched purchase' })
   @HttpCode(HttpStatus.OK)
   async findPurchaseById(
     @Param('purchaseId') purchaseId: string,
@@ -57,6 +64,8 @@ export class PurchaseController {
   }
 
   @Get('findPurchases')
+  @ApiOperation({ summary: 'fetched new purchases' })
+  @ApiResponse({ status: 200, description: 'user fetched new purchases' })
   @HttpCode(HttpStatus.OK)
   async findPurchases(
     @Query('page') page: number,
@@ -66,9 +75,14 @@ export class PurchaseController {
   }
 
   @Get('findPurchaseByBuyerId')
+  @ApiOperation({ summary: 'buyer fetched purchases' })
+  @ApiResponse({
+    status: 200,
+    description: 'user of type buyer fetched purchases',
+  })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByBuyerId(
-    @Query() findPurchaseByIdInterface: FindPurchaseByIdInterface,
+    @Query() findPurchaseByIdInterface: FindPurchaseByIdDto,
     @GetBuyerDecorator() { buyerId }: BuyerEntity,
   ) {
     return await this.purchaseService.findPurchasesByBuyerId({
@@ -79,6 +93,11 @@ export class PurchaseController {
   }
 
   @Get('findPurchaseByDriverId')
+  @ApiOperation({ summary: 'driver fetched purchases' })
+  @ApiResponse({
+    status: 200,
+    description: 'user of type driver fetched purchases',
+  })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByDriverId(
     @Query() findPurchaseByIdInterface: FindPurchaseByIdInterface,
@@ -92,6 +111,11 @@ export class PurchaseController {
   }
 
   @Get('findPurchaseByProductId/:productId')
+  @ApiOperation({ summary: 'dealer fetched purchases' })
+  @ApiResponse({
+    status: 200,
+    description: 'user of type dealer fetched purchases',
+  })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByProductId(
     @Param('productId') productId: string,
@@ -107,6 +131,11 @@ export class PurchaseController {
   }
 
   @Put('/updatePurchase/:purchaseId')
+  @ApiOperation({ summary: 'update purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'user updated purchase',
+  })
   @HttpCode(HttpStatus.OK)
   async updatePurchase(
     @Param('purchaseId') purchaseId: string,
@@ -121,6 +150,11 @@ export class PurchaseController {
   }
 
   @Put('/deliverPurchase/:purchaseId')
+  @ApiOperation({ summary: 'driver delivered purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'user of type driver delivered purchase',
+  })
   @HttpCode(HttpStatus.OK)
   async deliverPurchase(
     @Param('purchaseId') purchaseId: string,
@@ -135,6 +169,11 @@ export class PurchaseController {
   }
 
   @Delete('/deletePurchase/:purchaseId')
+  @ApiOperation({ summary: 'deleted purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'user deleted purchase',
+  })
   @HttpCode(HttpStatus.OK)
   async deletePurchase(
     @Param('purchaseId') purchaseId: string,

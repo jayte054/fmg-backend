@@ -19,6 +19,8 @@ import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
 import { CloudinaryService } from 'src/modules/cloudinaryModule/cloudinaryService/cloudinary.service';
 import axios from 'axios';
 import { config } from 'dotenv';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 
 config();
 
@@ -29,6 +31,7 @@ export class DriverService {
     @Inject('IDriverRepository')
     private readonly driverRepository: IDriverRepository,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   createDriver = async (
@@ -96,6 +99,14 @@ export class DriverService {
       this.logger.verbose(
         `driver profile with userId ${user.id} has been created`,
       );
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver created',
+        email: user.email,
+        details: {
+          message: 'driver created successfully',
+        },
+      });
       return this.mapDriverResponse(driver);
     } catch (error) {
       if (error instanceof Error) {
@@ -118,6 +129,15 @@ export class DriverService {
         throw new NotFoundException('driver profile not found');
       }
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver fetched',
+        email: user.email,
+        details: {
+          message: 'driver fetched successfully',
+        },
+      });
+
       return this.mapDriverResponse(driver);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -139,6 +159,15 @@ export class DriverService {
         this.logger.verbose(`driver profile with id ${user.id} does not exist`);
         throw new NotFoundException('driver profile not found');
       }
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver fetched 2',
+        email: user.email,
+        details: {
+          message: 'driver fetched  successfully 2',
+        },
+      });
 
       return this.mapDriverResponse(driver);
     } catch (error) {
@@ -168,6 +197,15 @@ export class DriverService {
           skip,
           take: limit,
         });
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'drivers fetched',
+        details: {
+          message: 'drivers fetched successfully',
+        },
+      });
+
       return {
         data: drivers,
         total,
@@ -241,6 +279,14 @@ export class DriverService {
       const updateDriver: DriverResponse =
         await this.driverRepository.updateDriver(driver.driverId, updateDto);
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver updated',
+        email: user.email,
+        details: {
+          message: 'driver updated  successfully',
+        },
+      });
       return this.mapDriverResponse(updateDriver);
     } catch (error) {
       if (
@@ -293,6 +339,14 @@ export class DriverService {
       const updateDriver: DriverResponse =
         await this.driverRepository.updateDriver(driver.driverId, updateDto);
 
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver image updated',
+        email: user.email,
+        details: {
+          message: 'driver image updated',
+        },
+      });
       return this.mapDriverResponse(updateDriver);
     } catch (error) {
       this.logger.error('failed to update driver profile');
@@ -313,6 +367,15 @@ export class DriverService {
       this.logger.verbose(
         `driver with ${user.id} profile deleted successfully`,
       );
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'driver deleted',
+        email: user.email,
+        details: {
+          message: 'driver deleted successfully',
+        },
+      });
       return 'driver profile successfully deleted';
     } catch (error) {
       this.logger.verbose('failed to delete profile');

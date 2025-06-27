@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import * as config from 'config';
 import { NotificationModule } from '../notificationModule/notification.module';
 import { MailerService } from '../notificationModule/notificationService/mailerService';
+import { AuditLogModule } from '../auditLogModule/auditLog.module';
 // import { UserModule } from '../usersModule/user.module';
 
 const jwtConfig: any = config.get('jwt');
@@ -24,6 +25,7 @@ const jwtConfig: any = config.get('jwt');
       },
     }),
     NotificationModule,
+    AuditLogModule,
   ],
   controllers: [AuthController],
   providers: [

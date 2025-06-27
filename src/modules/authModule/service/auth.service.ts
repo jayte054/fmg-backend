@@ -16,6 +16,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
+import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,7 @@ export class AuthService {
     private readonly authRepository: IAuthRepository,
     private jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   signUp = async (
@@ -53,6 +56,16 @@ export class AuthService {
       const newUser = await this.authRepository.signup(user);
       await this.mailerService.sendWelcomeMail(email);
       this.logger.verbose('user created successfully');
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.AUTHENTICATION,
+        description: 'signup',
+        details: {
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+        },
+      });
+
       return {
         id: newUser.id,
         email: newUser.email,
@@ -99,6 +112,16 @@ export class AuthService {
         role,
         isAdmin,
       };
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.AUTHENTICATION,
+        description: 'signin',
+        details: {
+          email,
+          createdAt: new Date().toISOString(),
+        },
+      });
+
       return responsePayload;
     } catch (error) {
       this.logger.error('error signing in');

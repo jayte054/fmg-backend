@@ -16,9 +16,13 @@ import { BuyerRepositoryMiddleware } from './common/middleware/buyer.repository.
 import { PurchaseController } from './modules/purchaseModule/purchaseController/purchase.controller';
 import { PurchaseModule } from './modules/purchaseModule/purchase.module';
 import { DriverRepositoryMiddleware } from './common/middleware/driver.repository.middleware';
+import { TokenModule } from './modules/tokenModule/token.module';
+import { AuditLogModule } from './modules/auditLogModule/auditLog.module';
 
 @Module({
   imports: [
+    AuditLogModule,
+    TokenModule,
     PurchaseModule,
     ProductModule,
     CloudinaryModule,

@@ -10,6 +10,9 @@ import { NotificationModule } from '../notificationModule/notification.module';
 import { ProductModule } from '../ProductModule/product.module';
 import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
+import { TokenModule } from '../tokenModule/token.module';
+import { MailerService } from '../notificationModule/notificationService/mailerService';
+import { AuditLogModule } from '../auditLogModule/auditLog.module';
 
 @Module({
   imports: [
@@ -17,9 +20,12 @@ import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.reposit
     UserModule,
     NotificationModule,
     ProductModule,
+    TokenModule,
+    AuditLogModule,
   ],
   controllers: [PurchaseController],
   providers: [
+    MailerService,
     PurchaseService,
     {
       provide: 'IPurchaseRepository',

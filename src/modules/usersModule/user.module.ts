@@ -18,9 +18,11 @@ import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.reposit
 import { DealerEntityRepository } from './repository/dealer.entity.repository';
 import { BuyerEntityRepository } from './repository/buyer.entity.repository';
 import { DriverEntityRepository } from './repository/driver.entity.repository';
+import { AuditLogModule } from '../auditLogModule/auditLog.module';
 
 @Module({
   imports: [
+    AuditLogModule,
     CloudinaryModule,
     AuthModule,
     TypeOrmModule.forFeature([BuyerEntity, DealerEntity, DriverEntity]),
