@@ -32,7 +32,9 @@ export class TokenRepository extends Repository<TokenEntity> {
     const { tokenId, userId, purchaseId } = findTokenFilter;
     const query = this.createQueryBuilder('token');
 
-    query.where('token.tokenId = :tokenId', { tokenId });
+    if (tokenId) {
+      query.andWhere('token.tokenId = :tokenId', { tokenId });
+    }
 
     if (userId) {
       query.andWhere('token.userId = :userId', { userId });

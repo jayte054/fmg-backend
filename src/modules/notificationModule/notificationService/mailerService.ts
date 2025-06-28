@@ -20,7 +20,7 @@ export class MailerService {
       service: 'Gmail',
       auth: {
         user: Gmail_User,
-        password: Gmail_Password,
+        pass: Gmail_Password,
       },
     });
   }
@@ -82,14 +82,6 @@ export class MailerService {
   ): Promise<void> {
     const { token, email, expiration, purchaseTitle } =
       tokenNotificationInterface;
-
-    this.transporter.verify((error, success) => {
-      if (error) {
-        console.error('Email config error:', error);
-      } else {
-        console.log('Email transporter is ready to send messages');
-      }
-    });
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: Gmail_User,

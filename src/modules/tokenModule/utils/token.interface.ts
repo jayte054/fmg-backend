@@ -20,7 +20,13 @@ export interface TokenResponse {
 }
 
 export interface FindTokenFilter {
-  tokenId: string;
+  tokenId?: string;
   userId?: string;
   purchaseId?: string;
+}
+
+export interface ResendTokenInterface {
+  email: string;
+  purchaseId: string;
+  purchaseTitle: string;
 }

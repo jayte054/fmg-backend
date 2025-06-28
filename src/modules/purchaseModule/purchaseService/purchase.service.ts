@@ -118,19 +118,19 @@ export class PurchaseService {
 
         await this.tokenService.updateToken(tokenId, purchase.purchaseId);
 
-        // const tokenNotificationInterface = {
-        //   token,
-        //   email: buyer.email,
-        //   expiration: expiresAt,
-        //   purchaseTitle: purchase?.metadata?.purchaseTitle,
-        // };
+        const tokenNotificationInterface = {
+          token,
+          email: buyer.email,
+          expiration: expiresAt,
+          purchaseTitle: purchase?.metadata?.purchaseTitle,
+        };
 
         const sendDriverNotificationResponse =
           await this.sendProduct(notificationDto);
 
         const sendUserNotification = await this.sendUser(notificationDto);
 
-        // await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
+        await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
 
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);

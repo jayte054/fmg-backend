@@ -10,12 +10,14 @@ import { ITokenRepository } from '../interface/iTokenRepository';
 import { TokenEntity } from '../tokenEntity/token.entity';
 import {
   FindTokenFilter,
+  ResendTokenInterface,
   TokenResponse,
   TokenType,
 } from '../utils/token.interface';
 import { FindOptionsWhere } from 'typeorm';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
 
 @Injectable()
 export class TokenService {
@@ -24,6 +26,7 @@ export class TokenService {
     @Inject('ITokenRepository')
     private readonly tokenRepository: ITokenRepository,
     private readonly auditLogService: AuditLogService,
+    private readonly mailerService: MailerService,
   ) {}
 
   createToken = async (
@@ -142,5 +145,56 @@ export class TokenService {
     });
 
     return { message: 'Token successfully verified' };
+  };
+
+  resendToken = async (
+    resendTokenInterface: ResendTokenInterface,
+  ): Promise<{ message: string }> => {
+    const { email, purchaseId, purchaseTitle } = resendTokenInterface;
+    const token = await this.tokenRepository.findToken({ purchaseId });
+
+    if (!token) {
+      this.logger.warn(`token with id ${purchaseId} not found`);
+      throw new NotFoundException('token not found');
+    }
+
+    const newToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    const data: Partial<TokenEntity> = {
+      token: newToken,
+      expiresAt,
+    };
+
+    const updateToken = await this.tokenRepository.updateToken(
+      { purchaseId },
+      data,
+    );
+
+    if (!updateToken?.affected) {
+      this.logger.error('failed to update token');
+      throw new InternalServerErrorException('failed to update token');
+    }
+
+    const tokenNotificationInterface = {
+      token: data.token,
+      email,
+      expiration: expiresAt.toISOString(),
+      purchaseTitle,
+    };
+
+    await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
+
+    await this.auditLogService.log({
+      logCategory: LogCategory.TOKEN,
+      description: 'token resent',
+      details: {
+        token: newToken,
+        purchaseId,
+      },
+    });
+
+    this.logger.verbose(`token resent successfully for email ${email}`);
+    return { message: 'token resent successfully' };
   };
 }
