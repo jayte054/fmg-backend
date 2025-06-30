@@ -13,7 +13,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 
-@ApiTags('resend token')
+@ApiTags('resend_token')
 @UseGuards(JwtAuthGuard)
 @Controller('token')
 export class TokenController {

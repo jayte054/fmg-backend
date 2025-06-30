@@ -17,15 +17,15 @@ import { UserModule } from '../usersModule/user.module';
     NotificationModule,
     UserModule,
   ],
+  controllers: [TokenController],
   providers: [
-    TokenService,
     MailerService,
+    TokenService,
     {
       provide: 'ITokenRepository',
       useClass: TokenRepository,
     },
   ],
-  controllers: [TokenController],
   exports: [TokenService],
 })
 export class TokenModule implements NestModule {

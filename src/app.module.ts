@@ -18,6 +18,7 @@ import { PurchaseModule } from './modules/purchaseModule/purchase.module';
 import { DriverRepositoryMiddleware } from './common/middleware/driver.repository.middleware';
 import { TokenModule } from './modules/tokenModule/token.module';
 import { AuditLogModule } from './modules/auditLogModule/auditLog.module';
+import { TokenController } from './modules/tokenModule/controller/token.controller';
 
 @Module({
   imports: [
@@ -42,12 +43,13 @@ export class AppModule implements NestModule {
         DriverController,
         ProductController,
         PurchaseController,
+        TokenController,
       );
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
 
     consumer
       .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
-      .forRoutes(PurchaseController);
+      .forRoutes(PurchaseController, TokenController);
   }
 }
