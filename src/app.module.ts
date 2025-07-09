@@ -19,9 +19,11 @@ import { DriverRepositoryMiddleware } from './common/middleware/driver.repositor
 import { TokenModule } from './modules/tokenModule/token.module';
 import { AuditLogModule } from './modules/auditLogModule/auditLog.module';
 import { TokenController } from './modules/tokenModule/controller/token.controller';
+import { PaymentModule } from './modules/paymentModule/payment.module';
 
 @Module({
   imports: [
+    PaymentModule,
     AuditLogModule,
     TokenModule,
     PurchaseModule,

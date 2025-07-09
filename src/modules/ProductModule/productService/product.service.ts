@@ -26,18 +26,20 @@ import {
   DealerResponse,
   UpdateCredentials,
 } from 'src/modules/usersModule/utils/user.types';
-import { DealerService } from 'src/modules/usersModule/service/dealer.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
+// import { DealerService } from '../../usersModule/service/dealer.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { dealerUtils } from '../utils/utils';
 
 @Injectable()
 export class ProductService {
   private logger = new Logger('ProductService');
+  private dealerUtils: ReturnType<typeof dealerUtils>;
   constructor(
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
-    private readonly dealerService: DealerService,
     private readonly auditLogService: AuditLogService,
+    // private readonly dealerService: DealerService,
   ) {}
 
   createProduct = async (
@@ -296,11 +298,12 @@ export class ProductService {
       scale: updateProductDto.scale,
     };
 
-    const updatedDealer: DealerResponse = await this.dealerService.updateDealer(
-      user,
-      dealerId,
-      updateDealerCredentials,
-    );
+    const updatedDealer: DealerResponse =
+      await this.dealerUtils.updateDealerInfo(
+        user,
+        dealerId,
+        updateDealerCredentials,
+      );
 
     if (!updatedDealer) {
       this.logger.error(`Dealer update failed for user: ${user.email}`);

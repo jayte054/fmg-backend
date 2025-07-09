@@ -18,6 +18,8 @@ import {
 import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
+import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
 
 @Injectable()
 export class DealerService {
@@ -26,6 +28,7 @@ export class DealerService {
     @Inject('IDealerRepository')
     private readonly dealerRepository: IDealerRepository,
     private readonly auditLogService: AuditLogService,
+    private readonly walletService: PaymentService,
   ) {}
 
   createDealer = async (
@@ -53,6 +56,17 @@ export class DealerService {
       if (dealer) {
         this.logger.verbose('dealer profile created successfully');
       }
+
+      const walletInput: Partial<WalletEntity> = {
+        walletName: `${dealer.name}`,
+        userId: dealer.userId,
+      };
+      const accountId = `${dealer.name.slice(0, 3)}`;
+      await this.walletService.createWallet(
+        walletInput,
+        accountId,
+        dealer.email,
+      );
 
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
@@ -179,6 +193,17 @@ export class DealerService {
         throw error;
       }
       this.logger.error(`error finding dealer with id ${user.id}`);
+      throw new InternalServerErrorException('failed to find dealer');
+    }
+  };
+
+  findDealerByService = async (dealerId: string): Promise<DealerResponse> => {
+    try {
+      const dealer = await this.dealerRepository.findDealerId(dealerId);
+
+      return this.mapToDealerResponse(dealer);
+    } catch (error) {
+      this.logger.error(`error finding dealer with id `);
       throw new InternalServerErrorException('failed to find dealer');
     }
   };

@@ -22,6 +22,11 @@ export class CreatePurchaseDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  deliveryFee: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   priceType: PriceType;
 
   @ApiProperty()

@@ -21,6 +21,8 @@ import axios from 'axios';
 import { config } from 'dotenv';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
+import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
 
 config();
 
@@ -32,6 +34,7 @@ export class DriverService {
     private readonly driverRepository: IDriverRepository,
     private readonly cloudinaryService: CloudinaryService,
     private readonly auditLogService: AuditLogService,
+    private readonly walletService: PaymentService,
   ) {}
 
   createDriver = async (
@@ -96,6 +99,18 @@ export class DriverService {
 
       const driver: DriverResponse =
         await this.driverRepository.createDriver(createDriverDto);
+
+      const walletInput: Partial<WalletEntity> = {
+        walletName: `${driver.firstName} ${driver.lastName}`,
+        userId: driver.userId,
+      };
+      const accountId = `${driver.firstName.slice(0, 2)}${driver.lastName.slice(0, 2)}`;
+      await this.walletService.createWallet(
+        walletInput,
+        accountId,
+        driver.email,
+      );
+
       this.logger.verbose(
         `driver profile with userId ${user.id} has been created`,
       );
@@ -175,6 +190,17 @@ export class DriverService {
         throw error;
       }
       this.logger.error(`failed to find driver with id ${user.id}`);
+      throw new InternalServerErrorException('failed to find driver');
+    }
+  };
+
+  findDriverByService = async (driverId: string): Promise<DriverResponse> => {
+    try {
+      const driver: DriverResponse =
+        await this.driverRepository.findDriverById2(driverId);
+      return this.mapDriverResponse(driver);
+    } catch (error) {
+      this.logger.error(`failed to find driver with id`);
       throw new InternalServerErrorException('failed to find driver');
     }
   };

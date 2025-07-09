@@ -30,6 +30,8 @@ export interface PurchaseResponse {
 
   productId: string;
 
+  deliveryFee: string;
+
   price: string;
 
   priceType: PriceType;
@@ -55,6 +57,8 @@ export interface CreatePurchaseCredentials {
   productId: string;
 
   price: string;
+
+  deliveryFee: string;
 
   cylinderType: CylinderType;
 

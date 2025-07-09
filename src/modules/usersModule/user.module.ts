@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  forwardRef,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BuyerEntity } from './userEntity/buyer.entity';
 import { BuyerRepository } from './repository/buyer.repository';
@@ -19,9 +24,11 @@ import { DealerEntityRepository } from './repository/dealer.entity.repository';
 import { BuyerEntityRepository } from './repository/buyer.entity.repository';
 import { DriverEntityRepository } from './repository/driver.entity.repository';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
+import { PaymentModule } from '../paymentModule/payment.module';
 
 @Module({
   imports: [
+    forwardRef(() => PaymentModule),
     AuditLogModule,
     CloudinaryModule,
     AuthModule,
@@ -52,6 +59,9 @@ import { AuditLogModule } from '../auditLogModule/auditLog.module';
     DealerEntityRepository,
     BuyerEntityRepository,
     DriverEntityRepository,
+    BuyerService,
+    DealerService,
+    DriverService,
   ],
 })
 export class UserModule implements NestModule {

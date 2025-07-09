@@ -7,6 +7,7 @@ export enum LogCategory {
   TOKEN = 'token',
   NOTIFICATION = 'notification',
   USER = 'user',
+  PAYMENT = 'payment',
 }
 
 export interface LogFilterInterface {

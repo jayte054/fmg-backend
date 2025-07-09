@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  forwardRef,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductEntity } from './productEntity/product.entity';
 import { UserModule } from '../usersModule/user.module';
@@ -6,27 +11,22 @@ import { ProductService } from './productService/product.service';
 import { ProductController } from './productController/product.controller';
 import { ProductRepository } from './productsRepository/product.repository';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
-import { DealerService } from '../usersModule/service/dealer.service';
-import { DealerRepository } from '../usersModule/repository/dealer.repository';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
+import { PaymentModule } from '../paymentModule/payment.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductEntity]),
-    UserModule,
+    forwardRef(() => UserModule),
     AuditLogModule,
+    forwardRef(() => PaymentModule),
+    TypeOrmModule.forFeature([ProductEntity]),
   ],
   controllers: [ProductController],
   providers: [
     ProductService,
-    DealerService,
     {
       provide: 'IProductRepository',
       useClass: ProductRepository,
-    },
-    {
-      provide: 'IDealerRepository',
-      useClass: DealerRepository,
     },
   ],
   exports: [ProductService],

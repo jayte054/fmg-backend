@@ -13,7 +13,7 @@ async function bootstrap() {
     .setDescription('the api details for fmg')
     .setVersion('1.0')
     .addTag('FMG')
-    .addBearerAuth()
+    // .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

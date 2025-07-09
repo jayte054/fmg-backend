@@ -10,6 +10,9 @@ import { PushNotificationEntity } from 'src/modules/notificationModule/notificat
 import { UserPushNotificationEntity } from 'src/modules/notificationModule/notificationEntity.ts/userNotification.entity';
 import { TokenEntity } from 'src/modules/tokenModule/tokenEntity/token.entity';
 import { AuditLogEntity } from 'src/modules/auditLogModule/auditLogEntity/auditLog.entity';
+import { SubAccountEntity } from 'src/modules/paymentModule/entity/subaccount.entity';
+import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
+import { PaymentEntity } from 'src/modules/paymentModule/entity/payment.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: TypeOrmModuleOptions = {
@@ -30,6 +33,9 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     UserPushNotificationEntity,
     TokenEntity,
     AuditLogEntity,
+    PaymentEntity,
+    SubAccountEntity,
+    WalletEntity,
   ],
   synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   migrations: ['dist/migrations/*.js'],

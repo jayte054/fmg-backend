@@ -55,8 +55,15 @@ export class PurchaseService {
     driverNotificationResponse: UserNotificationResponse;
     userNotificationResponse: UserNotificationResponse;
   }> => {
-    const { price, purchaseType, cylinderType, priceType, address, productId } =
-      createPurchaseCredentials;
+    const {
+      price,
+      deliveryFee,
+      purchaseType,
+      cylinderType,
+      priceType,
+      address,
+      productId,
+    } = createPurchaseCredentials;
 
     validatePurchaseTypes(purchaseType, cylinderType, priceType);
 
@@ -81,6 +88,7 @@ export class PurchaseService {
                 product.pricePerKg *
                   parseFloat(CylinderType[cylinderType].slice(0, -2)),
               ),
+        deliveryFee,
         priceType,
         cylinder: CylinderType[cylinderType],
         purchaseType,
@@ -189,6 +197,24 @@ export class PurchaseService {
         });
         return this.mapPurchaseResponse(purchase);
       }
+    } catch (error) {
+      this.logger.error(
+        `an error occurred when fetching purchase order with id ${purchaseId}`,
+      );
+      throw new InternalServerErrorException('an error occurred');
+    }
+  };
+
+  findPurchaseByIdPayment = async (purchaseId: string) => {
+    try {
+      const purchase =
+        await this.purchaseRepository.findPurchaseById(purchaseId);
+
+      if (!purchase) {
+        this.logger.warn(`purchase with id ${purchaseId} not found`);
+        throw new NotFoundException(`purchase record not found`);
+      }
+      return this.mapPurchaseResponse(purchase);
     } catch (error) {
       this.logger.error(
         `an error occurred when fetching purchase order with id ${purchaseId}`,
@@ -556,6 +582,7 @@ export class PurchaseService {
       purchaseId: purchaseResponse.purchaseId,
       productId: purchaseResponse.productId,
       price: purchaseResponse.price,
+      deliveryFee: purchaseResponse.deliveryFee,
       priceType: purchaseResponse.priceType,
       cylinder: purchaseResponse.cylinder,
       purchaseType: purchaseResponse.purchaseType,

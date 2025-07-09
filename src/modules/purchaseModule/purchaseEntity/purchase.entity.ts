@@ -20,6 +20,9 @@ export class PurchaseEntity extends BaseEntity {
   @Column()
   price: string;
 
+  @Column()
+  deliveryFee?: string;
+
   @Column({ type: 'enum', enum: PriceType })
   priceType: PriceType;
 
