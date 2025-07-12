@@ -70,10 +70,11 @@ export class WalletRepository extends Repository<WalletEntity> {
   updateWallet = async (
     walletAccount: string,
     updateWalletData: UpdateWalletData,
-  ): Promise<WalletEntity> => {
+  ): Promise<WalletEntity | null> => {
     const updateQuery = await this.update(walletAccount, updateWalletData);
 
-    if (updateQuery.affected < 1)
+    if (updateQuery.affected < 1) {
       return await this.findOne({ where: { walletAccount } });
+    } else return null;
   };
 }

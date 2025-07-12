@@ -4,6 +4,7 @@ import { PushNotificationEntity } from './notificationEntity.ts/notification.ent
 import { PushNotificationService } from './notificationService/push-notification.service';
 import { NotificationGateway } from './notifcation.gateway';
 import { UserPushNotificationEntity } from './notificationEntity.ts/userNotification.entity';
+import { MessagingService } from './notificationService/whatsapp.service';
 
 @Module({
   imports: [
@@ -12,8 +13,8 @@ import { UserPushNotificationEntity } from './notificationEntity.ts/userNotifica
       UserPushNotificationEntity,
     ]),
   ],
-  providers: [PushNotificationService, NotificationGateway],
+  providers: [MessagingService, PushNotificationService, NotificationGateway],
   controllers: [],
-  exports: [PushNotificationService, NotificationGateway],
+  exports: [MessagingService, PushNotificationService, NotificationGateway],
 })
 export class NotificationModule {}

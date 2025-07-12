@@ -32,6 +32,7 @@ import { TokenType } from 'src/modules/tokenModule/utils/token.interface';
 import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { MessagingService } from 'src/modules/notificationModule/notificationService/whatsapp.service';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -45,6 +46,7 @@ export class PurchaseService {
     private readonly tokenService: TokenService,
     private readonly mailerService: MailerService,
     private readonly auditLogService: AuditLogService,
+    private readonly messagingService: MessagingService,
   ) {}
 
   createPurchase = async (
@@ -139,6 +141,10 @@ export class PurchaseService {
         const sendUserNotification = await this.sendUser(notificationDto);
 
         await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
+        await this.messagingService.sendTokenMessage(
+          buyer.phoneNumber,
+          `please provide this delivery token ${token} to the driver to confirm delivery`,
+        );
 
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
         const purchaseResponse = this.mapPurchaseResponse(purchase);

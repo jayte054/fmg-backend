@@ -60,6 +60,9 @@ export interface DealerCredentials {
   location: { latitude: number; longitude: number };
   scale: RetailScale;
   rating: number;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
 }
 
 export interface DealerResObj {

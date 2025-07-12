@@ -11,9 +11,11 @@ import { SubAccountRepository } from './repository/subaccount.repository';
 import { WalletRepository } from './repository/wallet.repository';
 import { UserModule } from '../usersModule/user.module';
 import { HttpModule } from '@nestjs/axios';
+import { NotificationModule } from '../notificationModule/notification.module';
 
 @Module({
   imports: [
+    forwardRef(() => NotificationModule),
     HttpModule,
     forwardRef(() => UserModule),
     AuditLogModule,

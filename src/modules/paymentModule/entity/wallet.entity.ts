@@ -31,5 +31,5 @@ export class WalletEntity extends BaseEntity {
   updatedAt?: Date;
 
   @Column({ type: 'jsonb' })
-  metadata: Record<string, string>;
+  metadata: Record<string, unknown>;
 }

@@ -39,7 +39,6 @@ export class ProductService {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
     private readonly auditLogService: AuditLogService,
-    // private readonly dealerService: DealerService,
   ) {}
 
   createProduct = async (

@@ -322,7 +322,7 @@ export class DriverService {
         throw error;
       }
       this.logger.error('failed to update driver profile');
-      throw new InternalServerErrorException('failde to update driver');
+      throw new InternalServerErrorException('failed to update driver');
     }
   };
 

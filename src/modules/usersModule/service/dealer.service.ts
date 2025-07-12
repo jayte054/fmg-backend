@@ -20,6 +20,7 @@ import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/audi
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
 import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
+import { SubAccountEntity } from 'src/modules/paymentModule/entity/subaccount.entity';
 
 @Injectable()
 export class DealerService {
@@ -28,14 +29,23 @@ export class DealerService {
     @Inject('IDealerRepository')
     private readonly dealerRepository: IDealerRepository,
     private readonly auditLogService: AuditLogService,
-    private readonly walletService: PaymentService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   createDealer = async (
     user: AuthEntity,
     dealerCredentials: DealerCredentials,
   ): Promise<DealerResponse> => {
-    const { name, address, location, scale, rating } = dealerCredentials;
+    const {
+      name,
+      address,
+      location,
+      scale,
+      rating,
+      bankName,
+      bankCode,
+      accountNumber,
+    } = dealerCredentials;
 
     try {
       const createDealerDto: CreateDealerDto = {
@@ -62,20 +72,41 @@ export class DealerService {
         userId: dealer.userId,
       };
       const accountId = `${dealer.name.slice(0, 3)}`;
-      await this.walletService.createWallet(
+      const wallet = await this.paymentService.createWallet(
         walletInput,
         accountId,
         dealer.email,
       );
 
-      await this.auditLogService.log({
-        logCategory: LogCategory.USER,
-        description: 'buyer created',
-        email: user.email,
-        details: {
-          message: 'buyer created successfully',
-        },
-      });
+      const subAccountInput: Partial<SubAccountEntity> = {
+        userId: dealer.userId,
+        bankName,
+        walletId: wallet.walletId,
+        bankCode,
+        accountNumber,
+      };
+
+      const subAccountResult = await this.paymentService.createSubAccount(
+        subAccountInput,
+        name,
+        dealer.email,
+        dealer.dealerId,
+      );
+
+      if ('sub_account' in subAccountResult) {
+        const subAccountId = subAccountResult.sub_account.subAccountId;
+
+        await this.auditLogService.log({
+          logCategory: LogCategory.USER,
+          description: 'dealer created',
+          email: user.email,
+          details: {
+            message: 'dealer created successfully',
+            walletid: wallet.walletId,
+            subAccountId,
+          },
+        });
+      }
       return this.mapToDealerResponse(dealer);
     } catch (error) {
       this.logger.error('failed to create dealer');

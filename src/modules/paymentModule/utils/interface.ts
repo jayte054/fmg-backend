@@ -82,5 +82,11 @@ export interface UpdateWalletData {
   status?: WalletStatus;
   balance?: number;
   previousBalance?: number;
+  metadata: Record<string, unknown>;
   updatedAt: Date;
+}
+
+export interface SubAccountResponse {
+  sub_account: SubAccountEntity;
+  message: string;
 }
