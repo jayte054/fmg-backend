@@ -39,17 +39,19 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 export class PurchaseController {
   constructor(private purchaseService: PurchaseService) {}
 
-  @Post('createPurchase')
+  @Post('createPurchase/:reference')
   @ApiOperation({ summary: 'created new purchase' })
   @ApiResponse({ status: 201, description: 'user created new purchase' })
   @HttpCode(HttpStatus.CREATED)
   async createPurchase(
     @GetBuyerDecorator() buyer: BuyerEntity,
+    @Param('reference') reference: string,
     @Body(ValidationPipe) createPurchaseCredentials: CreatePurchaseCredentials,
   ) {
     return await this.purchaseService.createPurchase(
       buyer,
       createPurchaseCredentials,
+      reference,
     );
   }
 

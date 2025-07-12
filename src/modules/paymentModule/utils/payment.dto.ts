@@ -1,13 +1,15 @@
 import { IsNotEmpty, IsNotEmptyObject, IsString } from 'class-validator';
 import { PurchaseResponse } from 'src/modules/purchaseModule/utils/purchase.type';
 
-export class InitializePaymentDto {
-  @IsString()
-  @IsNotEmpty()
-  email: string;
+interface PurchaseCredentials {
+  price: string;
+  deliveryFee: string;
+  productId: string;
+}
 
+export class InitializePaymentDto {
   @IsNotEmptyObject()
-  purchase: PurchaseResponse;
+  purchase: PurchaseCredentials;
 }
 
 export class VerifyPaymentDto {

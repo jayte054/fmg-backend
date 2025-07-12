@@ -27,6 +27,7 @@ import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 import { MessagingService } from 'src/modules/notificationModule/notificationService/whatsapp.service';
 import { SubAccountEntity } from '../entity/subaccount.entity';
+import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 
 @Injectable()
 export class PaymentService {
@@ -48,8 +49,12 @@ export class PaymentService {
     private readonly messagingService: MessagingService,
   ) {}
 
-  initializePayment = async (paymentDto: InitializePaymentDto) => {
-    const { email, purchase } = paymentDto;
+  initializePayment = async (
+    buyer: BuyerEntity,
+    paymentDto: InitializePaymentDto,
+  ) => {
+    const { email } = buyer;
+    const { purchase } = paymentDto;
     const paystack_secret = this.configService.get<string>(
       'paystack_test_secret_key',
     );

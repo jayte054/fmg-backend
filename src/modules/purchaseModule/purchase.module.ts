@@ -13,6 +13,7 @@ import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.reposit
 import { TokenModule } from '../tokenModule/token.module';
 import { MailerService } from '../notificationModule/notificationService/mailerService';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
+import { PaymentModule } from '../paymentModule/payment.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AuditLogModule } from '../auditLogModule/auditLog.module';
     ProductModule,
     TokenModule,
     AuditLogModule,
+    PaymentModule,
   ],
   controllers: [PurchaseController],
   providers: [

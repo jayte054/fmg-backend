@@ -33,6 +33,7 @@ import { MailerService } from 'src/modules/notificationModule/notificationServic
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 import { MessagingService } from 'src/modules/notificationModule/notificationService/whatsapp.service';
+import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -47,11 +48,13 @@ export class PurchaseService {
     private readonly mailerService: MailerService,
     private readonly auditLogService: AuditLogService,
     private readonly messagingService: MessagingService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   createPurchase = async (
     buyer: BuyerEntity,
     createPurchaseCredentials: CreatePurchaseCredentials,
+    reference: string,
   ): Promise<{
     purchaseResponse: PurchaseResponse;
     driverNotificationResponse: UserNotificationResponse;
@@ -113,6 +116,11 @@ export class PurchaseService {
 
       const purchase =
         await this.purchaseRepository.createPurchase(createPurchaseDto);
+
+      await this.paymentService.verifyPayment({
+        reference,
+        purchase,
+      });
 
       if (purchase) {
         const notificationDto: NotificationDto = {

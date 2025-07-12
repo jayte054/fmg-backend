@@ -1,4 +1,9 @@
-import { forwardRef, Module } from '@nestjs/common';
+import {
+  forwardRef,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentEntity } from './entity/payment.entity';
@@ -12,6 +17,8 @@ import { WalletRepository } from './repository/wallet.repository';
 import { UserModule } from '../usersModule/user.module';
 import { HttpModule } from '@nestjs/axios';
 import { NotificationModule } from '../notificationModule/notification.module';
+import { PaymentController } from './controller/payment.controller';
+import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repository.middleware';
 
 @Module({
   imports: [
@@ -37,7 +44,11 @@ import { NotificationModule } from '../notificationModule/notification.module';
       useClass: WalletRepository,
     },
   ],
-  controllers: [],
+  controllers: [PaymentController],
   exports: [PaymentService],
 })
-export class PaymentModule {}
+export class PaymentModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(BuyerRepositoryMiddleware).forRoutes(PaymentController);
+  }
+}
