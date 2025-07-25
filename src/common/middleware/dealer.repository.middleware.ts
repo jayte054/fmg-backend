@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { DealerEntityRepository } from 'src/modules/usersModule/repository/dealer.entity.repository';
+import { DealerEntityRepository } from '../../modules/usersModule/repository/dealer.entity.repository';
 
 @Injectable()
 export class DealerRepositoryMiddleware implements NestMiddleware {

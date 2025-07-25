@@ -206,3 +206,48 @@ export class UpdateDriverDto {
   isAdmin?: boolean;
   userId?: string;
 }
+
+export class CreateAdminDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+}
+
+export interface AdminFilter {
+  search: string;
+  active: boolean;
+  skip: number;
+  take: number;
+}
+
+export interface CreateAdminCredentials {
+  name: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+  location: string;
+  role: string;
+  isAdmin: boolean;
+  userId: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface UpdateFilter {
+  name?: string;
+  phoneNumber?: string;
+  address?: string;
+  location?: string;
+  metadata?: Record<string, unknown>;
+}

@@ -15,7 +15,7 @@ import {
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { DriverService } from '../service/driver.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';

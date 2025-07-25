@@ -7,7 +7,7 @@ import * as nodemailer from 'nodemailer';
 import {
   Gmail_Password,
   Gmail_User,
-} from 'src/modules/cloudinaryModule/cloudinaryConfig';
+} from '../../cloudinaryModule/cloudinaryConfig';
 import { TokenNotificationInterface } from '../utils/notification.dto';
 
 @Injectable()

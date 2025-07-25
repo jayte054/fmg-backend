@@ -1,3 +1,5 @@
+import { AdminEntity } from '../userEntity/admin.entity';
+
 export interface BuyerResponse {
   buyerId: string;
   firstName: string;
@@ -157,4 +159,9 @@ export interface UpdateDriverCredentials {
   vehicleNumber?: string;
 
   driversLicense?: Express.Multer.File;
+}
+
+export interface AdminResponse {
+  admins: AdminEntity[];
+  total: number;
 }

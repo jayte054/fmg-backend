@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RetailScale } from '../utils/user.types';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.entity';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { ProductEntity } from '../../ProductModule/productEntity/product.entity';
 
 @Entity()
 export class DealerEntity extends BaseEntity {

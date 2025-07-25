@@ -1,23 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { v4 as uuidV4 } from 'uuid';
-import { PushNotificationEntity } from '../notificationEntity.ts/notification.entity';
+import { FmgNotificationEntity } from '../notificationEntity.ts/fmgNotification.entity';
 import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notifcation.gateway';
 import {
   PushNotificationDto,
   UserPushNotificationDto,
 } from '../utils/notification.dto';
-import { UserPushNotificationEntity } from '../notificationEntity.ts/userNotification.entity';
+import { UserNotificationEntity } from '../notificationEntity.ts/userNotification.entity';
 
 @Injectable()
 export class PushNotificationService {
   private readonly logger = new Logger('notification service');
   constructor(
-    @InjectRepository(PushNotificationEntity)
-    private notificationRepository: Repository<PushNotificationEntity>,
-    @InjectRepository(UserPushNotificationEntity)
-    private userNotificationRepository: Repository<UserPushNotificationEntity>,
+    @InjectRepository(FmgNotificationEntity)
+    private notificationRepository: Repository<FmgNotificationEntity>,
+    @InjectRepository(UserNotificationEntity)
+    private userNotificationRepository: Repository<UserNotificationEntity>,
 
     private notificationGateway: NotificationGateway,
   ) {}
@@ -68,7 +68,7 @@ export class PushNotificationService {
 
   getDriverNotification = async (
     driverId: string,
-  ): Promise<PushNotificationEntity[]> => {
+  ): Promise<FmgNotificationEntity[]> => {
     const notifications = await this.notificationRepository.find({
       where: { isRead: false },
       order: { createdAt: 'DESC' },
@@ -84,7 +84,7 @@ export class PushNotificationService {
 
   getDealerNotification = async (
     dealerId: string,
-  ): Promise<PushNotificationEntity[]> => {
+  ): Promise<FmgNotificationEntity[]> => {
     const notifications = await this.notificationRepository.find({
       where: { isRead: false },
       order: { createdAt: 'DESC' },
@@ -135,7 +135,7 @@ export class PushNotificationService {
 
   getUserNotification = async (
     userId: string,
-  ): Promise<UserPushNotificationEntity[]> => {
+  ): Promise<UserNotificationEntity[]> => {
     const notification = await this.userNotificationRepository.find({
       where: {
         buyerId: userId,

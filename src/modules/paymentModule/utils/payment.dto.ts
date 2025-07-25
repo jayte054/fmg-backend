@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNotEmptyObject, IsString } from 'class-validator';
-import { PurchaseResponse } from 'src/modules/purchaseModule/utils/purchase.type';
+import { PurchaseResponse } from '../../purchaseModule/utils/purchase.type';
 
 interface PurchaseCredentials {
   price: string;

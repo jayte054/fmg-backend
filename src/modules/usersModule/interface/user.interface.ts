@@ -1,3 +1,4 @@
+import { AdminEntity } from '../userEntity/admin.entity';
 import {
   CreateBuyerDto,
   CreateDriverDto,
@@ -5,12 +6,16 @@ import {
   UpdateBuyerDto,
   UpdateDriverDto,
   UpdateDealerDto,
+  CreateAdminDto,
+  AdminFilter,
+  UpdateFilter,
 } from '../utils/user.dto';
 import {
   BuyerResponse,
   driverResObj,
   DriverResponse,
   DealerResponse,
+  AdminResponse,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
@@ -55,4 +60,12 @@ export interface IDriverRepository {
     updateDto: UpdateDriverDto,
   ): Promise<DriverResponse>;
   deleteDriverProfile(driverId: string): Promise<any>;
+}
+
+export interface IAdminRepository {
+  createAdmin(input: CreateAdminDto): Promise<AdminEntity>;
+  findAdmins(filter: AdminFilter): Promise<AdminResponse>;
+  findAdminByUserId(userId?: string): Promise<AdminEntity>;
+  findAdmin(adminId: string): Promise<AdminEntity>;
+  updateAdmin(userId: string, data: UpdateFilter);
 }

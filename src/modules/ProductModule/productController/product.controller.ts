@@ -13,14 +13,14 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
 import {
   AddDriverCredential,
   CreateProductCredentials,
   UpdateProductCredentials,
 } from '../utils/products.type';
-import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
+import { GetDealerDecorator } from '../../../common/decorators/getDealerDecorator';
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';

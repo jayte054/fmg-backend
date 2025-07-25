@@ -10,7 +10,7 @@ import { UserModule } from '../usersModule/user.module';
 import { ProductService } from './productService/product.service';
 import { ProductController } from './productController/product.controller';
 import { ProductRepository } from './productsRepository/product.repository';
-import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
+import { DealerRepositoryMiddleware } from '../../common/middleware/dealer.repository.middleware';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { PaymentModule } from '../paymentModule/payment.module';
 

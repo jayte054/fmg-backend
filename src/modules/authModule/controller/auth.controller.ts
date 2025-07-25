@@ -29,4 +29,13 @@ export class AuthController {
       user,
     });
   }
+
+  @Post('/adminSignup')
+  @ApiOperation({ summary: 'admin sign up' })
+  @ApiResponse({ status: 200, description: 'admin sign up' })
+  async adminSignup(
+    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
+  ) {
+    return await this.authService.adminSignUp(authCredentialsDto);
+  }
 }

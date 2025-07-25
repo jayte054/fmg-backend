@@ -1,4 +1,4 @@
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import {
   BaseEntity,
   Column,

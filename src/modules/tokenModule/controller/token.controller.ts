@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { TokenService } from '../tokenService/token.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
-import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
+import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 
 @ApiTags('resend_token')
 @UseGuards(JwtAuthGuard)

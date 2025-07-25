@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { DriverEntityRepository } from 'src/modules/usersModule/repository/driver.entity.repository';
+import { DriverEntityRepository } from '../../modules/usersModule/repository/driver.entity.repository';
 
 @Injectable()
 export class DriverRepositoryMiddleware implements NestMiddleware {

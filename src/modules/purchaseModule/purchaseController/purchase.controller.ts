@@ -13,20 +13,20 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { PurchaseService } from '../purchaseService/purchase.service';
-import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
   FindPurchaseByIdInterface,
   UpdatePurchaseCredentials,
 } from '../utils/purchase.type';
 import { Request } from 'express';
-import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
-import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
-import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
-import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { GetDriverDecorator } from '../../../common/decorators/getDriverDecorator';
+import { DriverEntity } from '../../usersModule/userEntity/driver.entity';
+import { GetDealerDecorator } from '../../../common/decorators/getDealerDecorator';
+import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import {
   DeliveryPurchaseDto,
   FindPurchaseByIdDto,

@@ -1,4 +1,4 @@
-import { RetailScale } from 'src/modules/usersModule/utils/user.types';
+import { RetailScale } from '../../usersModule/utils/user.types';
 
 export interface DriverDetails {
   driverId: string;

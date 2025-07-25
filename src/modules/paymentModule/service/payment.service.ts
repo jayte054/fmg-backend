@@ -5,29 +5,32 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InitializePaymentDto, VerifyPaymentDto } from '../utils/payment.dto';
 import { PaymentEntity } from '../entity/payment.entity';
 import { ConfigService } from '@nestjs/config';
-import { ProductService } from 'src/modules/ProductModule/productService/product.service';
+import { ProductService } from '../../ProductModule/productService/product.service';
 import { firstValueFrom } from 'rxjs';
 import { IPaymentRepository } from '../interface/IPaymentRepository';
 import { ISubAccountRepository } from '../interface/ISubAccountRepository';
 import { IWalletRepository } from '../interface/IWalletRepository';
 import { WalletEntity } from '../entity/wallet.entity';
 import {
+  ActivateSubAccountInterface,
   PaymentStatus,
   SubAccountResponse,
   UpdateWalletData,
   WalletStatus,
 } from '../utils/interface';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
-import { MessagingService } from 'src/modules/notificationModule/notificationService/whatsapp.service';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { DriverEntity } from '../../usersModule/userEntity/driver.entity';
+import { MessagingService } from '../../notificationModule/notificationService/messaging.service';
 import { SubAccountEntity } from '../entity/subaccount.entity';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
+import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 
 @Injectable()
 export class PaymentService {
@@ -71,7 +74,6 @@ export class PaymentService {
     const commissionOnProductFee = productAmount * 0.05;
     const platformCommission = commissionOnDeliveryFee + commissionOnProductFee;
     // const platformCommission = commissionOnDeliveryFee;
-
     const driversShare = deliveryFee - commissionOnDeliveryFee;
     // const dealerShare = productAmount;
     const dealerShare = productAmount - commissionOnProductFee;
@@ -89,39 +91,45 @@ export class PaymentService {
     // const driverId = purchase.metadata?.driverId;
     // const driver = await this.driverService.findDriverByService(driverId);
 
-    const response = await firstValueFrom(
-      this.httpService.post(
-        `${paystack_url}/transaction/initialize`,
-        {
-          email,
-          amount: amountInKobo,
-          split: {
-            type: 'flat',
-            currency: 'NGN',
-            subaccounts: [
-              {
-                subaccount: dealerSub.subAccountCode,
-                share: dealerShareInKobo,
-              },
-              {
-                subaccount: platform_code,
-                share: platformCommissionInKobo + driversShare * 100,
-              },
-            ],
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${paystack_url}/transaction/initialize`,
+          {
+            email,
+            amount: amountInKobo,
+            split: {
+              type: 'flat',
+              currency: 'NGN',
+              subaccounts: [
+                {
+                  subaccount: dealerSub.subAccountCode,
+                  share: dealerShareInKobo,
+                },
+                {
+                  subaccount: platform_code,
+                  share: platformCommissionInKobo + driversShare * 100,
+                },
+              ],
+            },
           },
-        },
-        {
-          headers: { Authorization: `Bearer ${paystack_secret}` },
-        },
-      ),
-    );
+          {
+            headers: { Authorization: `Bearer ${paystack_secret}` },
+          },
+        ),
+      );
 
-    const authUrl = response.data?.data?.authorization_url;
-    if (!authUrl) {
-      throw new InternalServerErrorException('failed to initialize payment');
+      console.log(response);
+
+      const authUrl = response.data?.data?.authorization_url;
+      if (!authUrl) {
+        throw new InternalServerErrorException('failed to initialize payment');
+      }
+
+      return { authorizationUrl: authUrl };
+    } catch (error) {
+      console.log(error);
     }
-
-    return { authorizationUrl: authUrl };
   };
 
   async verifyPayment(paymentDto: VerifyPaymentDto): Promise<PaymentEntity> {
@@ -332,6 +340,19 @@ export class PaymentService {
       throw new Error('Missing bank details in wallet metadata');
     }
 
+    await this.messagingService.sendWithdrawalRequest(
+      request_number,
+      `
+        driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into 
+        Account Name: ${bankDetails.accountName}
+        Account Number: ${bankDetails.accountNumber}
+        Bank Name: ${bankDetails.bankName}
+        `,
+      driverId,
+      amount.toString(),
+      wallet.walletId,
+    );
+
     const newBalance = wallet.balance - amount;
 
     const metadata = wallet.metadata;
@@ -361,16 +382,6 @@ export class PaymentService {
           newBalance: newBalance.toString(),
         },
       });
-
-      await this.messagingService.sendWithdrawalRequest(
-        request_number,
-        `
-        driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into 
-        Account Name: ${bankDetails.accountName}
-        Account Number: ${bankDetails.accountNumber}
-        Bank Name: ${bankDetails.bankName}
-        `,
-      );
 
       this.logger.log(
         `Withdrawal of ${amount} from driver ${driverId} successful`,
@@ -424,55 +435,169 @@ export class PaymentService {
       percentage_charge: 100,
     };
 
-    const response = await firstValueFrom(
-      this.httpService.post(`${paystack_url}/subaccount`, body, { headers }),
-    );
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${paystack_url}/subaccount`, body, {
+          headers,
+        }),
+      );
 
-    const responseData = response.data?.data;
-    if (!responseData || !responseData.subaccount_code) {
-      this.logger.error('failed to create subaccount code');
+      const responseData = response.data?.data;
+      console.log(responseData);
+
+      if (!responseData || !responseData.subaccount_code) {
+        this.logger.error('failed to create subaccount code');
+        this.auditLogService.log({
+          logCategory: LogCategory.PAYMENT,
+          description: `failed to create subaccount for dealer ${userId}`,
+          email,
+          details: {
+            name,
+          },
+        });
+        throw new InternalServerErrorException('failed to create subaccount');
+      }
+      const newSubAccount = await this.subAccountRepository.createSubAccount({
+        userId,
+        subAccountCode: responseData.subaccount_code,
+        bankName,
+        accountNumber,
+        walletId,
+        bankCode,
+        createdAt: new Date(),
+        metadata: {
+          dealerId,
+          active: 'false',
+        },
+      });
+      console.log(newSubAccount);
+
+      if (!newSubAccount) {
+        this.logger.error('failed to create subAccount');
+        return { message: 'failed to create sub account' };
+      }
+
       this.auditLogService.log({
         logCategory: LogCategory.PAYMENT,
-        description: `failed to create subaccount for dealer ${userId}`,
+        description: `sub account created successfully`,
         email,
         details: {
           name,
         },
       });
-      throw new InternalServerErrorException('failed to create subaccount');
+
+      this.logger.log(`sub account for user ${name} created successfully`);
+
+      return {
+        sub_account: newSubAccount,
+        message: 'sub account created successfully',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'failed to create subaccount',
+        error,
+      );
     }
-    const newSubAccount = await this.subAccountRepository.createSubAccount({
-      userId,
-      subAccountCode: responseData.subaccount_code,
-      bankName,
-      accountNumber,
-      walletId,
-      bankCode,
-      createdAt: new Date(),
-      metadata: {
-        dealerId,
-      },
-    });
+  };
 
-    if (!newSubAccount) {
-      this.logger.error('failed to create subAccount');
-      return { message: 'failed to create sub account' };
+  activateSubAccount = async (
+    dealer: DealerEntity,
+    subAccountInterface: ActivateSubAccountInterface,
+  ) => {
+    const {
+      business_name,
+      bank_code,
+      account_number,
+      active,
+      subaccount_code,
+    } = subAccountInterface;
+
+    const account = await this.subAccountRepository.findSubAccountUserId(
+      dealer.dealerId,
+    );
+
+    if (!account || account.subAccountCode !== subaccount_code) {
+      this.logger.error(
+        'unauthorized access to account by dealerId',
+        dealer.dealerId,
+      );
+      throw new UnauthorizedException('unauthorized access');
     }
 
-    this.auditLogService.log({
-      logCategory: LogCategory.PAYMENT,
-      description: `sub account created successfully`,
-      email,
-      details: {
-        name,
-      },
-    });
+    const { metadata } = account;
 
-    this.logger.log(`sub account for user ${name} created successfully`);
+    if (metadata.dealerId !== dealer.dealerId) {
+      this.logger.error(
+        'unauthorized access to account by dealerId',
+        dealer.dealerId,
+      );
+      throw new UnauthorizedException('unauthorized access');
+    }
 
-    return {
-      sub_account: newSubAccount,
-      message: 'sub account created successfully',
+    const paystack_secret = this.configService.get('paystack_test_secret_key');
+    const paystack_url = this.configService.get<string>('paystack_url');
+
+    const headers = {
+      Authorization: `Bearer ${paystack_secret}`,
+      'Content-Type': 'application/json',
     };
+
+    try {
+      const body = {
+        business_name,
+        bank_code,
+        account_number,
+        active,
+      };
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${paystack_url}/subaccount/${subaccount_code}`,
+          body,
+          {
+            headers,
+          },
+        ),
+      );
+
+      const responseData = response.data.data;
+
+      metadata.active = 'true';
+      metadata['updatedActiveStatusDate'] = new Date().toISOString();
+
+      const subAccount = await this.subAccountRepository.updateSubAccount(
+        subaccount_code,
+        metadata,
+      );
+
+      if (typeof subAccount === 'string') {
+        throw new InternalServerErrorException(subAccount);
+      }
+
+      this.auditLogService.log({
+        logCategory: LogCategory.PAYMENT,
+        description: `sub account created successfully`,
+        email: dealer.email,
+        details: {
+          subaccount_code,
+          active: responseData.active,
+          id: responseData.id,
+          accountName: responseData.account_name,
+          createdAt: responseData.createdAt,
+          updatedAt: responseData.updatedAt,
+        },
+      });
+
+      this.logger.log('sub account activated successfully');
+      return subAccount;
+    } catch (error) {
+      if (error.status === 500) {
+        this.logger.error('paystack error with error', 500);
+        throw new InternalServerErrorException(
+          'failed to activate account on paystack',
+        );
+      }
+      this.logger.error('failed to activate subaccount');
+      throw new InternalServerErrorException('failed to activate subaccount');
+    }
   };
 }

@@ -20,9 +20,13 @@ import { TokenModule } from './modules/tokenModule/token.module';
 import { AuditLogModule } from './modules/auditLogModule/auditLog.module';
 import { TokenController } from './modules/tokenModule/controller/token.controller';
 import { PaymentModule } from './modules/paymentModule/payment.module';
+import { MigrationModule } from './migrationUtils/migration.module';
+import { PaymentController } from './modules/paymentModule/controller/payment.controller';
+import { AdminController } from './modules/usersModule/controller/admin.controller';
 
 @Module({
   imports: [
+    MigrationModule,
     PaymentModule,
     AuditLogModule,
     TokenModule,
@@ -46,12 +50,14 @@ export class AppModule implements NestModule {
         ProductController,
         PurchaseController,
         TokenController,
+        PaymentController,
+        AdminController,
       );
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
 
     consumer
       .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
-      .forRoutes(PurchaseController, TokenController);
+      .forRoutes(PurchaseController, TokenController, PaymentController);
   }
 }

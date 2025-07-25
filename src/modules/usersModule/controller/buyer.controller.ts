@@ -15,9 +15,9 @@ import {
 } from '@nestjs/common';
 import { BuyerService } from '../service/buyer.service';
 import { BuyerCredentials } from '../utils/user.types';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { Request } from 'express';
-import { DuplicateException } from 'src/common/exceptions/exceptions';
+import { DuplicateException } from '../../../common/exceptions/exceptions';
 import { UpdateBuyerDto } from '../utils/user.dto';
 
 @UseGuards(JwtAuthGuard)

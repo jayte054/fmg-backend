@@ -1,5 +1,5 @@
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { PurchaseEntity } from 'src/modules/purchaseModule/purchaseEntity/purchase.entity';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { PurchaseEntity } from '../../purchaseModule/purchaseEntity/purchase.entity';
 import {
   BaseEntity,
   Column,

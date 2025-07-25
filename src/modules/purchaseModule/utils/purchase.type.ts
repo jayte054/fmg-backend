@@ -1,8 +1,8 @@
 import {
   DriverDetails,
   ProductResponse,
-} from 'src/modules/ProductModule/utils/products.type';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+} from '../../ProductModule/utils/products.type';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 
 export enum PurchaseType {
   debut_order = 'debut order',

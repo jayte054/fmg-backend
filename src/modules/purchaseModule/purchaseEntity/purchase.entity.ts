@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CylinderType, PriceType, PurchaseType } from '../utils/purchase.type';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 
 @Entity()
 export class PurchaseEntity extends BaseEntity {

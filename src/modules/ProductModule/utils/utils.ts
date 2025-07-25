@@ -1,6 +1,6 @@
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { DealerService } from 'src/modules/usersModule/service/dealer.service';
-import { UpdateCredentials } from 'src/modules/usersModule/utils/user.types';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { DealerService } from '../../usersModule/service/dealer.service';
+import { UpdateCredentials } from '../../usersModule/utils/user.types';
 
 export const dealerUtils = (dealerService: DealerService) => ({
   updateDealerInfo: (

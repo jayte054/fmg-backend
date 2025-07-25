@@ -1,6 +1,7 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -8,9 +9,10 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../utils/auth.enum';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
-import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
-import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
+import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
+import { DriverEntity } from '../../usersModule/userEntity/driver.entity';
+import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Entity()
 @Unique(['email'])
@@ -36,6 +38,9 @@ export class AuthEntity extends BaseEntity {
   @Column()
   role: UserRole;
 
+  @CreateDateColumn({ nullable: true })
+  createdAt: Date;
+
   @OneToMany(() => BuyerEntity, (buyerId) => buyerId.user, {
     eager: true,
     cascade: true,
@@ -53,6 +58,9 @@ export class AuthEntity extends BaseEntity {
     cascade: true,
   })
   driverId: DriverEntity[];
+
+  @OneToMany(() => AdminEntity, (adminId) => adminId.user, { eager: true })
+  adminId: AdminEntity[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

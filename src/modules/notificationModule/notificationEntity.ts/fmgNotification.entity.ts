@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class PushNotificationEntity {
+export class FmgNotificationEntity {
   @PrimaryGeneratedColumn('uuid')
   notificationId: string;
 

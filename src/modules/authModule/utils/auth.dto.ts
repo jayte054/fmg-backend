@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsString,
   Matches,
@@ -7,6 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { UserRole } from './auth.enum';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SignupDto {
   @IsString()
@@ -31,9 +33,12 @@ export class SignupDto {
 }
 
 export class AuthCredentialsDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   email: string;
+
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @MinLength(8)
@@ -42,18 +47,24 @@ export class AuthCredentialsDto {
     message: 'password is too weak',
   })
   password: string;
+
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   phoneNumber: string;
-  @IsNotEmpty()
-  role: UserRole;
+
+  @ApiPropertyOptional()
+  @IsEnum(UserRole)
+  role?: UserRole; //optional for admin signup but not for user
 }
 
 export class SignInCredentials {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   email: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   password: string;

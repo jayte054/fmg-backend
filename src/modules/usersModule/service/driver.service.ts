@@ -15,14 +15,14 @@ import {
   UpdateDriverCredentials,
 } from '../utils/user.types';
 import { CreateDriverDto, UpdateDriverDto } from '../utils/user.dto';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { CloudinaryService } from 'src/modules/cloudinaryModule/cloudinaryService/cloudinary.service';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { CloudinaryService } from '../../cloudinaryModule/cloudinaryService/cloudinary.service';
 import axios from 'axios';
 import { config } from 'dotenv';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
-import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
+import { PaymentService } from '../../paymentModule/service/payment.service';
 
 config();
 

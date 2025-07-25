@@ -20,12 +20,12 @@ import {
   UpdateProductCredentials,
 } from '../utils/products.type';
 import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { productResObj } from '../utils/products.type';
 import {
   DealerResponse,
   UpdateCredentials,
-} from 'src/modules/usersModule/utils/user.types';
+} from '../../usersModule/utils/user.types';
 // import { DealerService } from '../../usersModule/service/dealer.service';
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';

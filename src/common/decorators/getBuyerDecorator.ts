@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { BuyerEntity } from '../../modules/usersModule/userEntity/buyer.entity';
 import { Repository } from 'typeorm';
 
 export const GetBuyerDecorator = createParamDecorator(

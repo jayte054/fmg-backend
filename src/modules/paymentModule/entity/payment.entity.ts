@@ -45,6 +45,6 @@ export class PaymentEntity extends BaseEntity {
   @Column()
   createdAt: Date;
 
-  @Column({ type: 'jsonb' })
-  metadata: Record<string, string>;
+  @Column({ type: 'jsonb', nullable: true })
+  metadata?: Record<string, string>;
 }

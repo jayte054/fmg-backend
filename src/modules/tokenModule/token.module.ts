@@ -6,7 +6,7 @@ import { TokenRepository } from './tokenRepository/token.repository';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { NotificationModule } from '../notificationModule/notification.module';
 import { MailerService } from '../notificationModule/notificationService/mailerService';
-import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repository.middleware';
+import { BuyerRepositoryMiddleware } from '../../common/middleware/buyer.repository.middleware';
 import { TokenController } from './controller/token.controller';
 import { UserModule } from '../usersModule/user.module';
 

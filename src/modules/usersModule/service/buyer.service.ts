@@ -13,10 +13,10 @@ import {
   BuyerResponse,
 } from '../utils/user.types';
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { DuplicateException } from 'src/common/exceptions/exceptions';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { DuplicateException } from '../../../common/exceptions/exceptions';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
 
 @Injectable()
 export class BuyerService {

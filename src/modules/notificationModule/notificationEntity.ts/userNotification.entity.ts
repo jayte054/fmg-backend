@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class UserPushNotificationEntity {
+export class UserNotificationEntity {
   @PrimaryGeneratedColumn('uuid')
   notificationId: string;
 

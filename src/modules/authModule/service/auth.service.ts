@@ -15,9 +15,10 @@ import {
 } from '../utils/auth.types';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { MailerService } from '../../notificationModule/notificationService/mailerService';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { UserRole } from '../utils/auth.enum';
 
 @Injectable()
 export class AuthService {
@@ -49,7 +50,7 @@ export class AuthService {
         password: await bcrypt.hash(password, salt),
         phoneNumber,
         salt: salt,
-        isAdmin: false,
+        isAdmin: role === 'admin' ? true : false,
         role,
       };
 
@@ -126,6 +127,55 @@ export class AuthService {
     } catch (error) {
       this.logger.error('error signing in');
       throw new Error('incorrect user details');
+    }
+  };
+
+  adminSignUp = async (
+    authCredentialsDto: AuthCredentialsDto,
+  ): Promise<SignupResponse> => {
+    const { email, password, phoneNumber } = authCredentialsDto;
+
+    try {
+      const existingUser = await this.authRepository.findUser(email);
+      if (existingUser) {
+        this.logger.log(`user with email ${email} already exists`);
+        throw new ConflictException('user already exists');
+      }
+      const salt = await bcrypt.genSalt();
+      const authId = uuidv4();
+      const user: SignupDto = {
+        id: authId,
+        email,
+        password: await bcrypt.hash(password, salt),
+        phoneNumber,
+        salt: salt,
+        isAdmin: true,
+        role: UserRole.admin,
+      };
+
+      const newUser = await this.authRepository.signup(user);
+      await this.mailerService.sendWelcomeMail(email);
+      this.logger.verbose('user created successfully');
+
+      await this.auditLogService.log({
+        logCategory: LogCategory.AUTHENTICATION,
+        description: 'adminSignup',
+        details: {
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+        },
+      });
+
+      return {
+        id: newUser.id,
+        email: newUser.email,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
+        isAdmin: newUser.isAdmin,
+      };
+    } catch (error) {
+      this.logger.error('error signing up');
+      return error;
     }
   };
 }

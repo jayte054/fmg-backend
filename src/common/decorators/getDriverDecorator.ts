@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
+import { DriverEntity } from '../../modules/usersModule/userEntity/driver.entity';
 
 export const GetDriverDecorator = createParamDecorator(
   async (Data: unknown, ctx: ExecutionContext): Promise<DriverEntity> => {

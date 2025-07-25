@@ -15,9 +15,9 @@ import {
   TokenType,
 } from '../utils/token.interface';
 import { FindOptionsWhere } from 'typeorm';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { MailerService } from '../../notificationModule/notificationService/mailerService';
 
 @Injectable()
 export class TokenService {

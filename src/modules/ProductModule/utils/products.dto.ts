@@ -6,7 +6,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { RetailScale } from 'src/modules/usersModule/utils/user.types';
+import { RetailScale } from '../../usersModule/utils/user.types';
 import { DriverDetails, Reviewers } from './products.type';
 import { Type } from 'class-transformer';
 

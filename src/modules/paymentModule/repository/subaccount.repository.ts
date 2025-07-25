@@ -25,9 +25,11 @@ export class SubAccountRepository extends Repository<SubAccountEntity> {
     return await query.getOne();
   };
 
-  findSubAccountUserId = async (userId: string): Promise<SubAccountEntity> => {
+  findSubAccountUserId = async (
+    dealerId: string,
+  ): Promise<SubAccountEntity> => {
     const query = this.createQueryBuilder('account');
-    query.where('account.userId = :userId', { userId });
+    query.where(`account.metadata ->> 'dealerId' = :dealerId`, { dealerId });
 
     return await query.getOne();
   };
@@ -55,5 +57,18 @@ export class SubAccountRepository extends Repository<SubAccountEntity> {
       .getManyAndCount();
 
     return PaginatedSubAccount({ accounts, total, skip, take });
+  };
+
+  updateSubAccount = async (
+    subAccountCode: string,
+    metadata: Record<string, string>,
+  ): Promise<SubAccountEntity | string> => {
+    const account = await this.update({ subAccountCode }, { metadata });
+
+    if (account.affected === 0) {
+      return 'failed to update account';
+    }
+
+    return await this.findOne({ where: { subAccountCode } });
   };
 }

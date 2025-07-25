@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidV4 } from 'uuid';
 import { IDealerRepository } from '../interface/user.interface';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import {
   DealerCredentials,
   DealerResObj,
@@ -16,11 +16,11 @@ import {
   UpdateCredentials,
 } from '../utils/user.types';
 import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { WalletEntity } from 'src/modules/paymentModule/entity/wallet.entity';
-import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
-import { SubAccountEntity } from 'src/modules/paymentModule/entity/subaccount.entity';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
+import { PaymentService } from '../../paymentModule/service/payment.service';
+import { SubAccountEntity } from '../../paymentModule/entity/subaccount.entity';
 
 @Injectable()
 export class DealerService {

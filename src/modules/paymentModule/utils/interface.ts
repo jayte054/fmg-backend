@@ -90,3 +90,11 @@ export interface SubAccountResponse {
   sub_account: SubAccountEntity;
   message: string;
 }
+
+export interface ActivateSubAccountInterface {
+  business_name: string;
+  bank_code: string;
+  account_number: string;
+  active: boolean;
+  subaccount_code: string;
+}

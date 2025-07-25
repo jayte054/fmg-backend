@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { BuyerEntityRepository } from 'src/modules/usersModule/repository/buyer.entity.repository';
+import { BuyerEntityRepository } from '../../modules/usersModule/repository/buyer.entity.repository';
 
 @Injectable()
 export class BuyerRepositoryMiddleware implements NestMiddleware {

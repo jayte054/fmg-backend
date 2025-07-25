@@ -18,7 +18,9 @@ import { UserModule } from '../usersModule/user.module';
 import { HttpModule } from '@nestjs/axios';
 import { NotificationModule } from '../notificationModule/notification.module';
 import { PaymentController } from './controller/payment.controller';
-import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repository.middleware';
+import { BuyerRepositoryMiddleware } from '../../common/middleware/buyer.repository.middleware';
+import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
+import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
 
 @Module({
   imports: [
@@ -49,6 +51,12 @@ import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repositor
 })
 export class PaymentModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BuyerRepositoryMiddleware).forRoutes(PaymentController);
+    consumer
+      .apply(
+        BuyerRepositoryMiddleware,
+        DealerRepositoryMiddleware,
+        DriverRepositoryMiddleware,
+      )
+      .forRoutes(PaymentController);
   }
 }

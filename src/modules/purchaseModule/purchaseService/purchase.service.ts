@@ -10,7 +10,7 @@ import {
   IPurchaseRepository,
   PaginatedPurchaseResponse,
 } from '../interface/IPurchaseRepository.interface';
-import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
   CylinderType,
@@ -23,17 +23,17 @@ import {
   UserNotificationResponse,
 } from '../utils/purchase.type';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
-import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
-import { ProductService } from 'src/modules/ProductModule/productService/product.service';
-import { PushNotificationService } from 'src/modules/notificationModule/notificationService/push-notification.service';
+import { AuthEntity } from '../../authModule/authEntity/authEntity';
+import { ProductService } from '../../ProductModule/productService/product.service';
+import { PushNotificationService } from '../../notificationModule/notificationService/push-notification.service';
 import { validatePurchaseTypes } from '../utils/utils';
-import { TokenService } from 'src/modules/tokenModule/tokenService/token.service';
-import { TokenType } from 'src/modules/tokenModule/utils/token.interface';
-import { MailerService } from 'src/modules/notificationModule/notificationService/mailerService';
-import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { MessagingService } from 'src/modules/notificationModule/notificationService/whatsapp.service';
-import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
+import { TokenService } from '../../tokenModule/tokenService/token.service';
+import { TokenType } from '../../tokenModule/utils/token.interface';
+import { MailerService } from '../../notificationModule/notificationService/mailerService';
+import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
+import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { MessagingService } from '../../notificationModule/notificationService/messaging.service';
+import { PaymentService } from '../../paymentModule/service/payment.service';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -152,6 +152,7 @@ export class PurchaseService {
         await this.messagingService.sendTokenMessage(
           buyer.phoneNumber,
           `please provide this delivery token ${token} to the driver to confirm delivery`,
+          sendUserNotification.notificationId,
         );
 
         this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
@@ -686,6 +687,9 @@ export class PurchaseService {
             price: ${price}`,
         address: buyer.address,
         location: buyer.location,
+        metadata: {
+          pushNotification: true,
+        },
       });
 
     return {

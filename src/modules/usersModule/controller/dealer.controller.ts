@@ -13,17 +13,21 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
+import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { DealerService } from '../service/dealer.service';
 import { DealerCredentials, UpdateCredentials } from '../utils/user.types';
 import { Request } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('dealer')
 @UseGuards(JwtAuthGuard)
 @Controller('dealer')
 export class DealerController {
   constructor(private dealerService: DealerService) {}
 
   @Post('/createDealer')
+  @ApiOperation({ summary: 'create dealer' })
+  @ApiResponse({ status: 201, description: 'dealer created successfully' })
   @HttpCode(HttpStatus.CREATED)
   async createDealer(
     @Body(ValidationPipe) dealerCredentials: DealerCredentials,
@@ -34,6 +38,8 @@ export class DealerController {
   }
 
   @Get('/findDealerById/:dealerId')
+  @ApiOperation({ summary: 'fetched dealer' })
+  @ApiResponse({ status: 200, description: 'user fetched dealer' })
   @HttpCode(HttpStatus.OK)
   async findDealerById(
     @Req() req: Request,
@@ -44,6 +50,8 @@ export class DealerController {
   }
 
   @Get('/findDealers')
+  @ApiOperation({ summary: 'fetched dealers' })
+  @ApiResponse({ status: 200, description: 'user fetched dealers' })
   @HttpCode(HttpStatus.FOUND)
   async findBuyers(
     @Req() req: Request,
@@ -58,6 +66,8 @@ export class DealerController {
   }
 
   @Put('/updateDealer/:dealerId')
+  @ApiOperation({ summary: 'update dealer' })
+  @ApiResponse({ status: 200, description: 'user updated dealer' })
   @HttpCode(HttpStatus.OK)
   async updateDealer(
     @Req() req: Request,
@@ -73,6 +83,8 @@ export class DealerController {
   }
 
   @Delete('/deleteDealer/:dealerId')
+  @ApiOperation({ summary: 'deleted dealer' })
+  @ApiResponse({ status: 200, description: 'user deleted dealer' })
   @HttpCode(HttpStatus.OK)
   async deleteDealer(@Req() req: Request, @Param('dealerId') dealerId: string) {
     const { user }: any = req;

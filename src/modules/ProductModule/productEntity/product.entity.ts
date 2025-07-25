@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { DriverDetails, Reviewers } from '../utils/products.type';
-import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 
 @Entity()
 export class ProductEntity extends BaseEntity {
