@@ -34,6 +34,7 @@ import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.s
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { MessagingService } from '../../notificationModule/notificationService/messaging.service';
 import { PaymentService } from '../../paymentModule/service/payment.service';
+import { PaymentVerification } from 'src/common/exceptions/exceptions';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -78,6 +79,14 @@ export class PurchaseService {
     );
 
     try {
+      const { message } = await this.paymentService.verifyPayment(reference);
+
+      if (message !== 'payment verified successfully') {
+        this.logger.warn('payment verification unsuccessful');
+        throw new PaymentVerification('unverified payment', {
+          context: 'purchaseService',
+        });
+      }
       const product =
         await this.productService.findProductByPurchaseService(productId);
       if (!product) return;
@@ -117,9 +126,10 @@ export class PurchaseService {
       const purchase =
         await this.purchaseRepository.createPurchase(createPurchaseDto);
 
-      await this.paymentService.verifyPayment({
+      await this.paymentService.updatePayment({
         reference,
         purchase,
+        email: buyer.email,
       });
 
       if (purchase) {
@@ -668,7 +678,6 @@ export class PurchaseService {
       purchaseType,
       cylinderType,
     } = notificationDto;
-
     const notification =
       await this.pushNotificationService.sendUserNotification({
         purchaseId: purchase.purchaseId,
@@ -703,7 +712,9 @@ export class PurchaseService {
       location: notification.location,
       isRead: notification.isRead,
       createdAt: notification.createdAt.toLocaleString(),
-      metadata: notification.metadata,
+      metadata: {
+        pushNotification: true,
+      },
     };
   };
 }

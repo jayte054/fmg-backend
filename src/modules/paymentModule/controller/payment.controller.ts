@@ -19,6 +19,8 @@ import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { ActivateSubAccountInterface } from '../utils/interface';
 import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
 import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
+// import { GetAdminDecorator } from 'src/common/decorators/getAdminDecorator';
+// import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @ApiTags('Purchase')
 @UseGuards(JwtAuthGuard)
@@ -44,6 +46,7 @@ export class PaymentController {
   @HttpCode(HttpStatus.OK)
   async activateSubAccount(
     @GetDealerDecorator() dealer: DealerEntity,
+    // @GetAdminDecorator() admin: AdminEntity,
     @Body(ValidationPipe) subAccountInterface: ActivateSubAccountInterface,
   ) {
     return await this.paymentService.activateSubAccount(

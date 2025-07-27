@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InitializePaymentDto, VerifyPaymentDto } from '../utils/payment.dto';
-import { PaymentEntity } from '../entity/payment.entity';
 import { ConfigService } from '@nestjs/config';
 import { ProductService } from '../../ProductModule/productService/product.service';
 import { firstValueFrom } from 'rxjs';
@@ -31,6 +30,7 @@ import { MessagingService } from '../../notificationModule/notificationService/m
 import { SubAccountEntity } from '../entity/subaccount.entity';
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+// import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
 export class PaymentService {
@@ -119,7 +119,7 @@ export class PaymentService {
         ),
       );
 
-      console.log(response);
+      console.log(response.data);
 
       const authUrl = response.data?.data?.authorization_url;
       if (!authUrl) {
@@ -128,12 +128,11 @@ export class PaymentService {
 
       return { authorizationUrl: authUrl };
     } catch (error) {
-      console.log(error);
+      throw new InternalServerErrorException('failed to initialize payment');
     }
   };
 
-  async verifyPayment(paymentDto: VerifyPaymentDto): Promise<PaymentEntity> {
-    const { reference, purchase } = paymentDto;
+  async verifyPayment(reference: string): Promise<{ message: string }> {
     const paystack_secret = this.configService.get('paystack_test_secret_key');
     const paystack_url = this.configService.get<string>('paystack_url');
 
@@ -148,6 +147,20 @@ export class PaymentService {
       throw new BadRequestException('payment verification failed');
     }
 
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'Payment verified and processed successfully',
+      email: paymentData.email,
+      details: {
+        reference,
+      },
+    });
+
+    return { message: 'payment verified successfully' };
+  }
+
+  updatePayment = async (paymentDto: VerifyPaymentDto) => {
+    const { reference, purchase, email } = paymentDto;
     const deliveryFee = parseFloat(purchase.deliveryFee);
     const productAmount = parseFloat(purchase.price);
     const totalAmount = deliveryFee + productAmount;
@@ -158,7 +171,7 @@ export class PaymentService {
     const driverShare = deliveryFee - commissionOnDeliveryFee;
     const dealerShare = productAmount - commissionOnProductFee;
 
-    const { dealerId } = await this.productService.findProductByPurchaseService(
+    const { dealerId } = await this.productService.findProductByPaymentService(
       purchase.productId,
     );
     const dealerSub =
@@ -168,7 +181,6 @@ export class PaymentService {
 
     const driverWallet = await this.walletRepository.findWalletUserId(driverId);
     const dealerWallet = await this.walletRepository.findWalletUserId(dealerId);
-
     if (!driverWallet || !dealerWallet) {
       throw new NotFoundException('Driver or Dealer wallet not found');
     }
@@ -182,24 +194,35 @@ export class PaymentService {
     driverMetadata.numberOfTransactions =
       typeof prev === 'number' ? prev + 1 : 1;
 
+    const dealerMetadata = { ...dealerWallet.metadata };
+    const previous = Number(dealerMetadata.numberOfTransactions);
+    dealerMetadata.numberOfTransactions =
+      typeof prev === 'number' ? previous + 1 : 1;
+
     const updateDriverWalletData: UpdateWalletData = {
       balance: driverShare + driverWallet.balance,
       previousBalance: driverWallet.balance,
-      metadata: driverWallet.metadata,
+      metadata: driverMetadata,
       updatedAt: new Date(),
     };
 
     const updateDealerWalletData: UpdateWalletData = {
       balance: dealerShare + dealerWallet.balance,
       previousBalance: dealerWallet.balance,
-      metadata: dealerWallet.metadata,
+      metadata: dealerMetadata,
       updatedAt: new Date(),
     };
 
-    await this.walletRepository.updateWallet(driverId, updateDriverWalletData);
-    await this.walletRepository.updateWallet(dealerId, updateDealerWalletData);
+    await this.walletRepository.updateWallet(
+      driverWallet.walletAccount,
+      updateDriverWalletData,
+    );
+    await this.walletRepository.updateWallet(
+      dealerWallet.walletAccount,
+      updateDealerWalletData,
+    );
     const paymentRecord = await this.paymentRepository.makePayment({
-      email: paymentData.email,
+      email: email,
       purchaseId: purchase.purchaseId,
       reference,
       amount: totalAmount,
@@ -218,7 +241,7 @@ export class PaymentService {
     this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
       description: 'Payment verified and processed successfully',
-      email: paymentData.email,
+      email: email,
       details: {
         reference,
         dealerId,
@@ -228,7 +251,7 @@ export class PaymentService {
     });
 
     return paymentRecord;
-  }
+  };
 
   createWallet = async (
     walletInput: Partial<WalletEntity>,
@@ -502,6 +525,7 @@ export class PaymentService {
 
   activateSubAccount = async (
     dealer: DealerEntity,
+    // admin: AdminEntity,
     subAccountInterface: ActivateSubAccountInterface,
   ) => {
     const {
@@ -588,7 +612,7 @@ export class PaymentService {
       });
 
       this.logger.log('sub account activated successfully');
-      return subAccount;
+      return responseData;
     } catch (error) {
       if (error.status === 500) {
         this.logger.error('paystack error with error', 500);

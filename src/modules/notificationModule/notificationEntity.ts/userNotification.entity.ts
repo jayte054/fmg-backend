@@ -35,7 +35,7 @@ export class UserNotificationEntity {
   isRead: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata?: Record<string, string>;
+  metadata?: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;

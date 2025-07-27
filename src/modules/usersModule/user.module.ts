@@ -29,6 +29,7 @@ import { AdminEntity } from './userEntity/admin.entity';
 import { AdminRepository } from './repository/admin.repository';
 import { AdminService } from './service/admin.service';
 import { AdminController } from './controller/admin.controller';
+import { AdminEntityRepository } from './repository/admin.entity.repository';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AdminController } from './controller/admin.controller';
     DealerEntityRepository,
     BuyerEntityRepository,
     DriverEntityRepository,
+    AdminEntityRepository,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
@@ -78,6 +80,7 @@ import { AdminController } from './controller/admin.controller';
     DealerEntityRepository,
     BuyerEntityRepository,
     DriverEntityRepository,
+    AdminEntityRepository,
     BuyerService,
     DealerService,
     DriverService,

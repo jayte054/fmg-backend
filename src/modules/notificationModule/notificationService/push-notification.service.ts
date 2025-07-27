@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { v4 as uuidV4 } from 'uuid';
 import { FmgNotificationEntity } from '../notificationEntity.ts/fmgNotification.entity';
@@ -35,18 +39,18 @@ export class PushNotificationService {
       buyerId,
     } = pushNotificationDto;
 
-    const notification = this.notificationRepository.create({
-      notificationId: uuidV4(),
-      purchaseId,
-      productId,
-      message,
-      address,
-      location,
-      metadata: { driverId, dealerId, buyerId },
-      isRead: false,
-      createdAt: new Date(),
-    });
     try {
+      const notification = this.notificationRepository.create({
+        notificationId: uuidV4(),
+        purchaseId,
+        productId,
+        message,
+        address,
+        location,
+        metadata: { driverId, dealerId, buyerId },
+        isRead: false,
+        createdAt: new Date(),
+      });
       await this.notificationRepository.save(notification);
       this.notificationGateway.sendDriverNotification(
         driverId,
@@ -59,10 +63,11 @@ export class PushNotificationService {
         metadata,
       );
       this.logger.log('notification sent successfully');
-
       return notification;
     } catch (error) {
-      console.log(error);
+      throw new InternalServerErrorException(
+        'failed to send product notification',
+      );
     }
   }
 
@@ -125,7 +130,6 @@ export class PushNotificationService {
       isRead: false,
       createdAt: new Date(),
     });
-
     await this.userNotificationRepository.save(notification);
 
     this.notificationGateway.sendUserNotification(buyerId, message, metadata);

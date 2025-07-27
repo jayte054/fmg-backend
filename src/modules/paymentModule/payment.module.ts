@@ -21,6 +21,7 @@ import { PaymentController } from './controller/payment.controller';
 import { BuyerRepositoryMiddleware } from '../../common/middleware/buyer.repository.middleware';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
 import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
+import { AdminRepositoryMiddleware } from 'src/common/middleware/admin.repository.middleware';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ export class PaymentModule implements NestModule {
         BuyerRepositoryMiddleware,
         DealerRepositoryMiddleware,
         DriverRepositoryMiddleware,
+        AdminRepositoryMiddleware,
       )
       .forRoutes(PaymentController);
   }

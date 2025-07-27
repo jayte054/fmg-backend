@@ -17,7 +17,7 @@ export class NotificationGateway {
   private clientSockets = new Map<string, string>();
 
   handleConnection(client: Socket) {
-    const id = (client.handshake.query.userId ||
+    const id = (client.handshake.query.buyerId ||
       client.handshake.query.driverId ||
       client.handshake.query.dealerId) as string;
 
@@ -54,7 +54,6 @@ export class NotificationGateway {
   }
 
   sendDriverNotification(driverId: string, message: string, metadata?: any) {
-    console.log(driverId);
     const socketId = this.clientSockets.get(driverId);
     if (socketId) {
       this.server.to(socketId).emit('notification', { message, metadata });

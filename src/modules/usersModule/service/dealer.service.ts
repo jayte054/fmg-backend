@@ -69,7 +69,7 @@ export class DealerService {
 
       const walletInput: Partial<WalletEntity> = {
         walletName: `${dealer.name}`,
-        userId: dealer.userId,
+        userId: dealer.dealerId,
       };
       const accountId = `${dealer.name.slice(0, 3)}`;
       const wallet = await this.paymentService.createWallet(

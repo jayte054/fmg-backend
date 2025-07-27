@@ -19,4 +19,8 @@ export class VerifyPaymentDto {
 
   @IsNotEmptyObject()
   purchase: PurchaseResponse;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
 }

@@ -126,6 +126,30 @@ export class ProductService {
     }
   };
 
+  findProductByPaymentService = async (
+    productId: string,
+  ): Promise<ProductResponse> => {
+    try {
+      const product = await this.productRepository.findProduct(productId);
+
+      if (!product) {
+        this.logger.log(`product with id ${productId} not found`);
+        throw new NotFoundException('product not found');
+      }
+
+      return this.mapProductResponse(product);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error; // Allow known errors to propagate
+      }
+      this.logger.verbose(`product with product id ${productId} not found`);
+      throw new InternalServerErrorException('product not found');
+    }
+  };
+
   findProductByPurchaseService = async (
     productId: string,
   ): Promise<ProductResponse> => {

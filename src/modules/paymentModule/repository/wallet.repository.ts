@@ -4,6 +4,7 @@ import { WalletEntity } from '../entity/wallet.entity';
 import {
   PaginatedWalletResponse,
   UpdateWalletData,
+  // UpdateWalletData,
   WalletFilter,
 } from '../utils/interface';
 import { paginatedWallet } from '../utils/utils';
@@ -70,11 +71,17 @@ export class WalletRepository extends Repository<WalletEntity> {
   updateWallet = async (
     walletAccount: string,
     updateWalletData: UpdateWalletData,
-  ): Promise<WalletEntity | null> => {
-    const updateQuery = await this.update(walletAccount, updateWalletData);
-
-    if (updateQuery.affected < 1) {
-      return await this.findOne({ where: { walletAccount } });
-    } else return null;
+  ): Promise<WalletEntity> => {
+    const { balance, previousBalance, metadata, updatedAt } = updateWalletData;
+    try {
+      const wallet = await this.findOne({ where: { walletAccount } });
+      wallet.balance = balance;
+      wallet.previousBalance = previousBalance;
+      wallet.metadata = metadata;
+      wallet.updatedAt = updatedAt;
+      return await this.save(wallet);
+    } catch (error) {
+      console.log(error);
+    }
   };
 }
