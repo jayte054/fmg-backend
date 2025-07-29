@@ -9,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Twilio } from 'twilio';
 import { UserNotificationEntity } from '../notificationEntity.ts/userNotification.entity';
 import { Repository } from 'typeorm';
-import { FmgNotificationEntity } from '../notificationEntity.ts/fmgNotification.entity';
 import { WithdrawalRequestEntity } from '../notificationEntity.ts/withdrawalRequest.entity';
 import { WithdrawalStatus } from '../utils/interface';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
@@ -24,7 +23,7 @@ export class MessagingService {
   constructor(
     @InjectRepository(UserNotificationEntity)
     private notificationRepository: Repository<UserNotificationEntity>,
-    @InjectRepository(FmgNotificationEntity)
+    @InjectRepository(WithdrawalRequestEntity)
     private readonly withdrawalRepository: Repository<WithdrawalRequestEntity>,
     private readonly configService: ConfigService,
     private readonly auditLogService: AuditLogService,
@@ -43,27 +42,31 @@ export class MessagingService {
     amount: string,
     walletId: string,
   ): Promise<WithdrawalRequestEntity> {
-    const response = await this.client.messages.create({
-      body,
-      from: this.from,
-      to: `whatsapp:${to}`,
-    });
+    try {
+      const response = await this.client.messages.create({
+        from: `whatsapp:${this.from}`,
+        body,
+        to: `whatsapp:${to}`,
+      });
 
-    if (response.errorCode || response.status === 'failed') {
-      this.logger.error('failed to send withdrawal request');
-      throw new InternalServerErrorException('failed to send request');
+      if (response.errorCode || response.status === 'failed') {
+        this.logger.error('failed to send withdrawal request');
+        throw new InternalServerErrorException('failed to send request');
+      }
+
+      const newRequest = this.withdrawalRepository.create({
+        userId,
+        amount,
+        withdrawalStatus: WithdrawalStatus.pending,
+        createdAt: new Date(),
+        metadata: { walletId },
+      });
+      const request = await this.withdrawalRepository.save(newRequest);
+
+      return request;
+    } catch (error) {
+      console.log(error);
     }
-
-    const newRequest = this.withdrawalRepository.create({
-      userId,
-      amount,
-      withdrawalStatus: WithdrawalStatus.pending,
-      createdAt: new Date(),
-      metadata: { walletId },
-    });
-    const request = await this.withdrawalRepository.save(newRequest);
-
-    return request;
   }
 
   async updateWithdrawalRequest(

@@ -240,7 +240,7 @@ export class PaymentService {
 
     this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
-      description: 'Payment verified and processed successfully',
+      description: 'Payment updated and processed successfully',
       email: email,
       details: {
         reference,
@@ -292,8 +292,9 @@ export class PaymentService {
     accountNumber: string,
     bankName: string,
     accountName: string,
-    { driverId, email }: DriverEntity,
+    driver: DriverEntity,
   ) => {
+    const { driverId, email } = driver;
     const wallet = await this.walletRepository.findWalletUserId(driverId);
 
     if (!wallet) {
@@ -301,7 +302,7 @@ export class PaymentService {
       throw new NotFoundException('wallet not found');
     }
     const { metadata, walletId } = wallet;
-    metadata[bankName] = {
+    metadata['bankName'] = {
       bankName,
       accountNumber,
       accountName,
@@ -317,7 +318,7 @@ export class PaymentService {
     };
 
     const updateWallet = await this.walletRepository.updateWallet(
-      driverId,
+      wallet.walletAccount,
       updateWalletData,
     );
 
@@ -342,7 +343,6 @@ export class PaymentService {
     );
     const { driverId, email } = driver;
     const wallet = await this.walletRepository.findWalletUserId(driverId);
-
     if (wallet.balance < amount) {
       this.logger.error(`insufficient balance for driver ${driverId}`);
       return { message: 'insufficient balance' };
@@ -354,36 +354,29 @@ export class PaymentService {
     }
 
     const bankDetails = wallet.metadata?.bankName as {
+      bankName: string;
       accountName: string;
       accountNumber: string;
-      bankName: string;
     };
 
     if (!bankDetails?.accountNumber || !bankDetails.accountName) {
       throw new Error('Missing bank details in wallet metadata');
     }
 
-    await this.messagingService.sendWithdrawalRequest(
-      request_number,
-      `
-        driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into 
-        Account Name: ${bankDetails.accountName}
-        Account Number: ${bankDetails.accountNumber}
-        Bank Name: ${bankDetails.bankName}
-        `,
-      driverId,
-      amount.toString(),
-      wallet.walletId,
-    );
-
     const newBalance = wallet.balance - amount;
 
     const metadata = wallet.metadata;
-    const currentTransactions = metadata.numberOfTransactions;
-    metadata.numberOfTransactions =
-      typeof currentTransactions === 'number' ? currentTransactions + 1 : 1;
+    const currentWithdrawals = metadata.numberOfWithdrawals;
+    metadata.numberOfWithdrawals =
+      typeof currentWithdrawals === 'number' ? currentWithdrawals + 1 : 1;
+    const totalAmountWithdrawn = metadata.totalAmountWithdrawn;
+    metadata.totalAmountWithdrawn =
+      typeof totalAmountWithdrawn === 'number'
+        ? totalAmountWithdrawn + amount
+        : amount;
 
     const updateWalletData: UpdateWalletData = {
+      ...wallet,
       balance: newBalance,
       previousBalance: wallet.balance,
       metadata,
@@ -391,7 +384,7 @@ export class PaymentService {
     };
 
     const updatedWallet = await this.walletRepository.updateWallet(
-      driverId,
+      wallet.walletAccount,
       updateWalletData,
     );
 
@@ -405,6 +398,20 @@ export class PaymentService {
           newBalance: newBalance.toString(),
         },
       });
+
+      await this.messagingService.sendWithdrawalRequest(
+        request_number,
+        `
+          driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into 
+          Account Name: ${bankDetails.accountName}
+          Account Number: ${bankDetails.accountNumber}
+          Bank Name: ${bankDetails.bankName}
+          Amount: ${amount}
+          `,
+        driverId,
+        amount.toString(),
+        wallet.walletId,
+      );
 
       this.logger.log(
         `Withdrawal of ${amount} from driver ${driverId} successful`,
@@ -493,7 +500,6 @@ export class PaymentService {
           active: 'false',
         },
       });
-      console.log(newSubAccount);
 
       if (!newSubAccount) {
         this.logger.error('failed to create subAccount');

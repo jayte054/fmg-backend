@@ -13,7 +13,11 @@ import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { PaymentService } from '../service/payment.service';
 import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
-import { InitializePaymentDto } from '../utils/payment.dto';
+import {
+  InitializePaymentDto,
+  UpdateBankDetailDto,
+  WithdrawalDto,
+} from '../utils/payment.dto';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { ActivateSubAccountInterface } from '../utils/interface';
@@ -36,7 +40,6 @@ export class PaymentController {
     @GetBuyerDecorator() buyer: BuyerEntity,
     @Body(ValidationPipe) paymentDto: InitializePaymentDto,
   ) {
-    console.log(paymentDto);
     return await this.paymentService.initializePayment(buyer, paymentDto);
   }
 
@@ -61,10 +64,23 @@ export class PaymentController {
   @HttpCode(HttpStatus.OK)
   async withdrawFromWallet(
     @GetDriverDecorator() driver: DriverEntity,
-    @Body() amount: string,
+    @Body() { amount }: WithdrawalDto,
   ) {
-    return await this.paymentService.withdrawFromWallet(
-      parseFloat(amount),
+    return await this.paymentService.withdrawFromWallet(amount, driver);
+  }
+
+  @Put('updateBankDetail')
+  @ApiOperation({ summary: 'update bank detail' })
+  @ApiResponse({ status: 201, description: 'update bank details' })
+  @HttpCode(HttpStatus.OK)
+  async updateBankDetail(
+    @GetDriverDecorator() driver: DriverEntity,
+    @Body() updateBankDetailDto: UpdateBankDetailDto,
+  ) {
+    return await this.paymentService.updateBankDetail(
+      updateBankDetailDto.accountNumber,
+      updateBankDetailDto.bankName,
+      updateBankDetailDto.accountName,
       driver,
     );
   }

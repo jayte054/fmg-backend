@@ -1,4 +1,9 @@
-import { IsNotEmpty, IsNotEmptyObject, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNotEmptyObject,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { PurchaseResponse } from '../../purchaseModule/utils/purchase.type';
 
 interface PurchaseCredentials {
@@ -23,4 +28,24 @@ export class VerifyPaymentDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+}
+
+export class UpdateBankDetailDto {
+  @IsString()
+  @IsNotEmpty()
+  accountNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  bankName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  accountName: string;
+}
+
+export class WithdrawalDto {
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
 }

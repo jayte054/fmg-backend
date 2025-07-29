@@ -73,15 +73,11 @@ export class WalletRepository extends Repository<WalletEntity> {
     updateWalletData: UpdateWalletData,
   ): Promise<WalletEntity> => {
     const { balance, previousBalance, metadata, updatedAt } = updateWalletData;
-    try {
-      const wallet = await this.findOne({ where: { walletAccount } });
-      wallet.balance = balance;
-      wallet.previousBalance = previousBalance;
-      wallet.metadata = metadata;
-      wallet.updatedAt = updatedAt;
-      return await this.save(wallet);
-    } catch (error) {
-      console.log(error);
-    }
+    const wallet = await this.findOne({ where: { walletAccount } });
+    wallet.balance = balance ?? wallet.balance;
+    wallet.previousBalance = previousBalance ?? wallet.previousBalance;
+    wallet.metadata = metadata ?? wallet.metadata;
+    wallet.updatedAt = updatedAt;
+    return await this.save(wallet);
   };
 }
