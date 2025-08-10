@@ -1,3 +1,6 @@
+import { AccessoryEntity } from 'src/modules/accessoryModule/accessoryEntity/accessoryEntity';
+import { AuthEntity } from 'src/modules/authModule/authEntity/authEntity';
+// import { ProductEntity } from 'src/modules/ProductModule/productEntity/product.entity';
 import {
   BaseEntity,
   Column,
@@ -6,15 +9,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { RetailScale } from '../utils/user.types';
-import { AuthEntity } from '../../authModule/authEntity/authEntity';
-import { ProductEntity } from '../../ProductModule/productEntity/product.entity';
-import { AccessoryEntity } from 'src/modules/accessoryModule/accessoryEntity/accessoryEntity';
 
 @Entity()
-export class DealerEntity extends BaseEntity {
+export class AccessoryDealerEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  dealerId: string;
+  accDealerId: string;
 
   @Column()
   name: string;
@@ -38,18 +37,15 @@ export class DealerEntity extends BaseEntity {
   isAdmin: boolean;
 
   @Column()
-  scale: RetailScale;
-
-  @Column()
   rating: number;
 
   @ManyToOne(() => AuthEntity, (user) => user.dealerId, { eager: false })
   user: AuthEntity;
 
-  @OneToMany(() => ProductEntity, (products) => products.dealer, {
-    eager: true,
-  })
-  products: ProductEntity[];
+  //   @OneToMany(() => ProductEntity, (products) => products.dealer, {
+  //     eager: true,
+  //   })
+  //   products: ProductEntity[];
 
   @OneToMany(() => AccessoryEntity, (accessory) => accessory.dealer, {
     eager: true,

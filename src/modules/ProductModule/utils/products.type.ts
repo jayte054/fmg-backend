@@ -34,6 +34,9 @@ export interface ProductResponse {
 
 export interface CreateProductCredentials {
   pricePerKg: number;
+  supportsDebutOrder: boolean;
+  supportsSwapOrder: boolean;
+  supportsCommissionOrder: boolean;
 }
 
 export interface productResObj {

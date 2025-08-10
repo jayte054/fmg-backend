@@ -9,6 +9,7 @@ import {
   CreateAdminDto,
   AdminFilter,
   UpdateFilter,
+  CreateAccDealerDto,
 } from '../utils/user.dto';
 import {
   BuyerResponse,
@@ -16,6 +17,7 @@ import {
   DriverResponse,
   DealerResponse,
   AdminResponse,
+  AccDealerResponse,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
@@ -68,4 +70,18 @@ export interface IAdminRepository {
   findAdminByUserId(userId?: string): Promise<AdminEntity>;
   findAdmin(adminId: string): Promise<AdminEntity>;
   updateAdmin(userId: string, data: UpdateFilter);
+}
+
+export interface IAccessoryDealerRepository {
+  createDealer(createDealerDto: CreateAccDealerDto): Promise<AccDealerResponse>;
+  findDealerId(dealerId: string): Promise<AccDealerResponse>;
+  findDealers(options: {
+    skip: number;
+    take: number;
+  }): Promise<Promise<{ dealers: AccDealerResponse[]; total: number }>>;
+  updateDealer(
+    dealerId: string,
+    dealerDto: UpdateDealerDto,
+  ): Promise<AccDealerResponse>;
+  deleteDealer(dealerId: string): Promise<any>;
 }

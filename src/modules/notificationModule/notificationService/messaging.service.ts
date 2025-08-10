@@ -51,7 +51,9 @@ export class MessagingService {
 
       if (response.errorCode || response.status === 'failed') {
         this.logger.error('failed to send withdrawal request');
-        throw new InternalServerErrorException('failed to send request');
+        throw new InternalServerErrorException(
+          'failed to send whatsapp withdrawal request',
+        );
       }
 
       const newRequest = this.withdrawalRepository.create({
@@ -65,7 +67,8 @@ export class MessagingService {
 
       return request;
     } catch (error) {
-      console.log(error);
+      this.logger.error('failed to send withdrawal request message');
+      throw new InternalServerErrorException('failed to send request');
     }
   }
 

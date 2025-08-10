@@ -4,7 +4,6 @@ import { WalletEntity } from '../entity/wallet.entity';
 import {
   PaginatedWalletResponse,
   UpdateWalletData,
-  // UpdateWalletData,
   WalletFilter,
 } from '../utils/interface';
 import { paginatedWallet } from '../utils/utils';

@@ -119,8 +119,6 @@ export class PaymentService {
         ),
       );
 
-      console.log(response.data);
-
       const authUrl = response.data?.data?.authorization_url;
       if (!authUrl) {
         throw new InternalServerErrorException('failed to initialize payment');

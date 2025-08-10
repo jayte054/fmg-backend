@@ -72,18 +72,23 @@ export interface DealerResObj {
   total: number;
 }
 
+export interface AccDealerResObj {
+  dealers: AccDealerResponse[];
+  total: number;
+}
+
 export interface buyerResObj {
   buyers: BuyerResponse[];
   total: number;
 }
 
 export interface UpdateCredentials {
-  name: string;
-  phoneNumber: string;
-  email: string;
-  address: string;
-  location: { latitude: number; longitude: number };
-  scale: RetailScale;
+  name?: string;
+  phoneNumber?: string;
+  email?: string;
+  address?: string;
+  location?: { latitude: number; longitude: number };
+  scale?: RetailScale;
 }
 
 export enum VehicleType {
@@ -164,4 +169,17 @@ export interface UpdateDriverCredentials {
 export interface AdminResponse {
   admins: AdminEntity[];
   total: number;
+}
+
+export interface AccDealerResponse {
+  dealerId: string;
+  name: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+  location: { latitude: number; longitude: number };
+  role: string;
+  isAdmin: boolean;
+  rating: number;
+  userId: string;
 }

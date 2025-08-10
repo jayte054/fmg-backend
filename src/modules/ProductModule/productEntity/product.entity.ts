@@ -51,4 +51,7 @@ export class ProductEntity extends BaseEntity {
 
   @Column()
   dealerId: string;
+
+  @Column({ type: 'jsonb', default: [] })
+  metadata?: Record<string, string | boolean>;
 }

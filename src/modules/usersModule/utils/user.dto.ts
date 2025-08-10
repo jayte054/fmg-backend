@@ -251,3 +251,44 @@ export interface UpdateFilter {
   location?: string;
   metadata?: Record<string, unknown>;
 }
+
+export class CreateAccDealerDto {
+  @IsString()
+  @IsNotEmpty()
+  dealerId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsNotEmpty()
+  location: { latitude: number; longitude: number };
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isAdmin: boolean;
+
+  @IsNumber()
+  @IsNotEmpty()
+  rating: number;
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+}

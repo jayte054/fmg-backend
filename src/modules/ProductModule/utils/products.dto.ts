@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEnum,
+  IsJSON,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -61,6 +62,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
   dealerId: string;
+
+  @IsNotEmpty()
+  @IsJSON()
+  metadata: Record<string, string | boolean>;
 }
 
 export class UpdateProductDto {

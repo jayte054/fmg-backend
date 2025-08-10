@@ -30,6 +30,8 @@ import { AdminRepository } from './repository/admin.repository';
 import { AdminService } from './service/admin.service';
 import { AdminController } from './controller/admin.controller';
 import { AdminEntityRepository } from './repository/admin.entity.repository';
+import { AccessoryDealerRepository } from './repository/accessoryDealer.repository';
+import { AccessoryDealerEntity } from './userEntity/accessoryDealer.entity';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { AdminEntityRepository } from './repository/admin.entity.repository';
       DealerEntity,
       DriverEntity,
       AdminEntity,
+      AccessoryDealerEntity,
     ]),
   ],
   controllers: [
@@ -59,6 +62,7 @@ import { AdminEntityRepository } from './repository/admin.entity.repository';
     BuyerEntityRepository,
     DriverEntityRepository,
     AdminEntityRepository,
+    AccessoryDealerRepository,
     {
       provide: 'IBuyerRepository',
       useClass: BuyerRepository,
@@ -74,6 +78,10 @@ import { AdminEntityRepository } from './repository/admin.entity.repository';
     {
       provide: 'IAdminRepository',
       useClass: AdminRepository,
+    },
+    {
+      provide: 'IAccessoryDealerRepository',
+      useClass: AccessoryDealerRepository,
     },
   ],
   exports: [

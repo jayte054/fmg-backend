@@ -6,7 +6,7 @@ import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 
 export enum PurchaseType {
   debut_order = 'debut order',
-  cylinder_swap_order = ' cylinder swap order ', //customer swaps cylinder with vendor
+  cylinder_swap_order = 'cylinder swap order', //customer swaps cylinder with vendor
   gas_swap_order = 'gas swap order', // swaps cylinder with customer while fulfilling the value of the purchase
   commission_order = 'commission order', // customer's cylinder is picked up filled and returned
 }

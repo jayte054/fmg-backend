@@ -23,9 +23,12 @@ import { PaymentModule } from './modules/paymentModule/payment.module';
 import { MigrationModule } from './migrationUtils/migration.module';
 import { PaymentController } from './modules/paymentModule/controller/payment.controller';
 import { AdminController } from './modules/usersModule/controller/admin.controller';
+import { AdminModule } from './modules/adminModule/admin.module';
+import { GlobalExceptionFilter } from './common/exceptions/exceptions.filter';
 
 @Module({
   imports: [
+    AdminModule,
     MigrationModule,
     PaymentModule,
     AuditLogModule,
@@ -38,6 +41,7 @@ import { AdminController } from './modules/usersModule/controller/admin.controll
     TypeOrmModule.forRoot(typeOrmConfig),
     ConfigModule.forRoot({ isGlobal: true }),
   ],
+  providers: [GlobalExceptionFilter],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

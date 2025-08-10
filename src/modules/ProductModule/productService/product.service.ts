@@ -45,7 +45,12 @@ export class ProductService {
     dealer: DealerEntity,
     createProductCredentials: CreateProductCredentials,
   ) => {
-    const { pricePerKg } = createProductCredentials;
+    const {
+      pricePerKg,
+      supportsDebutOrder,
+      supportsCommissionOrder,
+      supportsSwapOrder,
+    } = createProductCredentials;
 
     try {
       const createProductDto: CreateProductDto = {
@@ -61,6 +66,11 @@ export class ProductService {
         reviews: [] as Reviewers[],
         purchases: 0,
         dealerId: dealer.dealerId,
+        metadata: {
+          supportsDebutOrder,
+          supportsCommissionOrder,
+          supportsSwapOrder,
+        },
       };
 
       const product: ProductResponse =

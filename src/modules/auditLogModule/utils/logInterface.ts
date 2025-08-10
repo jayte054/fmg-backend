@@ -8,6 +8,8 @@ export enum LogCategory {
   NOTIFICATION = 'notification',
   USER = 'user',
   PAYMENT = 'payment',
+  ExceptionFilter = 'ExceptionFilter',
+  HttpException = 'HttpException',
 }
 
 export interface LogFilterInterface {

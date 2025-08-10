@@ -15,6 +15,8 @@ import { PaymentEntity } from '../modules/paymentModule/entity/payment.entity';
 import { WithdrawalRequestEntity } from '../modules/notificationModule/notificationEntity.ts/withdrawalRequest.entity';
 import { DataSourceOptions } from 'typeorm';
 import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
+import { AccessoryEntity } from 'src/modules/accessoryModule/accessoryEntity/accessoryEntity';
+import { AccessoryDealerEntity } from 'src/modules/usersModule/userEntity/accessoryDealer.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: DataSourceOptions = {
@@ -40,6 +42,8 @@ export const typeOrmConfig: DataSourceOptions = {
     PaymentEntity,
     WithdrawalRequestEntity,
     AdminEntity,
+    AccessoryEntity,
+    AccessoryDealerEntity,
   ],
   // synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   synchronize: false,
