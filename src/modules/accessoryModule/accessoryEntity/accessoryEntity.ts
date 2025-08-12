@@ -3,9 +3,11 @@ import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -19,14 +21,14 @@ export class AccessoryEntity extends BaseEntity {
   @Column()
   description: string;
 
-  @Column()
-  price: string;
+  @Column('decimal', { precision: 10, scale: 2 })
+  price: number;
+
+  @Column('text', { array: true })
+  imageUrls: string[];
 
   @Column()
-  imageUrl: string;
-
-  @Column()
-  quantity: string;
+  quantity: number;
 
   @Column()
   isActive: boolean;
@@ -50,9 +52,15 @@ export class AccessoryEntity extends BaseEntity {
   @Column()
   rating: number;
 
-  @Column({ type: 'jsonb' })
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
   review: Record<string, string>;
 
-  @Column({ type: 'jsonb' })
-  metadata: Record<string, string>;
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, unknown>;
 }

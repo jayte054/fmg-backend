@@ -1,10 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { IAuditLogRepository } from '../interface/IAuditLogInterface';
-import { AuditLogInterface, LogFilterInterface } from '../utils/logInterface';
+import {
+  AuditLogInterface,
+  ErrorAuditLogInterface,
+  LogFilterInterface,
+} from '../utils/logInterface';
 import { AuditLogEntity } from '../auditLogEntity/auditLog.entity';
 
 @Injectable()
 export class AuditLogService {
+  private readonly logger = new Logger(AuditLogService.name);
   constructor(
     @Inject('IAuditLogRepository')
     private readonly auditLogRepository: IAuditLogRepository,
@@ -23,7 +33,8 @@ export class AuditLogService {
 
       return newLog;
     } catch (error) {
-      console.log(error);
+      this.logger.error('failed to log activity', { email, logCategory });
+      throw new InternalServerErrorException('failed to log activity', error);
     }
   };
 
@@ -41,5 +52,23 @@ export class AuditLogService {
     const logs = await this.auditLogRepository.findLogs(filter);
 
     return logs;
+  };
+
+  error = async (
+    logInterface: ErrorAuditLogInterface,
+  ): Promise<AuditLogEntity> => {
+    const { logCategory, email, details, status } = logInterface;
+    try {
+      return await this.auditLogRepository.createLog({
+        logCategory,
+        description: JSON.stringify(status),
+        email,
+        details,
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      this.logger.error('failed to log activity', { logCategory, email });
+      throw new InternalServerErrorException('failed to log activity');
+    }
   };
 }

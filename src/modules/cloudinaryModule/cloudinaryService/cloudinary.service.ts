@@ -33,6 +33,16 @@ export class CloudinaryService {
     });
   }
 
+  async uploadImages(
+    files: Express.Multer.File[],
+  ): Promise<CloudinaryResponse[]> {
+    if (!files || files.length === 0) {
+      throw new Error('no files provided');
+    }
+
+    return Promise.all(files.map((file) => this.uploadImage(file)));
+  }
+
   async deleteImage(publicId: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {

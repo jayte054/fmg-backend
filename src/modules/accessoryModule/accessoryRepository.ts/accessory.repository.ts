@@ -1,11 +1,8 @@
 import { DataSource, Repository } from 'typeorm';
 import { AccessoryEntity } from '../accessoryEntity/accessoryEntity';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AccessoryFilter,
-  CreateAccessoryInput,
-} from '../accessoryEntity/utils/types';
-import { paginatedAccessories } from '../accessoryEntity/utils/utils';
+import { AccessoryFilter, CreateAccessoryInput } from '../utils/types';
+import { paginatedAccessories } from '../utils/utils';
 
 @Injectable()
 export class AccessoryRepository extends Repository<AccessoryEntity> {
@@ -53,8 +50,8 @@ export class AccessoryRepository extends Repository<AccessoryEntity> {
     }
 
     const [accessories, total] = await query
-      .skip(skip ?? 0)
-      .take(take ?? 20)
+      .skip(skip)
+      .take(take)
       .getManyAndCount();
 
     return paginatedAccessories({ accessories, total, skip, take });

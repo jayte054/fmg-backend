@@ -11,7 +11,7 @@ export const paginatedAccessories = (
   return {
     accessories,
     total,
-    page: skip ?? 0,
-    perPage: take ?? 20,
+    page: skip,
+    perPage: take,
   };
 };

@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { AuditLogEntity } from '../auditLogEntity/auditLog.entity';
 
 export enum LogCategory {
@@ -10,6 +11,7 @@ export enum LogCategory {
   PAYMENT = 'payment',
   ExceptionFilter = 'ExceptionFilter',
   HttpException = 'HttpException',
+  Accessories = 'Accessories',
 }
 
 export interface LogFilterInterface {
@@ -38,5 +40,13 @@ export interface AuditLogInterface {
   logCategory: LogCategory;
   description: string;
   email?: string;
+  details: Record<string, string>;
+}
+
+export interface ErrorAuditLogInterface {
+  logCategory: LogCategory;
+  status: HttpStatus;
+  email: string;
+  description?: string;
   details: Record<string, string>;
 }
