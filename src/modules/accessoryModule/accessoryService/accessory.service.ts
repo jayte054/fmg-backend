@@ -113,6 +113,7 @@ export class AccessoryService {
     dealer: DealerEntity,
     accessoryFilter: AccessoryFilter,
   ): Promise<PaginatedAccessoriesResponse> => {
+    const { dealerId, search, isActive, rating, skip, take } = accessoryFilter;
     accessoryFilter.dealerId = dealer.dealerId;
     if (dealer.dealerId === accessoryFilter.dealerId) {
       this.auditLogService.log({
@@ -128,11 +129,19 @@ export class AccessoryService {
       throw new ConflictException('unauthorized accessories request');
     }
 
-    accessoryFilter.skip = accessoryFilter.skip ?? 0;
-    accessoryFilter.take = accessoryFilter.take ?? 20;
+    accessoryFilter.skip = skip ?? 0;
+    accessoryFilter.take = take ?? 20;
 
-    const accessories =
-      await this.accessoryRepository.findAccessories(accessoryFilter);
+    const filter: AccessoryFilter = {
+      ...(dealerId !== undefined && { dealerId: accessoryFilter.dealerId }),
+      ...(search !== undefined && { search }),
+      ...(isActive !== undefined && { isActive }),
+      ...(rating !== undefined && { rating }),
+      skip: accessoryFilter.skip,
+      take: accessoryFilter.take,
+    };
+
+    const accessories = await this.accessoryRepository.findAccessories(filter);
 
     this.auditLogService.log({
       logCategory: LogCategory.Accessories,
@@ -153,11 +162,39 @@ export class AccessoryService {
     accessoryId: string,
     updateAccessoryInput: UpdateAccessoryInput,
   ): Promise<UpdateAccessoryResponse> => {
-    const {} = updateAccessoryInput;
+    const {
+      // dealerId,
+      title,
+      description,
+      price,
+      quantity,
+      rating,
+      review,
+      metadata,
+    } = updateAccessoryInput;
     updateAccessoryInput.dealerId = dealer.dealerId;
+
+    const updateInput: UpdateAccessoryInput = {
+      ...(updateAccessoryInput.dealerId !== undefined && {
+        dealerId: updateAccessoryInput.dealerId,
+      }),
+      ...(title !== undefined && { title }),
+      ...(description !== undefined && { description }),
+      ...(price !== undefined && { price }),
+      ...(quantity !== undefined && { quantity }),
+      ...(rating !== undefined && { rating }),
+      ...(review !== undefined && { review }),
+      ...(metadata !== undefined && { metadata }),
+    };
+
+    if (Object.keys(updateInput).length === 0) {
+      this.logger.error('empty update input, bad request');
+      throw new BadRequestException('empty update input');
+    }
+
     const response = await this.accessoryRepository.updateAccessory(
       accessoryId,
-      updateAccessoryInput,
+      updateInput,
     );
 
     if (!response) {

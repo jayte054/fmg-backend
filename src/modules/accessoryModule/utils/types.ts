@@ -43,7 +43,7 @@ export interface CreateAccessoryResponse {
 }
 
 export interface UpdateAccessoryInput {
-  dealerId: string;
+  dealerId?: string;
   title?: string;
   description?: string;
   price?: number;

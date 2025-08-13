@@ -1,6 +1,6 @@
 import { DataSource, Repository } from 'typeorm';
 import { AccessoryEntity } from '../accessoryEntity/accessoryEntity';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { AccessoryFilter, CreateAccessoryInput } from '../utils/types';
 import { paginatedAccessories } from '../utils/utils';
 
@@ -61,7 +61,9 @@ export class AccessoryRepository extends Repository<AccessoryEntity> {
     accessoryId: string,
     updateAccessoryInput: Partial<AccessoryEntity>,
   ) => {
-    await this.update({ accessoryId }, updateAccessoryInput);
+    const response = await this.update({ accessoryId }, updateAccessoryInput);
+    if (response.affected === 0)
+      throw new NotFoundException('accessory not found');
     return await this.findOne({ where: { accessoryId } });
   };
 
