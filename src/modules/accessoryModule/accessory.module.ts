@@ -5,6 +5,7 @@ import { AccessoryRepository } from './accessoryRepository.ts/accessory.reposito
 import { AccessoryService } from './accessoryService/accessory.service';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
+import { AccessoryController } from './accessoryController/accessory.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
       useClass: AccessoryRepository,
     },
   ],
-  controllers: [],
+  controllers: [AccessoryController],
   exports: [],
 })
 export class AccessoryModule {}

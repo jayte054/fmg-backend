@@ -26,7 +26,7 @@ import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 // import { GetAdminDecorator } from 'src/common/decorators/getAdminDecorator';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
-@ApiTags('Purchase')
+@ApiTags('Payment')
 @UseGuards(JwtAuthGuard)
 @Controller('payment')
 export class PaymentController {

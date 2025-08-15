@@ -1,3 +1,4 @@
+import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { PaymentEntity } from '../entity/payment.entity';
 import { SubAccountEntity } from '../entity/subaccount.entity';
 import { WalletEntity } from '../entity/wallet.entity';
@@ -71,8 +72,22 @@ export interface WalletInterface {
   take: number;
 }
 
+export interface CashbackWalletInterface {
+  wallets: CashbackWalletEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
 export interface PaginatedWalletResponse {
   wallets: WalletEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+}
+
+export interface PaginatedCashbackWalletResponse {
+  wallets: CashbackWalletEntity[];
   total: number;
   page: number;
   perPage: number;
@@ -97,4 +112,18 @@ export interface ActivateSubAccountInterface {
   account_number: string;
   active: boolean;
   subaccount_code: string;
+}
+
+export interface CashbackWalletFilter {
+  search: string;
+  isActive: boolean;
+  balance: string;
+  createdAt: Date;
+  skip: number;
+  take: number;
+}
+
+export interface UpdateCashbackInputInterface {
+  balance?: string;
+  metadata?: Record<string, string>;
 }

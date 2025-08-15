@@ -22,6 +22,7 @@ import { BuyerRepositoryMiddleware } from '../../common/middleware/buyer.reposit
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
 import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
 import { AdminRepositoryMiddleware } from 'src/common/middleware/admin.repository.middleware';
+import { CashbackWalletEntity } from './entity/cashback.entity';
 
 @Module({
   imports: [
@@ -30,7 +31,12 @@ import { AdminRepositoryMiddleware } from 'src/common/middleware/admin.repositor
     forwardRef(() => UserModule),
     AuditLogModule,
     forwardRef(() => ProductModule),
-    TypeOrmModule.forFeature([PaymentEntity, SubAccountEntity, WalletEntity]),
+    TypeOrmModule.forFeature([
+      PaymentEntity,
+      SubAccountEntity,
+      WalletEntity,
+      CashbackWalletEntity,
+    ]),
   ],
   providers: [
     PaymentService,

@@ -35,7 +35,11 @@ export class PaymentRepository extends Repository<PaymentEntity> {
     if (search) {
       const lowerCaseSearch = `%${search.toLowerCase()}%`;
       query.andWhere(
-        'LOWER(payments.email) ILIKE : lowerCaseSearch OR LOWER(payments.userId) ILIKE : lowerCaseSearch',
+        `
+        LOWER(payments.email) ILIKE :lowerCaseSearch 
+        OR LOWER(payments.userId) ILIKE :lowerCaseSearch
+        OR LOWER(payments.reference) ILIKE :reference
+        `,
         { lowerCaseSearch },
       );
     }

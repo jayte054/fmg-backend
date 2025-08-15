@@ -1,6 +1,8 @@
 import {
   AccountsInterface,
+  CashbackWalletInterface,
   PaginatedAccountResponse,
+  PaginatedCashbackWalletResponse,
   PaginatedPaymentResponse,
   PaginatedWalletResponse,
   PaymentInterface,
@@ -36,6 +38,19 @@ export const PaginatedSubAccount = async (
 export const paginatedWallet = async (
   walletInterface: WalletInterface,
 ): Promise<PaginatedWalletResponse> => {
+  const { wallets, total, skip, take } = walletInterface;
+
+  return {
+    wallets,
+    total,
+    page: Math.floor(skip / take) + 1,
+    perPage: take,
+  };
+};
+
+export const paginatedCashbackWallets = async (
+  walletInterface: CashbackWalletInterface,
+): Promise<PaginatedCashbackWalletResponse> => {
   const { wallets, total, skip, take } = walletInterface;
 
   return {
