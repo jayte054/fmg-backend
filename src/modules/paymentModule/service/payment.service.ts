@@ -256,23 +256,6 @@ export class PaymentService {
       const amount = platformCommission * 0.01;
       const commission = platformCommission - amount;
       this.updatCashbackMethod(amount.toString(), buyer.buyerId);
-
-      // paymentRecord = await this.paymentRepository.makePayment({
-      //   email: email,
-      //   purchaseId: purchase.purchaseId,
-      //   reference,
-      //   amount: totalAmount,
-      //   productAmount,
-      //   deliveryFee,
-      //   driverShare,
-      //   platformCommission: commission,
-      //   dealerSubAccount: dealerSub.subAccountCode,
-      //   dealersWalletAccount: dealerWallet.walletAccount,
-      //   driversWalletAccount: driverWallet.walletAccount,
-      //   status: PaymentStatus.paid,
-      //   createdAt: new Date(),
-      //   metadata: {},
-      // });
       paymentRecord = await this.paymentRepository.makePayment({
         ...commonFields,
         platformCommission: commission,
@@ -292,23 +275,6 @@ export class PaymentService {
 
       return paymentRecord;
     } else {
-      // paymentRecord = await this.paymentRepository.makePayment({
-      //   email: email,
-      //   purchaseId: purchase.purchaseId,
-      //   reference,
-      //   amount: totalAmount,
-      //   productAmount,
-      //   deliveryFee,
-      //   driverShare,
-      //   platformCommission,
-      //   dealerSubAccount: dealerSub.subAccountCode,
-      //   dealersWalletAccount: dealerWallet.walletAccount,
-      //   driversWalletAccount: driverWallet.walletAccount,
-      //   status: PaymentStatus.paid,
-      //   createdAt: new Date(),
-      //   metadata: {},
-      // });
-
       paymentRecord = await this.paymentRepository.makePayment({
         ...commonFields,
         platformCommission,
