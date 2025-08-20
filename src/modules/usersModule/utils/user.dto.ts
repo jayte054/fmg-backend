@@ -40,6 +40,8 @@ export class CreateBuyerDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  metadata: Record<string, string>;
 }
 
 export class UpdateBuyerDto {
@@ -62,6 +64,8 @@ export class UpdateBuyerDto {
   isAdmin?: boolean;
 
   userId?: string;
+
+  metadata?: Record<string, string>;
 }
 
 export class CreateDealerDto {

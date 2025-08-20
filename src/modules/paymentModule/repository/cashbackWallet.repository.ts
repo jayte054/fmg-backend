@@ -92,4 +92,12 @@ export class CashbackWalletRepository extends Repository<CashbackWalletEntity> {
     }
     return await this.findOne({ where: { walletId } });
   };
+
+  toggleCashbackWalletStatus = async (walletId: string) => {
+    const wallet = await this.findOne({ where: { walletId } });
+    const prev = wallet.isActive;
+    wallet.isActive = !prev;
+    await this.save(wallet);
+    return { ok: true };
+  };
 }

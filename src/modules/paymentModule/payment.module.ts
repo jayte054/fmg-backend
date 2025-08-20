@@ -52,6 +52,10 @@ import { CashbackWalletEntity } from './entity/cashback.entity';
       provide: 'IWalletRepository',
       useClass: WalletRepository,
     },
+    {
+      provide: 'ICashbackWalletRepository',
+      useClass: WalletRepository,
+    },
   ],
   controllers: [PaymentController],
   exports: [PaymentService],

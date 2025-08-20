@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -18,8 +19,12 @@ import { IWalletRepository } from '../interface/IWalletRepository';
 import { WalletEntity } from '../entity/wallet.entity';
 import {
   ActivateSubAccountInterface,
+  CashbackWalletFilter,
+  CreateCashbackWalletResponse,
+  PaginatedCashbackWalletResponse,
   PaymentStatus,
   SubAccountResponse,
+  UpdateCashbackInputInterface,
   UpdateWalletData,
   WalletStatus,
 } from '../utils/interface';
@@ -30,6 +35,10 @@ import { MessagingService } from '../../notificationModule/notificationService/m
 import { SubAccountEntity } from '../entity/subaccount.entity';
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
+import { CashbackWalletEntity } from '../entity/cashback.entity';
+import { ICashbackWalletRepository } from '../interface/ICashbackWallet.interface';
+import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
+import { PaymentEntity } from '../entity/payment.entity';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
@@ -45,11 +54,15 @@ export class PaymentService {
     @Inject('IWalletRepository')
     private readonly walletRepository: IWalletRepository,
 
+    @Inject('ICashbackWalletRepository')
+    private readonly cashbackRepository: ICashbackWalletRepository,
+
     private readonly configService: ConfigService,
     private readonly productService: ProductService,
     private readonly httpService: HttpService,
     private readonly auditLogService: AuditLogService,
     private readonly messagingService: MessagingService,
+    private readonly buyerService: BuyerService,
   ) {}
 
   initializePayment = async (
@@ -169,6 +182,8 @@ export class PaymentService {
     const driverShare = deliveryFee - commissionOnDeliveryFee;
     const dealerShare = productAmount - commissionOnProductFee;
 
+    const buyer = await this.buyerService.findBuyer(email);
+
     const { dealerId } = await this.productService.findProductByPaymentService(
       purchase.productId,
     );
@@ -195,7 +210,7 @@ export class PaymentService {
     const dealerMetadata = { ...dealerWallet.metadata };
     const previous = Number(dealerMetadata.numberOfTransactions);
     dealerMetadata.numberOfTransactions =
-      typeof prev === 'number' ? previous + 1 : 1;
+      typeof previous === 'number' ? previous + 1 : 1;
 
     const updateDriverWalletData: UpdateWalletData = {
       balance: driverShare + driverWallet.balance,
@@ -219,7 +234,9 @@ export class PaymentService {
       dealerWallet.walletAccount,
       updateDealerWalletData,
     );
-    const paymentRecord = await this.paymentRepository.makePayment({
+
+    let paymentRecord: PaymentEntity;
+    const commonFields = {
       email: email,
       purchaseId: purchase.purchaseId,
       reference,
@@ -227,28 +244,90 @@ export class PaymentService {
       productAmount,
       deliveryFee,
       driverShare,
-      platformCommission,
       dealerSubAccount: dealerSub.subAccountCode,
       dealersWalletAccount: dealerWallet.walletAccount,
       driversWalletAccount: driverWallet.walletAccount,
       status: PaymentStatus.paid,
       createdAt: new Date(),
       metadata: {},
-    });
+    };
 
-    this.auditLogService.log({
-      logCategory: LogCategory.PAYMENT,
-      description: 'Payment updated and processed successfully',
-      email: email,
-      details: {
-        reference,
-        dealerId,
-        driverId,
-        amount: totalAmount.toString(),
-      },
-    });
+    if (buyer.metadata['cashbackWallet'] === 'true') {
+      const amount = platformCommission * 0.01;
+      const commission = platformCommission - amount;
+      this.updatCashbackMethod(amount.toString(), buyer.buyerId);
 
-    return paymentRecord;
+      // paymentRecord = await this.paymentRepository.makePayment({
+      //   email: email,
+      //   purchaseId: purchase.purchaseId,
+      //   reference,
+      //   amount: totalAmount,
+      //   productAmount,
+      //   deliveryFee,
+      //   driverShare,
+      //   platformCommission: commission,
+      //   dealerSubAccount: dealerSub.subAccountCode,
+      //   dealersWalletAccount: dealerWallet.walletAccount,
+      //   driversWalletAccount: driverWallet.walletAccount,
+      //   status: PaymentStatus.paid,
+      //   createdAt: new Date(),
+      //   metadata: {},
+      // });
+      paymentRecord = await this.paymentRepository.makePayment({
+        ...commonFields,
+        platformCommission: commission,
+      });
+
+      this.auditLogService.log({
+        logCategory: LogCategory.PAYMENT,
+        description: 'Payment updated and processed successfully',
+        email: email,
+        details: {
+          reference,
+          dealerId,
+          driverId,
+          amount: totalAmount.toString(),
+        },
+      });
+
+      return paymentRecord;
+    } else {
+      // paymentRecord = await this.paymentRepository.makePayment({
+      //   email: email,
+      //   purchaseId: purchase.purchaseId,
+      //   reference,
+      //   amount: totalAmount,
+      //   productAmount,
+      //   deliveryFee,
+      //   driverShare,
+      //   platformCommission,
+      //   dealerSubAccount: dealerSub.subAccountCode,
+      //   dealersWalletAccount: dealerWallet.walletAccount,
+      //   driversWalletAccount: driverWallet.walletAccount,
+      //   status: PaymentStatus.paid,
+      //   createdAt: new Date(),
+      //   metadata: {},
+      // });
+
+      paymentRecord = await this.paymentRepository.makePayment({
+        ...commonFields,
+        platformCommission,
+      });
+
+      this.auditLogService.log({
+        logCategory: LogCategory.PAYMENT,
+        description: 'Payment updated and processed successfully',
+        email: email,
+        details: {
+          reference,
+          dealerId,
+          driverId,
+          amount: totalAmount.toString(),
+        },
+      });
+
+      return paymentRecord;
+    }
   };
 
   createWallet = async (
@@ -627,5 +706,188 @@ export class PaymentService {
       this.logger.error('failed to activate subaccount');
       throw new InternalServerErrorException('failed to activate subaccount');
     }
+  };
+
+  createCashbackWallet = async (
+    buyer: BuyerEntity,
+  ): Promise<CreateCashbackWalletResponse> => {
+    const { buyerId, firstName, lastName, email } = buyer;
+    const accExtension = Math.floor(100000 + Math.random() * 900000).toString();
+    const accountNumber = `${firstName.slice(2)}${accExtension}${lastName.slice(2)}`;
+
+    const input: Partial<CashbackWalletEntity> = {
+      username: `${firstName} ${lastName}`,
+      userId: buyerId,
+      accountNumber,
+      isActive: true,
+      balance: '0',
+      metadata: {
+        numberOfTransactions: 0,
+      },
+    };
+
+    const cashbackWallet =
+      await this.cashbackRepository.createCashbackWallet(input);
+
+    const saidBuyer = await this.buyerService.findBuyer(buyer.userId);
+    saidBuyer.metadata = {
+      cashbackWallet: 'true',
+    };
+    await this.buyerService.saveBuyer(saidBuyer);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: `cashback wallet created for user ${buyerId}`,
+      email,
+      details: {
+        buyerId,
+        accountNumber,
+      },
+    });
+
+    this.logger.log(`cashback wallet for id ${buyerId} created successfully`);
+    return {
+      message: 'cashback wallet created successfully',
+      status: '200',
+      data: cashbackWallet,
+    };
+  };
+
+  findCashbackWallets = async (
+    filter: CashbackWalletFilter,
+  ): Promise<PaginatedCashbackWalletResponse> => {
+    const { search, isActive, createdAt, skip, take } = filter;
+
+    const inputFilter = {
+      ...(search !== undefined && { search }),
+      ...(isActive !== undefined && { isActive }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip: skip ?? 0,
+      take: take ?? 20,
+    } as CashbackWalletFilter;
+
+    const wallets =
+      await this.cashbackRepository.findCashbackWallets(inputFilter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'cashback wallets fetched by admin ${}',
+      details: {
+        total: wallets.total.toString(),
+      },
+    });
+
+    this.logger.log('cashback wallets successfully fetched');
+    return wallets;
+  };
+
+  findCashbackWallet = async (
+    walletId: string,
+  ): Promise<CashbackWalletEntity> => {
+    if (!walletId) throw new BadRequestException('walletId is not defined');
+
+    const wallet = await this.cashbackRepository.findCashbackWallet(walletId);
+
+    if (!wallet) {
+      this.logger.error(`wallet with id ${walletId} does not exist`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: `failed to find wallet ${walletId}`,
+        status: HttpStatus.NOT_FOUND,
+        details: {
+          walletId,
+        },
+      });
+      throw new NotFoundException('wallet not found');
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'wallet successfully fetched',
+      details: {
+        walletId,
+      },
+    });
+
+    return wallet;
+  };
+
+  findWalletByBuyerId = async (
+    buyer: BuyerEntity,
+  ): Promise<CashbackWalletEntity> => {
+    const { buyerId, email } = buyer;
+
+    const wallet =
+      await this.cashbackRepository.findCashbackWalletByUserId(buyerId);
+
+    if (!wallet) {
+      this.logger.error(`cashback wallet for user ${buyerId} not found`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'cashback wallet not found',
+        email,
+        status: HttpStatus.NOT_FOUND,
+        details: {
+          user: email,
+        },
+      });
+      throw new NotFoundException('wallet not found');
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'wallet successfully fetched',
+      email,
+      details: {
+        buyerId,
+        walletId: wallet.walletId,
+      },
+    });
+    return wallet;
+  };
+
+  private updatCashbackMethod = async (amount: string, buyerId: string) => {
+    const wallet =
+      await this.cashbackRepository.findCashbackWalletByUserId(buyerId);
+    const prev = (wallet.metadata?.numberOfTransactions as number) ?? 0;
+    const previousBalance = wallet.balance;
+    wallet.metadata['numberOfTransactions'] = prev + 1;
+    const balance = parseFloat(previousBalance) + parseFloat(amount);
+    wallet.balance = String(balance);
+
+    await this.updateCashbackWallet(
+      wallet.walletId,
+      {
+        balance: wallet.balance,
+        metadata: wallet.metadata,
+      },
+      previousBalance,
+    );
+
+    return 'update successful';
+  };
+
+  updateCashbackWallet = async (
+    walletId: string,
+    updateCashbackInput: UpdateCashbackInputInterface,
+    previousBalance?: string,
+  ): Promise<CashbackWalletEntity> => {
+    const updateWallet = await this.cashbackRepository.updateCashbackWallet(
+      walletId,
+      updateCashbackInput,
+    );
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'cashback wallet updated successfully',
+      details: {
+        walletId,
+        previousBalance,
+        data: JSON.stringify(updateCashbackInput),
+      },
+    });
+    this.logger.log(`cashback wallet ${walletId} updated successfully`);
+
+    return updateWallet;
   };
 }

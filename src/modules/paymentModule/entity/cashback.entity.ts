@@ -25,7 +25,7 @@ export class CashbackWalletEntity extends BaseEntity {
   @Column()
   accountNumber: string;
 
-  @Column()
+  @Column({ default: false })
   isActive: boolean;
 
   @Column('decimal', { precision: 10, scale: 2 })

@@ -5,7 +5,10 @@ import {
   IsString,
 } from 'class-validator';
 import { PurchaseResponse } from '../../purchaseModule/utils/purchase.type';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  // ApiPropertyOptional
+} from '@nestjs/swagger';
 
 class PurchaseCredentials {
   @ApiProperty()

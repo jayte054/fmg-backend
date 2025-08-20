@@ -46,7 +46,7 @@ export interface AuditLogInterface {
 export interface ErrorAuditLogInterface {
   logCategory: LogCategory;
   status: HttpStatus;
-  email: string;
+  email?: string;
   description?: string;
   details: Record<string, string>;
 }

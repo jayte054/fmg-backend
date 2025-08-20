@@ -1,4 +1,5 @@
 import { AdminEntity } from '../userEntity/admin.entity';
+import { BuyerEntity } from '../userEntity/buyer.entity';
 import {
   CreateBuyerDto,
   CreateDriverDto,
@@ -32,6 +33,8 @@ export interface IBuyerRepository {
     updateDto: UpdateBuyerDto,
   ): Promise<BuyerResponse>;
   deleteBuyer(buyerId: string): Promise<any>;
+  saveBuyer(buyer: BuyerEntity): Promise<BuyerResponse>;
+  findBuyer(buyerId?: string, email?: string): Promise<BuyerEntity>;
 }
 
 export interface IDealerRepository {

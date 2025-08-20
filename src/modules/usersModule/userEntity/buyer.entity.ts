@@ -52,4 +52,7 @@ export class BuyerEntity extends BaseEntity {
 
   @Column('uuid')
   userId: string;
+
+  @Column({ type: 'jsonb' })
+  metadata?: Record<string, string>;
 }

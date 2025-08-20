@@ -42,4 +42,22 @@ export class BuyerRepository extends Repository<BuyerEntity> {
   deleteBuyer = async (buyerId: string) => {
     return await this.delete({ buyerId });
   };
+
+  saveBuyer = async (buyer: BuyerEntity) => {
+    return await this.save(buyer);
+  };
+
+  findBuyer = async (buyerId?: string, email?: string) => {
+    const query = this.createQueryBuilder('buyer');
+
+    if (buyerId) {
+      query.andWhere('buyer.buyer = :buyerId', { buyerId });
+    }
+
+    if (email) {
+      query.andWhere('buyer.email = :email', { email });
+    }
+
+    return await query.getOne();
+  };
 }

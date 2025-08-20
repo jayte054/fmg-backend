@@ -125,5 +125,11 @@ export interface CashbackWalletFilter {
 
 export interface UpdateCashbackInputInterface {
   balance?: string;
-  metadata?: Record<string, string>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CreateCashbackWalletResponse {
+  message: string;
+  status: string;
+  data: CashbackWalletEntity;
 }

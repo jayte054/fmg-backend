@@ -11,6 +11,7 @@ export interface BuyerResponse {
   role: string;
   isAdmin: boolean;
   userId: string;
+  metadata: Record<string, string>;
 }
 
 export interface BuyerCredentials {

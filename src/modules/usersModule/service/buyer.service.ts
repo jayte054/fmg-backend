@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -17,6 +18,7 @@ import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { DuplicateException } from '../../../common/exceptions/exceptions';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
+import { BuyerEntity } from '../userEntity/buyer.entity';
 
 @Injectable()
 export class BuyerService {
@@ -42,6 +44,7 @@ export class BuyerService {
       address,
       location,
       userId: user.id,
+      metadata: {},
     };
     try {
       const duplicateBuyer = await this.buyerRepository.findBuyerById(user.id);
@@ -105,6 +108,30 @@ export class BuyerService {
     }
   };
 
+  findBuyer = async (
+    buyerId?: string,
+    email?: string,
+  ): Promise<BuyerEntity> => {
+    try {
+      const buyer = await this.buyerRepository.findBuyer(buyerId, email);
+      if (!buyer) {
+        this.logger.error('failed to find buyer', buyerId);
+        this.auditLogService.error({
+          logCategory: LogCategory.USER,
+          description: 'wallet not found',
+          status: HttpStatus.NOT_FOUND,
+          details: {
+            buyerId,
+          },
+        });
+      }
+      return buyer;
+    } catch (error) {
+      this.logger.error('failed to find buyer with id', buyerId);
+      throw new InternalServerErrorException('faild to find buyer');
+    }
+  };
+
   findBuyers = async (
     page: number = 1,
     limit: number = 10,
@@ -158,6 +185,7 @@ export class BuyerService {
       buyer.email = updateData.email || buyer.email;
       buyer.address = updateData.address || buyer.address;
       buyer.location = updateData.location || buyer.location;
+      buyer.metadata = updateData.metadata || buyer.metadata;
 
       const updateDto: UpdateBuyerDto = {
         buyerId: buyer.buyerId,
@@ -187,6 +215,26 @@ export class BuyerService {
     } catch (error) {
       this.logger.error('failed to update buyer details');
       throw new InternalServerErrorException('failed to update buyer details');
+    }
+  };
+
+  saveBuyer = async (buyer: BuyerEntity): Promise<BuyerResponse> => {
+    try {
+      const _buyer = await this.buyerRepository.saveBuyer(buyer);
+
+      this.logger.log('buyer entity successfully saved');
+      this.auditLogService.log({
+        logCategory: LogCategory.USER,
+        description: 'saved buyer entity',
+        email: buyer.email,
+        details: {
+          buyer: buyer.buyerId,
+        },
+      });
+      return this.mapToBuyerResponse(_buyer);
+    } catch (error) {
+      this.logger.error('failed to save buyer');
+      throw new InternalServerErrorException('failed to save buyer');
     }
   };
 
@@ -229,6 +277,7 @@ export class BuyerService {
       role: buyer.role,
       isAdmin: buyer.isAdmin,
       userId: buyer.userId,
+      metadata: buyer.metadata,
     };
   };
 }
