@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminEntity } from '../userEntity/admin.entity';
 
 export interface BuyerResponse {
@@ -126,21 +127,29 @@ export interface DriverResponse {
   userId: string;
 }
 
-export interface CreateDriverCredentials {
+export class CreateDriverCredentials {
+  @ApiProperty()
   firstName: string;
 
+  @ApiProperty()
   lastName: string;
 
+  @ApiProperty()
   address: string;
 
+  @ApiProperty()
   vehicle: VehicleType;
 
+  @ApiProperty()
   vehicleNumber: string;
 
+  @ApiProperty()
   driversLicenseNumber: string;
 
+  @ApiProperty()
   driversLicense: Express.Multer.File;
 
+  @ApiProperty()
   file: Express.Multer.File;
 }
 
@@ -149,21 +158,29 @@ export interface driverResObj {
   total: number;
 }
 
-export interface UpdateDriverCredentials {
+export class UpdateDriverCredentials {
+  @ApiPropertyOptional()
   firstName?: string;
 
+  @ApiPropertyOptional()
   lastName?: string;
 
+  @ApiPropertyOptional()
   phoneNumber?: string;
 
+  @ApiPropertyOptional()
   email?: string;
 
+  @ApiPropertyOptional()
   address?: string;
 
+  @ApiPropertyOptional()
   vehicle?: VehicleType;
 
+  @ApiPropertyOptional()
   vehicleNumber?: string;
 
+  @ApiPropertyOptional()
   driversLicense?: Express.Multer.File;
 }
 

@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { IAccessoryRepositoryInterface } from '../interface/iAccessory.interface';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
-import { CreateAccessoryDto } from '../utils/dto';
+import {
+  AccessoryFilterDto,
+  CreateAccessoryDto,
+  UpdateAccessoryDto,
+} from '../utils/dto';
 import { AccessoryEntity } from '../accessoryEntity/accessoryEntity';
 import { CloudinaryService } from 'src/modules/cloudinaryModule/cloudinaryService/cloudinary.service';
 import {
@@ -17,11 +21,12 @@ import {
   CreateAccessoryInput,
   CreateAccessoryResponse,
   PaginatedAccessoriesResponse,
+  SuccessAccessoryResponse,
   UpdateAccessoryInput,
-  UpdateAccessoryResponse,
 } from '../utils/types';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
+import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 
 @Injectable()
 export class AccessoryService {
@@ -83,35 +88,38 @@ export class AccessoryService {
   };
 
   findAccessoryById = async (
-    dealer: DealerEntity,
     accessoryId: string,
-  ): Promise<AccessoryEntity> => {
+    buyer?: BuyerEntity,
+    dealer?: DealerEntity,
+  ): Promise<SuccessAccessoryResponse> => {
     const { dealerId, email } = dealer;
+    const { buyerId, email: buyerEmail } = buyer;
+    const user = dealerId ?? buyerId;
 
     const accessory =
       await this.accessoryRepository.findAccessoryById(accessoryId);
 
     if (!accessory) {
-      this.logger.error(`dealer with id ${dealerId} not found`);
-      throw new NotFoundException('dealer not found');
+      this.logger.error(`accessory with id ${accessoryId} not found`);
+      throw new NotFoundException('accessory not found');
     }
 
     this.auditLogService.log({
       logCategory: LogCategory.Accessories,
       description: `accessory ${accessoryId} fetched`,
-      email,
+      email: dealer ? email : buyerEmail,
       details: {
         accessoryId,
-        dealerId,
+        user,
       },
     });
 
-    return accessory;
+    return this.mapToSuccessfulAccessoryResponse(accessory);
   };
 
   findAccessoriesByDealer = async (
     dealer: DealerEntity,
-    accessoryFilter: AccessoryFilter,
+    accessoryFilter: AccessoryFilterDto,
   ): Promise<PaginatedAccessoriesResponse> => {
     const { dealerId, search, isActive, rating, skip, take } = accessoryFilter;
     accessoryFilter.dealerId = dealer.dealerId;
@@ -157,11 +165,57 @@ export class AccessoryService {
     return accessories;
   };
 
+  findAccessories = async (
+    accessoryFilter: AccessoryFilter,
+    buyer?: BuyerEntity,
+  ): Promise<PaginatedAccessoriesResponse> => {
+    const { dealerId, search, isActive, rating, skip, take } = accessoryFilter;
+    // if (dealer.dealerId !== accessoryFilter.dealerId) {
+    //   this.auditLogService.log({
+    //     logCategory: LogCategory.Accessories,
+    //     description: 'unauthorized access',
+    //     email: dealer.email,
+    //     details: {
+    //       dealerId: dealer.dealerId,
+    //       accessoryFilter: JSON.stringify(accessoryFilter),
+    //     },
+    //   });
+    //   this.logger.error('unauthorized accessories request');
+    //   throw new ConflictException('unauthorized accessories request');
+    // }
+
+    accessoryFilter.skip = skip ?? 0;
+    accessoryFilter.take = take ?? 20;
+
+    const filter: AccessoryFilter = {
+      ...(dealerId !== undefined && { dealerId: accessoryFilter.dealerId }),
+      ...(search !== undefined && { search }),
+      ...(isActive !== undefined && { isActive }),
+      ...(rating !== undefined && { rating }),
+      skip: accessoryFilter.skip,
+      take: accessoryFilter.take,
+    };
+
+    const accessories = await this.accessoryRepository.findAccessories(filter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.Accessories,
+      description: `accessories fetched  successfully by ${buyer.buyerId}`,
+      details: {
+        count: accessories.accessories.length.toString(),
+        accessoryFilter: JSON.stringify(accessoryFilter),
+      },
+    });
+
+    this.logger.log('accessories successfully fetched');
+    return accessories;
+  };
+
   updateAccessory = async (
     dealer: DealerEntity,
     accessoryId: string,
-    updateAccessoryInput: UpdateAccessoryInput,
-  ): Promise<UpdateAccessoryResponse> => {
+    updateAccessoryInput: UpdateAccessoryDto,
+  ): Promise<SuccessAccessoryResponse> => {
     const {
       // dealerId,
       title,
@@ -225,11 +279,7 @@ export class AccessoryService {
 
     this.logger.log(`accessory ${accessoryId} updated successfully`);
 
-    return {
-      status: 'successful',
-      message: 'accessory updated successfully',
-      data: response,
-    };
+    return this.mapToSuccessfulAccessoryResponse(response);
   };
 
   deleteAccessory = async (dealer: DealerEntity, accessoryId: string) => {
@@ -263,7 +313,7 @@ export class AccessoryService {
     ok: boolean;
     isActive: boolean;
   }> => {
-    const toggleAccessory =
+    const response =
       await this.accessoryRepository.toggleAccessoryStatus(accessoryId);
 
     this.auditLogService.log({
@@ -273,12 +323,22 @@ export class AccessoryService {
       details: {
         dealerId: dealer.dealerId,
         accessoryId,
-        status: JSON.stringify(toggleAccessory.isActive),
+        status: JSON.stringify(response.isActive),
       },
     });
 
     this.logger.log('accessory status successfully toggled');
 
-    return toggleAccessory;
+    return response;
   };
+
+  private mapToSuccessfulAccessoryResponse(
+    accessory: AccessoryEntity,
+  ): SuccessAccessoryResponse {
+    return {
+      status: HttpStatus.OK,
+      message: 'Operation successful',
+      data: accessory,
+    };
+  }
 }

@@ -53,8 +53,8 @@ export interface UpdateAccessoryInput {
   metadata?: Record<string, string>;
 }
 
-export interface UpdateAccessoryResponse {
-  status: string;
+export interface SuccessAccessoryResponse {
+  status: number;
   message: string;
   data: AccessoryEntity;
 }
