@@ -32,7 +32,7 @@ import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 export class AccessoryService {
   private readonly logger = new Logger(AccessoryService.name);
   constructor(
-    @Inject('IAccessoryRepository')
+    @Inject('IAccessoryRepositoryInterface')
     private readonly accessoryRepository: IAccessoryRepositoryInterface,
     private readonly auditLogService: AuditLogService,
     private readonly cloudinaryService: CloudinaryService,

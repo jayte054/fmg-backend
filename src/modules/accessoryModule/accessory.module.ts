@@ -8,9 +8,11 @@ import { CloudinaryModule } from '../cloudinaryModule/cloudinary.module';
 import { AccessoryController } from './accessoryController/accessory.controller';
 import { BuyerRepositoryMiddleware } from 'src/common/middleware/buyer.repository.middleware';
 import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.repository.middleware';
+import { UserModule } from '../usersModule/user.module';
 
 @Module({
   imports: [
+    UserModule,
     AuditLogModule,
     CloudinaryModule,
     TypeOrmModule.forFeature([AccessoryEntity]),

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -71,7 +72,7 @@ export class AccessoryController {
   @ApiResponse({ status: 200, description: 'accessories fetched succesfully' })
   @HttpCode(HttpStatus.OK)
   async findAccessories(
-    @Body(ValidationPipe) accessoryFilter: AccessoryFilter,
+    @Body(ValidationPipe) accessoryFilter: AccessoryFilterDto,
     @GetBuyerDecorator() buyer: BuyerEntity,
   ) {
     return await this.accessoryService.findAccessories(accessoryFilter, buyer);
@@ -104,6 +105,34 @@ export class AccessoryController {
       dealer,
       accessoryId,
       updateAccessoryInput,
+    );
+  }
+
+  @Delete('deleteAccessory/:accessoryId')
+  @ApiOperation({ summary: 'delete accessory' })
+  @ApiResponse({ status: 200, description: 'accessory deleted successfully' })
+  @HttpCode(HttpStatus.OK)
+  async deleteAccessory(
+    @GetDealerDecorator() dealer: DealerEntity,
+    @Param('accessoryId') accessoryId: string,
+  ) {
+    return await this.accessoryService.deleteAccessory(dealer, accessoryId);
+  }
+
+  @Put('toggleAccessoryStatus/:accessoryId')
+  @ApiOperation({ summary: 'toggle accessory status' })
+  @ApiResponse({
+    status: 200,
+    description: 'accessory status toggled successfully',
+  })
+  @HttpCode(HttpStatus.OK)
+  async toggleAccessoryStatus(
+    @GetDealerDecorator() dealer: DealerEntity,
+    @Param('accessoryId') accessoryId: string,
+  ) {
+    return await this.accessoryService.toggleAccessoryStatus(
+      dealer,
+      accessoryId,
     );
   }
 }
