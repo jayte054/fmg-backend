@@ -21,12 +21,12 @@ import {
   CreateAccessoryDto,
   UpdateAccessoryDto,
 } from '../utils/dto';
+import { CreateAccessoryResponse } from '../utils/dto';
 import { GetBuyerDecorator } from 'src/common/decorators/getBuyerDecorator';
 import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
-import { AccessoryFilter } from '../utils/types';
 
 @ApiTags('accessory')
 @UseGuards(JwtAuthGuard)
@@ -37,7 +37,11 @@ export class AccessoryController {
   @Post('createAccessory')
   @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({ summary: 'created new accessory' })
-  @ApiResponse({ status: 201, description: 'accessory created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'accessory created successfully',
+    type: CreateAccessoryResponse,
+  })
   @HttpCode(HttpStatus.CREATED)
   async createAccessory(
     @GetDealerDecorator() dealer: DealerEntity,

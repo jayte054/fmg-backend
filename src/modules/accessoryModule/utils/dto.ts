@@ -1,11 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsNumberString,
+  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { AccessoryEntity } from '../accessoryEntity/accessoryEntity';
 
 export class CreateAccessoryDto {
   @ApiProperty()
@@ -104,4 +107,16 @@ export class UpdateAccessoryDto {
   @IsNumber()
   @IsOptional()
   metadata?: Record<string, string>;
+}
+
+export class CreateAccessoryResponse {
+  @ApiProperty()
+  @IsBoolean()
+  success: boolean;
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsObject()
+  accessory: AccessoryEntity;
 }

@@ -2,21 +2,37 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { PurchaseResponse } from '../../purchaseModule/utils/purchase.type';
 import {
   ApiProperty,
+  ApiPropertyOptional,
   // ApiPropertyOptional
 } from '@nestjs/swagger';
 
 class PurchaseCredentials {
   @ApiProperty()
+  @IsString()
   price: string;
+
   @ApiProperty()
+  @IsString()
   deliveryFee: string;
-  @ApiProperty()
-  productId: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  productId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  accessoryIds?: string[];
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  accessoryId?: string;
 }
 
 export class InitializePaymentDto {
