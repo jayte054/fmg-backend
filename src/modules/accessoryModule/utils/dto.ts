@@ -120,3 +120,42 @@ export class CreateAccessoryResponse {
   @IsObject()
   accessory: AccessoryEntity;
 }
+
+export class SuccessAccessoryResponse {
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  data: AccessoryEntity;
+}
+
+export class PaginatedAccessoriesClass {
+  @ApiProperty()
+  @IsObject()
+  accessories: AccessoryEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+}
+
+export class PaginatedAccessoriesResponse extends PaginatedAccessoriesClass {
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
+}
+
+export class ToggleAccessoryResponse {
+  @ApiProperty()
+  @IsBoolean()
+  ok: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  isActive: boolean;
+}

@@ -19,6 +19,9 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   AccessoryFilterDto,
   CreateAccessoryDto,
+  PaginatedAccessoriesResponse,
+  SuccessAccessoryResponse,
+  ToggleAccessoryResponse,
   UpdateAccessoryDto,
 } from '../utils/dto';
 import { CreateAccessoryResponse } from '../utils/dto';
@@ -57,7 +60,11 @@ export class AccessoryController {
 
   @Get('findAccessoryId/:accessoryId')
   @ApiOperation({ summary: 'find accessory by accessory id' })
-  @ApiResponse({ status: 200, description: 'accessory fetched successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'accessory fetched successfully',
+    type: SuccessAccessoryResponse,
+  })
   @HttpCode(HttpStatus.FOUND)
   async findAccessoryById(
     @Param('accessoryId') accessoryId: string,
@@ -73,7 +80,11 @@ export class AccessoryController {
 
   @Get('findAccessories')
   @ApiOperation({ summary: 'find accessories' })
-  @ApiResponse({ status: 200, description: 'accessories fetched succesfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'accessories fetched succesfully',
+    type: PaginatedAccessoriesResponse,
+  })
   @HttpCode(HttpStatus.OK)
   async findAccessories(
     @Body(ValidationPipe) accessoryFilter: AccessoryFilterDto,
@@ -84,7 +95,11 @@ export class AccessoryController {
 
   @Get('findAccessoriesByDealer')
   @ApiOperation({ summary: 'find accessories' })
-  @ApiResponse({ status: 200, description: 'accessories fetched successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'accessories fetched successfully',
+    type: PaginatedAccessoriesResponse,
+  })
   @HttpCode(HttpStatus.OK)
   async findAccessoriesByDealer(
     @GetDealerDecorator() dealer: DealerEntity,
@@ -98,7 +113,11 @@ export class AccessoryController {
 
   @Put('updateAccessory/:accessoryId')
   @ApiOperation({ summary: 'update accessory' })
-  @ApiResponse({ status: 200, description: 'accessory updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'accessory updated successfully',
+    type: SuccessAccessoryResponse,
+  })
   @HttpCode(HttpStatus.OK)
   async updateAccessory(
     @GetDealerDecorator() dealer: DealerEntity,
@@ -128,6 +147,7 @@ export class AccessoryController {
   @ApiResponse({
     status: 200,
     description: 'accessory status toggled successfully',
+    type: ToggleAccessoryResponse,
   })
   @HttpCode(HttpStatus.OK)
   async toggleAccessoryStatus(
