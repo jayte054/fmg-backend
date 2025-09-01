@@ -14,6 +14,7 @@ import { TokenModule } from '../tokenModule/token.module';
 import { MailerService } from '../notificationModule/notificationService/mailerService';
 import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { PaymentModule } from '../paymentModule/payment.module';
+import { AccessoryModule } from '../accessoryModule/accessory.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PaymentModule } from '../paymentModule/payment.module';
     TokenModule,
     AuditLogModule,
     PaymentModule,
+    AccessoryModule,
   ],
   controllers: [PurchaseController],
   providers: [

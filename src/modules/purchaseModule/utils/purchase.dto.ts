@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsNotEmpty,
   IsNumberString,
@@ -6,13 +7,19 @@ import {
   IsString,
 } from 'class-validator';
 import { CylinderType, PriceType, PurchaseType } from './purchase.type';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePurchaseDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   productId: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  accessoryIds?: string[];
 
   @ApiProperty()
   @IsNumberString()

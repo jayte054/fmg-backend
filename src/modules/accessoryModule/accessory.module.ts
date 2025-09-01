@@ -25,7 +25,7 @@ import { UserModule } from '../usersModule/user.module';
     },
   ],
   controllers: [AccessoryController],
-  exports: [],
+  exports: [AccessoryService],
 })
 export class AccessoryModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -30,6 +30,8 @@ export interface PurchaseResponse {
 
   productId: string;
 
+  accessories?: string[];
+
   deliveryFee: string;
 
   price: string;
@@ -66,6 +68,17 @@ export interface CreatePurchaseCredentials {
 
   purchaseType: PurchaseType;
 
+  address?: string;
+}
+
+export interface DebutOrderCredentials {
+  productId: string;
+  accessoryIds?: string[];
+  price: string;
+  deliveryFee: string;
+  cylinderType: CylinderType;
+  priceType: PriceType;
+  purchaseType: PurchaseType;
   address?: string;
 }
 

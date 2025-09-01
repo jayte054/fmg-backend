@@ -32,6 +32,7 @@ import {
   FindPurchaseByIdDto,
 } from '../utils/purchase.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DebutOrderCredentialsDto } from 'src/modules/paymentModule/utils/payment.dto';
 
 @ApiTags('Purchase')
 @UseGuards(JwtAuthGuard)
@@ -49,6 +50,22 @@ export class PurchaseController {
     @Body(ValidationPipe) createPurchaseCredentials: CreatePurchaseCredentials,
   ) {
     return await this.purchaseService.createPurchase(
+      buyer,
+      createPurchaseCredentials,
+      reference,
+    );
+  }
+
+  @Post('createDebutPurchaseOrder/:reference')
+  @ApiOperation({ summary: 'created new purchase' })
+  @ApiResponse({ status: 201, description: 'user created new purchase' })
+  @HttpCode(HttpStatus.CREATED)
+  async createdDebutPurchaseOrder(
+    @GetBuyerDecorator() buyer: BuyerEntity,
+    @Param('reference') reference: string,
+    @Body(ValidationPipe) createPurchaseCredentials: DebutOrderCredentialsDto,
+  ) {
+    return await this.purchaseService.createDebutOrderPurchase(
       buyer,
       createPurchaseCredentials,
       reference,

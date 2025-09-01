@@ -14,6 +14,7 @@ import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   CreatePurchaseCredentials,
   CylinderType,
+  // DebutOrderCredentials,
   FindPurchaseByIdInterface,
   NotificationDto,
   PriceType,
@@ -35,6 +36,8 @@ import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { MessagingService } from '../../notificationModule/notificationService/messaging.service';
 import { PaymentService } from '../../paymentModule/service/payment.service';
 import { PaymentVerification } from 'src/common/exceptions/exceptions';
+import { DebutOrderCredentialsDto } from 'src/modules/paymentModule/utils/payment.dto';
+import { AccessoryService } from 'src/modules/accessoryModule/accessoryService/accessory.service';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -50,6 +53,7 @@ export class PurchaseService {
     private readonly auditLogService: AuditLogService,
     private readonly messagingService: MessagingService,
     private readonly paymentService: PaymentService,
+    private readonly accessoryService: AccessoryService,
   ) {}
 
   createPurchase = async (
@@ -89,6 +93,7 @@ export class PurchaseService {
       }
       const product =
         await this.productService.findProductByPurchaseService(productId);
+
       if (!product) return;
 
       const { linkedDrivers } = product;
@@ -186,6 +191,175 @@ export class PurchaseService {
       }
     } catch (error) {
       console.log(error);
+      this.logger.error('failed to complete purchase by buyer', buyer.buyerId);
+      throw new InternalServerErrorException('failed to complete purchase');
+    }
+  };
+
+  createDebutOrderPurchase = async (
+    buyer: BuyerEntity,
+    debutOrderCredentials: DebutOrderCredentialsDto,
+    reference: string,
+  ) => {
+    const {
+      productId,
+      accessoryIds,
+      price,
+      deliveryFee,
+      cylinderType,
+      priceType,
+      purchaseType,
+      address,
+    } = debutOrderCredentials;
+
+    validatePurchaseTypes(purchaseType, cylinderType, priceType);
+
+    const { tokenId, token, expiresAt } = await this.tokenService.createToken(
+      TokenType.delivery_token,
+      buyer.buyerId,
+    );
+
+    try {
+      const { message } = await this.paymentService.verifyPayment(reference);
+
+      if (message !== 'payment verified successfully') {
+        this.logger.warn('payment verification unsuccessful');
+        throw new PaymentVerification('unverified payment', {
+          context: 'purchaseService',
+        });
+      }
+      const product =
+        await this.productService.findProductByPurchaseService(productId);
+
+      if (!product) {
+        this.logger.error(`product with id ${productId} not found`);
+        throw new NotFoundException('product not found');
+      }
+
+      const { data, message: mess } = await this.verifyAccessories(
+        accessoryIds,
+        buyer,
+      );
+
+      if (mess !== 'accessories verified successfully') {
+        this.logger.warn('accessory verification failed');
+        throw new NotFoundException('accessory verification failed');
+      } else {
+        this.auditLogService.log({
+          logCategory: LogCategory.PURCHASE,
+          description: 'accessory verification',
+          details: {
+            accessoryIds: JSON.stringify(
+              data.map((acc) => acc.data.accessoryId),
+            ),
+          },
+        });
+      }
+
+      const { linkedDrivers } = product;
+
+      const createPurchaseDto: CreatePurchaseDto = {
+        productId,
+        accessoryIds,
+        price:
+          priceType === PriceType.custom_price
+            ? price
+            : String(
+                product.pricePerKg *
+                  parseFloat(CylinderType[cylinderType].slice(0, -2)),
+              ),
+        deliveryFee,
+        priceType,
+        cylinder: CylinderType[cylinderType],
+        purchaseType,
+        buyerName: buyer.firstName + ' ' + buyer.lastName,
+        address: buyer.address || address,
+        location: buyer.location,
+        purchaseDate: new Date().toLocaleString(),
+        buyerId: buyer.buyerId,
+        metadata: {
+          driverId: linkedDrivers[0].driverId,
+          buyerId: buyer.buyerId,
+          purchaseTitle: `${buyer.firstName}/${cylinderType}/${purchaseType}`,
+          phoneNumber: buyer.phoneNumber,
+          driver_phoneNumber: linkedDrivers[0].driverPhoneNumber.toString(),
+          tokenId,
+          token,
+          token_expiration: expiresAt,
+        },
+      };
+
+      const purchase =
+        await this.purchaseRepository.createPurchase(createPurchaseDto);
+
+      await this.paymentService.updatePayment({
+        reference,
+        purchase,
+        email: buyer.email,
+      });
+
+      if (purchase) {
+        const notificationDto: NotificationDto = {
+          purchase,
+          buyer,
+          product,
+          linkedDrivers,
+          price,
+          purchaseType,
+          cylinderType,
+          dealerId: product.dealerId,
+        };
+
+        await this.tokenService.updateToken(tokenId, purchase.purchaseId);
+
+        const tokenNotificationInterface = {
+          token,
+          email: buyer.email,
+          expiration: expiresAt,
+          purchaseTitle: purchase?.metadata?.purchaseTitle,
+        };
+
+        const sendDriverNotificationResponse =
+          await this.sendProduct(notificationDto);
+
+        const sendUserNotification = await this.sendUser(notificationDto);
+
+        await this.mailerService.sendDeliveryMail(tokenNotificationInterface);
+        await this.messagingService.sendTokenMessage(
+          buyer.phoneNumber,
+          `please provide this delivery token ${token} to the driver to confirm delivery`,
+          sendUserNotification.notificationId,
+        );
+
+        this.logger.verbose(`purchase by ${buyer.buyerId} posted successfully`);
+        const purchaseResponse = this.mapPurchaseResponse(purchase);
+
+        await this.auditLogService.log({
+          logCategory: LogCategory.PURCHASE,
+          description: 'post purchase',
+          email: buyer.email,
+          details: {
+            productId,
+            accessoryIds: JSON.stringify(accessoryIds),
+            purchaseType,
+            priceType,
+          },
+        });
+
+        return {
+          driverNotificationResponse: sendDriverNotificationResponse,
+          userNotificationResponse: sendUserNotification,
+          purchaseResponse,
+        };
+      }
+    } catch (error) {
+      console.log(error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof PaymentVerification
+      ) {
+        throw error;
+      }
       this.logger.error('failed to complete purchase by buyer', buyer.buyerId);
       throw new InternalServerErrorException('failed to complete purchase');
     }
@@ -691,6 +865,11 @@ export class PurchaseService {
             customer PhoneNumber: ${buyer.phoneNumber},
             customer address: ${buyer.address},
             customer location: ${buyer.location},
+            ${
+              purchase.accessories.length > 0
+                ? `accessories: ${purchase.accessories.length}`
+                : ''
+            },
             purchase type: ${purchaseType},
             cylinder type: ${cylinderType},
             price: ${price}`,
@@ -717,4 +896,24 @@ export class PurchaseService {
       },
     };
   };
+
+  private async verifyAccessories(accessoryIds: string[], buyer: BuyerEntity) {
+    const accessories = await Promise.all(
+      accessoryIds.map(async (accessory) => {
+        const response = await this.accessoryService.findAccessoryById(
+          accessory,
+          buyer,
+        );
+        if (!response) {
+          this.logger.error(`accessory with id ${accessory} not found`);
+          throw new NotFoundException(`accessory ${accessory} not found`);
+        }
+        return response;
+      }),
+    );
+    return {
+      data: accessories,
+      message: 'accessories verified successfully',
+    };
+  }
 }

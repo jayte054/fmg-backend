@@ -17,6 +17,9 @@ export class PurchaseEntity extends BaseEntity {
   @Column()
   productId: string;
 
+  @Column('uuid', { array: true, nullable: true })
+  accessoryIds: string[];
+
   @Column()
   price: string;
 

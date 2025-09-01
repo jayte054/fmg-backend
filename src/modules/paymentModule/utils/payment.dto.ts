@@ -1,11 +1,18 @@
 import {
+  IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PurchaseResponse } from '../../purchaseModule/utils/purchase.type';
+import {
+  CylinderType,
+  PriceType,
+  PurchaseResponse,
+  PurchaseType,
+} from '../../purchaseModule/utils/purchase.type';
 import {
   ApiProperty,
   ApiPropertyOptional,
@@ -79,4 +86,47 @@ export class WithdrawalDto {
   @IsNumber()
   @IsNotEmpty()
   amount: number;
+}
+
+export class DebutOrderCredentialsDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  productId: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  accessoryIds?: string[];
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  price: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  deliveryFee: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEnum({ type: CylinderType })
+  cylinderType: CylinderType;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEnum({ type: PriceType })
+  priceType: PriceType;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEnum({ type: PurchaseType })
+  purchaseType: PurchaseType;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  address?: string;
 }
