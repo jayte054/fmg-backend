@@ -3,8 +3,8 @@ import { CylinderType, PriceType, PurchaseType } from './purchase.type';
 
 export const validatePurchaseTypes = (
   purchaseType: string,
-  cylinderType: string,
   priceType: string,
+  cylinderType?: string,
 ) => {
   const enumValidationMap = [
     { value: purchaseType, enum: PurchaseType, name: 'purchaseType' },

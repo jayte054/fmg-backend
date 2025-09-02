@@ -18,7 +18,6 @@ import { PurchaseService } from '../purchaseService/purchase.service';
 import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
-  CreatePurchaseCredentials,
   FindPurchaseByIdInterface,
   UpdatePurchaseCredentials,
 } from '../utils/purchase.type';
@@ -28,8 +27,15 @@ import { DriverEntity } from '../../usersModule/userEntity/driver.entity';
 import { GetDealerDecorator } from '../../../common/decorators/getDealerDecorator';
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import {
+  CreatePurchaseCredentialsDto,
+  CreatePurchaseDto,
   DeliveryPurchaseDto,
   FindPurchaseByIdDto,
+  FindPurchasesResponseDto,
+  GenericResponse,
+  PaginatedPurchaseResponseDto,
+  PurchaseResponseDto,
+  StandardPurchaseResponseDto,
 } from '../utils/purchase.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DebutOrderCredentialsDto } from 'src/modules/paymentModule/utils/payment.dto';
@@ -42,12 +48,17 @@ export class PurchaseController {
 
   @Post('createPurchase/:reference')
   @ApiOperation({ summary: 'created new purchase' })
-  @ApiResponse({ status: 201, description: 'user created new purchase' })
+  @ApiResponse({
+    status: 201,
+    description: 'user created new purchase',
+    type: StandardPurchaseResponseDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   async createPurchase(
     @GetBuyerDecorator() buyer: BuyerEntity,
     @Param('reference') reference: string,
-    @Body(ValidationPipe) createPurchaseCredentials: CreatePurchaseCredentials,
+    @Body(ValidationPipe)
+    createPurchaseCredentials: CreatePurchaseCredentialsDto,
   ) {
     return await this.purchaseService.createPurchase(
       buyer,
@@ -58,7 +69,11 @@ export class PurchaseController {
 
   @Post('createDebutPurchaseOrder/:reference')
   @ApiOperation({ summary: 'created new purchase' })
-  @ApiResponse({ status: 201, description: 'user created new purchase' })
+  @ApiResponse({
+    status: 201,
+    description: 'user created new purchase',
+    type: StandardPurchaseResponseDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   async createdDebutPurchaseOrder(
     @GetBuyerDecorator() buyer: BuyerEntity,
@@ -72,9 +87,33 @@ export class PurchaseController {
     );
   }
 
+  @Post('createAccessoryPurchase/:reference')
+  @ApiOperation({ summary: 'created new accessory purchase' })
+  @ApiResponse({
+    status: 201,
+    description: 'accessory purchase successful',
+    type: StandardPurchaseResponseDto,
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createAccessoryPurchase(
+    @GetBuyerDecorator() buyer: BuyerEntity,
+    @Param('reference') reference: string,
+    @Body(ValidationPipe) purchaseDto: CreatePurchaseDto,
+  ) {
+    return await this.purchaseService.createAccessoryPurchase(
+      buyer,
+      purchaseDto,
+      reference,
+    );
+  }
+
   @Get('findPurchaseById/:purchaseId')
   @ApiOperation({ summary: 'fetched purchase' })
-  @ApiResponse({ status: 200, description: 'user fetched purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'user fetched purchase',
+    type: PurchaseResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   async findPurchaseById(
     @Param('purchaseId') purchaseId: string,
@@ -87,7 +126,11 @@ export class PurchaseController {
 
   @Get('findPurchases')
   @ApiOperation({ summary: 'fetched new purchases' })
-  @ApiResponse({ status: 200, description: 'user fetched new purchases' })
+  @ApiResponse({
+    status: 200,
+    description: 'user fetched new purchases',
+    type: FindPurchasesResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   async findPurchases(
     @Query('page') page: number,
@@ -101,6 +144,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user of type buyer fetched purchases',
+    type: PaginatedPurchaseResponseDto,
   })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByBuyerId(
@@ -119,6 +163,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user of type driver fetched purchases',
+    type: PaginatedPurchaseResponseDto,
   })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByDriverId(
@@ -137,6 +182,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user of type dealer fetched purchases',
+    type: PaginatedPurchaseResponseDto,
   })
   @HttpCode(HttpStatus.OK)
   async findPurchaseByProductId(
@@ -157,6 +203,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user updated purchase',
+    type: PurchaseResponseDto,
   })
   @HttpCode(HttpStatus.OK)
   async updatePurchase(
@@ -176,6 +223,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user of type driver delivered purchase',
+    type: GenericResponse,
   })
   @HttpCode(HttpStatus.OK)
   async deliverPurchase(
@@ -197,6 +245,7 @@ export class PurchaseController {
   @ApiResponse({
     status: 200,
     description: 'user deleted purchase',
+    type: String,
   })
   @HttpCode(HttpStatus.OK)
   async deletePurchase(

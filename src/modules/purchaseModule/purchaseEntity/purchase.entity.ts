@@ -23,14 +23,14 @@ export class PurchaseEntity extends BaseEntity {
   @Column()
   price: string;
 
-  @Column()
+  @Column({ nullable: true })
   deliveryFee?: string;
 
   @Column({ type: 'enum', enum: PriceType })
   priceType: PriceType;
 
-  @Column({ type: 'enum', enum: CylinderType })
-  cylinder: CylinderType;
+  @Column({ type: 'enum', enum: CylinderType, nullable: true })
+  cylinder?: CylinderType;
 
   @Column({ type: 'enum', enum: PurchaseType })
   purchaseType: PurchaseType;
@@ -42,7 +42,7 @@ export class PurchaseEntity extends BaseEntity {
   address: string;
 
   @Column({ nullable: true, type: 'jsonb' })
-  location: { latitude: number; longitude: number };
+  location?: { latitude: number; longitude: number };
 
   @Column()
   purchaseDate: string;

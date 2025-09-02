@@ -9,6 +9,7 @@ export enum PurchaseType {
   cylinder_swap_order = 'cylinder swap order', //customer swaps cylinder with vendor
   gas_swap_order = 'gas swap order', // swaps cylinder with customer while fulfilling the value of the purchase
   commission_order = 'commission order', // customer's cylinder is picked up filled and returned
+  accessory = 'accessory',
 }
 
 export enum PriceType {
@@ -101,7 +102,7 @@ export interface NotificationDto {
   buyer: BuyerEntity;
   price: string;
   purchaseType: string;
-  cylinderType: string;
+  cylinderType?: string;
   priceType?: string;
   address?: string;
   linkedDrivers: DriverDetails[];
@@ -130,4 +131,10 @@ export interface FindPurchaseByIdInterface {
   driverId?: string;
   page: string;
   limit: string;
+}
+
+export interface StandardPurchaseResponse {
+  purchaseResponse: PurchaseResponse;
+  driverNotificationResponse: UserNotificationResponse;
+  userNotificationResponse: UserNotificationResponse;
 }
