@@ -1,0 +1,20 @@
+import { OrderTemplateEntity } from '../orderTemplateEntity/orderTemplate.entity';
+import {
+  OrderTemplateCredentials,
+  PaginatedTemplateResponse,
+  TemplateFilter,
+} from '../orderTemplateRepository/utils/types';
+
+export interface IOrderInterfaceRepository {
+  createOrderTemplate(
+    orderTemplateCredentials: OrderTemplateCredentials,
+  ): Promise<OrderTemplateEntity>;
+  getOrderTemplate(templateId: string): Promise<OrderTemplateEntity>;
+  getOrderTemplates(
+    templateFilter: TemplateFilter,
+  ): Promise<PaginatedTemplateResponse>;
+  updateOrderTemplate(
+    updateInput: Partial<OrderTemplateEntity>,
+  ): Promise<OrderTemplateEntity | string>;
+  deleteTemplate(templateId: string): Promise<string>;
+}

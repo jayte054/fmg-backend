@@ -1,3 +1,4 @@
+import { OrderTemplateEntity } from 'src/modules/orderTemplateModule/orderTemplateEntity/orderTemplate.entity';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { PurchaseEntity } from '../../purchaseModule/purchaseEntity/purchase.entity';
 import {
@@ -49,6 +50,11 @@ export class BuyerEntity extends BaseEntity {
     eager: true,
   })
   purchases: PurchaseEntity[];
+
+  @OneToMany(() => OrderTemplateEntity, (templates) => templates.buyer, {
+    eager: true,
+  })
+  templates: OrderTemplateEntity;
 
   @Column('uuid')
   userId: string;

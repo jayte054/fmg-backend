@@ -17,6 +17,7 @@ import { DataSourceOptions } from 'typeorm';
 import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 import { AccessoryEntity } from 'src/modules/accessoryModule/accessoryEntity/accessoryEntity';
 import { AccessoryDealerEntity } from 'src/modules/usersModule/userEntity/accessoryDealer.entity';
+import { OrderTemplateEntity } from 'src/modules/orderTemplateModule/orderTemplateEntity/orderTemplate.entity';
 
 const dbConfig: any = config.get('db');
 export const typeOrmConfig: DataSourceOptions = {
@@ -44,6 +45,7 @@ export const typeOrmConfig: DataSourceOptions = {
     AdminEntity,
     AccessoryEntity,
     AccessoryDealerEntity,
+    OrderTemplateEntity,
   ],
   // synchronize: process.env.TypeORM_SYNC || dbConfig.synchronize,
   synchronize: false,

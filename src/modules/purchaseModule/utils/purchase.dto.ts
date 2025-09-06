@@ -316,5 +316,5 @@ export class PaginatedPurchaseResponseDto {
 export class GenericResponse {
   @ApiProperty()
   @IsBoolean()
-  Ok: boolean
+  Ok: boolean;
 }
