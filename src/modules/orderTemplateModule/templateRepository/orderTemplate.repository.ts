@@ -21,10 +21,21 @@ export class OrderTemplateRepository extends Repository<OrderTemplateEntity> {
     return template;
   };
 
-  getOrderTemplate = async (templateId: string) => {
+  getOrderTemplate = async (
+    buyerId: string,
+    templateId?: string,
+    title?: string,
+  ) => {
     const query = this.createQueryBuilder('template');
-    query.where('template.templateId = :templateId', { templateId });
-    return query;
+
+    query.where('template.buyerId = :buyerId', { buyerId });
+
+    if (templateId)
+      query.andWhere('template.templateId = :templateId', { templateId });
+
+    if (title) query.andWhere('template.title = :title', { title });
+
+    return query.getOne();
   };
 
   getOrderTemplates = async (templateFilter: TemplateFilter) => {

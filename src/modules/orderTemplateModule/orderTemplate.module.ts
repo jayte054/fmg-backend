@@ -4,9 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderTemplateService } from './orderTemplateService/orderTemplate.service';
 import { OrderTemplateRepository } from './templateRepository/orderTemplate.repository';
 import { UserModule } from '../usersModule/user.module';
+import { AuditLogModule } from '../auditLogModule/auditLog.module';
 
 @Module({
-  imports: [UserModule, TypeOrmModule.forFeature([OrderTemplateEntity])],
+  imports: [
+    AuditLogModule,
+    UserModule,
+    TypeOrmModule.forFeature([OrderTemplateEntity]),
+  ],
   providers: [
     OrderTemplateService,
     {

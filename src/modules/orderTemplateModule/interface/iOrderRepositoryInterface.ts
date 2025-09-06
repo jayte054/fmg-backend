@@ -9,7 +9,11 @@ export interface IOrderInterfaceRepository {
   createOrderTemplate(
     orderTemplateCredentials: OrderTemplateCredentials,
   ): Promise<OrderTemplateEntity>;
-  getOrderTemplate(templateId: string): Promise<OrderTemplateEntity>;
+  getOrderTemplate(
+    buyerId: string,
+    templateId?: string,
+    title?: string,
+  ): Promise<OrderTemplateEntity>;
   getOrderTemplates(
     templateFilter: TemplateFilter,
   ): Promise<PaginatedTemplateResponse>;

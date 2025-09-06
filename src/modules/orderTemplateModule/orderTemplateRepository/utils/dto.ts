@@ -39,17 +39,6 @@ export class OrderTemplateDto {
   @ApiProperty()
   @IsEnum({ type: 'enum', enum: PurchaseType })
   purchaseType: PurchaseType;
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  buyerName: string;
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  address: string;
-  @ApiPropertyOptional()
-  @IsOptional()
-  location?: { latitude: number; longitude: number };
 }
 
 export class TemplateFilterDto {

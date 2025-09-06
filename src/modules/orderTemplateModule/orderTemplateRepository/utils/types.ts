@@ -14,7 +14,8 @@ export interface OrderTemplateCredentials {
   purchaseType: PurchaseType;
   buyerName: string;
   address: string;
-  locations: JSON;
+  createdAt: Date;
+  location: { latitude: number; longitude: number };
   metadata: Record<string, unknown>;
   buyerId: string;
 }
