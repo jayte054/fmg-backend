@@ -27,6 +27,7 @@ import { AdminModule } from './modules/adminModule/admin.module';
 import { GlobalExceptionFilter } from './common/exceptions/exceptions.filter';
 import { AccessoryModule } from './modules/accessoryModule/accessory.module';
 import { AccessoryController } from './modules/accessoryModule/accessoryController/accessory.controller';
+import { OrderTemplateController } from './modules/orderTemplateModule/orderController/orderTemplate.controller';
 
 @Module({
   imports: [
@@ -60,12 +61,18 @@ export class AppModule implements NestModule {
         PaymentController,
         AdminController,
         AccessoryController,
+        OrderTemplateController,
       );
 
     consumer.apply(DealerRepositoryMiddleware).forRoutes(ProductController);
 
     consumer
       .apply(BuyerRepositoryMiddleware, DriverRepositoryMiddleware)
-      .forRoutes(PurchaseController, TokenController, PaymentController);
+      .forRoutes(
+        PurchaseController,
+        TokenController,
+        PaymentController,
+        OrderTemplateController,
+      );
   }
 }
