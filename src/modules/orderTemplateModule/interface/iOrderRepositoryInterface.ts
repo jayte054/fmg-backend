@@ -18,6 +18,7 @@ export interface IOrderInterfaceRepository {
     templateFilter: TemplateFilter,
   ): Promise<PaginatedTemplateResponse>;
   updateOrderTemplate(
+    templateId: string,
     updateInput: Partial<OrderTemplateEntity>,
   ): Promise<OrderTemplateEntity | string>;
   deleteTemplate(templateId: string): Promise<string>;

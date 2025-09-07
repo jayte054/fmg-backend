@@ -118,3 +118,24 @@ export class PaginatedTemplateResponseDto {
   @IsNumber()
   perPage: number;
 }
+
+export class FindOrderTemplateDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  templateId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  title?: string;
+}
+
+export class UpdateInputDto {
+  priceType: PriceType;
+  cylinderType: CylinderType;
+  purchaseType: PurchaseType;
+  address: string;
+  location: { latitude: number; longitude: number };
+  metadata: Record<string, unknown>;
+}
