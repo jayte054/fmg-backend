@@ -28,9 +28,11 @@ import { GlobalExceptionFilter } from './common/exceptions/exceptions.filter';
 import { AccessoryModule } from './modules/accessoryModule/accessory.module';
 import { AccessoryController } from './modules/accessoryModule/accessoryController/accessory.controller';
 import { OrderTemplateController } from './modules/orderTemplateModule/orderController/orderTemplate.controller';
+import { OrderTemplateModule } from './modules/orderTemplateModule/orderTemplate.module';
 
 @Module({
   imports: [
+    OrderTemplateModule,
     AccessoryModule,
     AdminModule,
     MigrationModule,

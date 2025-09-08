@@ -1,11 +1,11 @@
-import { Optional } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
-  IsNumberString,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -44,7 +44,7 @@ export class OrderTemplateDto {
 export class TemplateFilterDto {
   @ApiPropertyOptional()
   @IsString()
-  @Optional()
+  @IsOptional()
   productId?: string;
   @ApiPropertyOptional()
   @IsString()
@@ -59,11 +59,13 @@ export class TemplateFilterDto {
   @IsOptional()
   createdAt: string;
   @ApiPropertyOptional()
-  @IsNumberString()
+  @IsInt()
+  @Type(() => Number)
   @IsOptional()
   skip?: number;
   @ApiPropertyOptional()
-  @IsNumberString()
+  @IsInt()
+  @Type(() => Number)
   @IsOptional()
   take?: number;
 }
@@ -132,10 +134,31 @@ export class FindOrderTemplateDto {
 }
 
 export class UpdateInputDto {
+  @ApiProperty()
+  @IsEnum({ type: 'enum', enum: PriceType })
   priceType: PriceType;
+  @ApiProperty()
+  @IsEnum({ type: 'enum', enum: CylinderType })
   cylinderType: CylinderType;
+  @ApiProperty()
+  @IsEnum({ type: 'enum', enum: PurchaseType })
   purchaseType: PurchaseType;
+  @ApiProperty()
+  @IsString()
   address: string;
+  @ApiProperty()
   location: { latitude: number; longitude: number };
+  @ApiProperty()
   metadata: Record<string, unknown>;
+}
+
+export class SuccessfulResponse<T> {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: T;
 }
