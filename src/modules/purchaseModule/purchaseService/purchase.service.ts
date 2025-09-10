@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -827,6 +828,45 @@ export class PurchaseService {
     }
   };
 
+  pickupPurchase = async (driverId: string, purchaseId) => {
+    const purchase = await this.purchaseRepository.findPurchaseById(purchaseId);
+    const metadata = { ...purchase.metadata };
+
+    metadata.pickedUp = new Date().toLocaleString();
+
+    const pickedUpPurchase = await this.purchaseRepository.updatePurchase(
+      purchaseId,
+      {
+        metadata,
+      },
+    );
+
+    if (pickedUpPurchase) {
+      await this.auditLogService.log({
+        logCategory: LogCategory.PURCHASE,
+        description: 'deliver purchases',
+        details: {
+          purchaseId,
+          driverId,
+        },
+      });
+      this.logger.log(`purchase ${purchaseId} successfully picked up`);
+      return { Ok: true };
+    } else {
+      this.auditLogService.error({
+        logCategory: LogCategory.PURCHASE,
+        description: 'deliver purchases',
+        details: {
+          purchaseId,
+          driverId,
+        },
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+      this.logger.error(`failed to pickup purchase ${purchaseId}`);
+      return { Ok: false };
+    }
+  };
+
   deliverPurchase = async (
     driverId: string,
     purchaseId: string,
@@ -842,7 +882,7 @@ export class PurchaseService {
     );
 
     const metadata = { ...purchase.metadata };
-    metadata.delivery = String(Object.values(delivery));
+    metadata.delivery = delivery.toString();
     metadata.deliveryDate = new Date().toLocaleDateString();
 
     const deliverPurchase = await this.purchaseRepository.updatePurchase(
@@ -859,7 +899,7 @@ export class PurchaseService {
         details: {
           purchaseId,
           driverId,
-          delivery: Object.values(delivery).toString(),
+          delivery: delivery.toString(),
         },
       });
       return { Ok: true };

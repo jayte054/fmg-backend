@@ -10,12 +10,15 @@ import { v4 as uuidV4 } from 'uuid';
 import { IDealerRepository } from '../interface/user.interface';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import {
-  DealerCredentials,
   DealerResObj,
   DealerResponse,
   UpdateCredentials,
 } from '../utils/user.types';
-import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
+import {
+  CreateDealerDto,
+  DealerCredentialsDto,
+  UpdateDealerDto,
+} from '../utils/user.dto';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
@@ -34,7 +37,7 @@ export class DealerService {
 
   createDealer = async (
     user: AuthEntity,
-    dealerCredentials: DealerCredentials,
+    dealerCredentials: DealerCredentialsDto,
   ): Promise<DealerResponse> => {
     const {
       name,

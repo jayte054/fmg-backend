@@ -10,8 +10,8 @@ import {
 import { TokenService } from '../tokenService/token.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
-import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
-import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
+import { GetDriverDecorator } from 'src/common/decorators/getDriverDecorator';
+import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
 
 @ApiTags('resend_token')
 @UseGuards(JwtAuthGuard)
@@ -28,7 +28,7 @@ export class TokenController {
   @HttpCode(HttpStatus.OK)
   async resendToken(
     @Param('purchaseId') purchaseId: string,
-    @GetBuyerDecorator() { email }: BuyerEntity,
+    @GetDriverDecorator() { email }: DriverEntity,
     @Body() purchaseTitle: string,
   ) {
     return this.tokenService.resendToken({

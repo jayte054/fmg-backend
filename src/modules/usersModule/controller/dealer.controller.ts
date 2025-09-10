@@ -15,9 +15,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { DealerService } from '../service/dealer.service';
-import { DealerCredentials, UpdateCredentials } from '../utils/user.types';
+import { UpdateCredentials } from '../utils/user.types';
 import { Request } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DealerCredentialsDto } from '../utils/user.dto';
 
 @ApiTags('dealer')
 @UseGuards(JwtAuthGuard)
@@ -30,7 +31,7 @@ export class DealerController {
   @ApiResponse({ status: 201, description: 'dealer created successfully' })
   @HttpCode(HttpStatus.CREATED)
   async createDealer(
-    @Body(ValidationPipe) dealerCredentials: DealerCredentials,
+    @Body(ValidationPipe) dealerCredentials: DealerCredentialsDto,
     @Req() req: Request,
   ) {
     const { user }: any = req;

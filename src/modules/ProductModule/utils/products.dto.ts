@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsJSON,
   IsNotEmpty,
@@ -10,6 +11,7 @@ import {
 import { RetailScale } from '../../usersModule/utils/user.types';
 import { DriverDetails, Reviewers } from './products.type';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -81,4 +83,19 @@ export class UpdateProductDto {
   reviews?: Reviewers[];
   purchases?: number;
   dealerId?: string;
+}
+
+export class CreateProductCredentialsDto {
+  @ApiProperty()
+  @IsNumber()
+  pricePerKg: number;
+  @ApiProperty()
+  @IsBoolean()
+  supportsDebutOrder: boolean;
+  @ApiProperty()
+  @IsBoolean()
+  supportsSwapOrder: boolean;
+  @ApiProperty()
+  @IsBoolean()
+  supportsCommissionOrder: boolean;
 }

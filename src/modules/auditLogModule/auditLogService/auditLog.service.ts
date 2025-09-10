@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { IAuditLogRepository } from '../interface/IAuditLogInterface';
 import {
@@ -69,6 +70,25 @@ export class AuditLogService {
     } catch (error) {
       this.logger.error('failed to log activity', { logCategory, email });
       throw new InternalServerErrorException('failed to log activity');
+    }
+  };
+
+  findLog = async (logId: string) => {
+    try {
+      const log = await this.auditLogRepository.findLog(logId);
+
+      if (!log) {
+        this.logger.error('failed to fetch log');
+        throw new NotFoundException(`audit log with logId ${logId} not found`);
+      }
+
+      this.logger.log(`audit log with logId ${logId} fetched successfully`);
+    } catch (error) {
+      this.logger.error('failed to find log');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('failed to find log');
     }
   };
 }

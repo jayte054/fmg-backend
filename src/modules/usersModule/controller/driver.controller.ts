@@ -19,10 +19,8 @@ import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { DriverService } from '../service/driver.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
-import {
-  CreateDriverCredentials,
-  UpdateDriverCredentials,
-} from '../utils/user.types';
+import { UpdateDriverCredentials } from '../utils/user.types';
+import { CreateDriverCredentialsDto } from '../utils/user.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('driver')
@@ -35,7 +33,7 @@ export class DriverController {
   async createDriver(
     @Req() req: Request,
     @UploadedFiles() files: Express.Multer.File[],
-    @Body(ValidationPipe) driverCredentials: CreateDriverCredentials,
+    @Body(ValidationPipe) driverCredentials: CreateDriverCredentialsDto,
   ) {
     const { user }: any = req;
     return await this.driverService.createDriver(

@@ -1,11 +1,17 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Length,
+  ValidateNested,
+} from 'class-validator';
 import { RetailScale, VehicleType } from './user.types';
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateBuyerDto {
-  // @IsString()
-  // @IsNotEmpty()
-  // buyerId: string;
-
   @IsString()
   @IsNotEmpty()
   firstName: string;
@@ -295,4 +301,131 @@ export class CreateAccDealerDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+}
+
+export class BuyerCredentialsDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+  @ApiProperty()
+  location: { latitude: number; longitude: number };
+}
+
+export class LocationDto {
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  longitude: number;
+}
+
+export class DealerCredentialsDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+  @ApiProperty({ type: LocationDto })
+  @ValidateNested()
+  @Type(() => LocationDto)
+  @IsNotEmpty()
+  location: LocationDto;
+  @ApiProperty()
+  @IsEnum(RetailScale)
+  @IsNotEmpty()
+  scale: RetailScale;
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  rating: number;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  bankName: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  bankCode: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  accountNumber: string;
+}
+
+export class CreateDriverCredentialsDto {
+  @ApiProperty({ example: 'John', description: 'Driver first name' })
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty({ example: 'Doe', description: 'Driver last name' })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty({
+    example: '123 Main Street, Lagos',
+    description: 'Driver address',
+  })
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @ApiProperty({ enum: VehicleType, description: 'Type of vehicle' })
+  @IsEnum(VehicleType)
+  vehicle: VehicleType;
+
+  @ApiProperty({ example: 'ABC-123-XYZ', description: 'Vehicle plate number' })
+  @IsString()
+  @IsNotEmpty()
+  vehicleNumber: string;
+
+  @ApiProperty({
+    example: 'DLN1234567890',
+    description: 'Driver license number',
+  })
+  @IsString()
+  @Length(8, 20)
+  @IsNotEmpty()
+  driversLicenseNumber: string;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Driver license file upload',
+  })
+  driversLicense: Express.Multer.File;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Additional file (e.g., ID card, utility bill)',
+  })
+  file: Express.Multer.File;
 }

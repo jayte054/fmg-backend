@@ -29,6 +29,7 @@ import { AccessoryModule } from './modules/accessoryModule/accessory.module';
 import { AccessoryController } from './modules/accessoryModule/accessoryController/accessory.controller';
 import { OrderTemplateController } from './modules/orderTemplateModule/orderController/orderTemplate.controller';
 import { OrderTemplateModule } from './modules/orderTemplateModule/orderTemplate.module';
+import { AdminRepositoryMiddleware } from './common/middleware/admin.repository.middleware';
 
 @Module({
   imports: [
@@ -76,5 +77,7 @@ export class AppModule implements NestModule {
         PaymentController,
         OrderTemplateController,
       );
+
+    consumer.apply(AdminRepositoryMiddleware).forRoutes(AdminController);
   }
 }

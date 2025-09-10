@@ -218,6 +218,21 @@ export class PurchaseController {
     );
   }
 
+  @Put('/pickupPurchase/:purchaseId')
+  @ApiOperation({ summary: 'driver picked up purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'user of type driver picked up purchase',
+    type: GenericResponse,
+  })
+  @HttpCode(HttpStatus.OK)
+  async pickUpPurchase(
+    @Param('purchaseId') purchaseId: string,
+    @GetDriverDecorator() { driverId }: DriverEntity,
+  ) {
+    return await this.purchaseService.pickupPurchase(driverId, purchaseId);
+  }
+
   @Put('/deliverPurchase/:purchaseId')
   @ApiOperation({ summary: 'driver delivered purchase' })
   @ApiResponse({

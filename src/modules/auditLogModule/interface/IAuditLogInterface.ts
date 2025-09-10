@@ -7,4 +7,5 @@ import {
 export interface IAuditLogRepository {
   createLog(logDetails: Partial<AuditLogEntity>): Promise<AuditLogEntity>;
   findLogs(logFilter: LogFilterInterface): Promise<PaginatedLogResponse>;
+  findLog(logId: string): Promise<AuditLogEntity>;
 }

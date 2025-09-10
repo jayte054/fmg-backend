@@ -9,12 +9,15 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { IDriverRepository } from '../interface/user.interface';
 import {
-  CreateDriverCredentials,
   driverResObj,
   DriverResponse,
   UpdateDriverCredentials,
 } from '../utils/user.types';
-import { CreateDriverDto, UpdateDriverDto } from '../utils/user.dto';
+import {
+  CreateDriverCredentialsDto,
+  CreateDriverDto,
+  UpdateDriverDto,
+} from '../utils/user.dto';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { CloudinaryService } from '../../cloudinaryModule/cloudinaryService/cloudinary.service';
 import axios from 'axios';
@@ -39,7 +42,7 @@ export class DriverService {
 
   createDriver = async (
     user: AuthEntity,
-    driverCredentials: CreateDriverCredentials,
+    driverCredentials: CreateDriverCredentialsDto,
     files: Express.Multer.File[],
   ): Promise<DriverResponse> => {
     const {

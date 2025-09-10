@@ -8,12 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { IBuyerRepository } from '../interface/user.interface';
+import { buyerResObj, BuyerResponse } from '../utils/user.types';
 import {
-  BuyerCredentials,
-  buyerResObj,
-  BuyerResponse,
-} from '../utils/user.types';
-import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
+  BuyerCredentialsDto,
+  CreateBuyerDto,
+  UpdateBuyerDto,
+} from '../utils/user.dto';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { DuplicateException } from '../../../common/exceptions/exceptions';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
@@ -30,7 +30,7 @@ export class BuyerService {
   ) {}
 
   createBuyer = async (
-    buyerCredentials: BuyerCredentials,
+    buyerCredentials: BuyerCredentialsDto,
     user: AuthEntity,
   ): Promise<BuyerResponse> => {
     const { firstName, lastName, address, location } = buyerCredentials;

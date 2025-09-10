@@ -14,11 +14,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { BuyerService } from '../service/buyer.service';
-import { BuyerCredentials } from '../utils/user.types';
 import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { Request } from 'express';
 import { DuplicateException } from '../../../common/exceptions/exceptions';
-import { UpdateBuyerDto } from '../utils/user.dto';
+import { BuyerCredentialsDto, UpdateBuyerDto } from '../utils/user.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('user')
@@ -28,7 +27,7 @@ export class BuyerController {
   @Post('/buyer')
   @HttpCode(HttpStatus.CREATED)
   async createBuyer(
-    @Body(ValidationPipe) buyerCredentials: BuyerCredentials,
+    @Body(ValidationPipe) buyerCredentials: BuyerCredentialsDto,
     @Req() req: Request,
   ) {
     const user: any = req.user;

@@ -56,4 +56,12 @@ export class AuditLogRepository extends Repository<AuditLogEntity> {
 
     return paginatedLog({ logs, total, skip, take });
   };
+
+  findLog = async (logId: string) => {
+    const query = this.createQueryBuilder('log');
+
+    query.where('log.logId = :logId', { logId });
+
+    return query.getOne();
+  };
 }

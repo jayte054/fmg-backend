@@ -17,13 +17,13 @@ import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { ProductService } from '../productService/product.service';
 import {
   AddDriverCredential,
-  CreateProductCredentials,
   UpdateProductCredentials,
 } from '../utils/products.type';
 import { GetDealerDecorator } from '../../../common/decorators/getDealerDecorator';
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateProductCredentialsDto } from '../utils/products.dto';
 
 @ApiTags('Product')
 @UseGuards(JwtAuthGuard)
@@ -36,7 +36,7 @@ export class ProductController {
   @ApiResponse({ status: 201, description: 'user created a new product' })
   @HttpCode(HttpStatus.CREATED)
   async createProduct(
-    @Body(ValidationPipe) createProductCredentials: CreateProductCredentials,
+    @Body(ValidationPipe) createProductCredentials: CreateProductCredentialsDto,
     @GetDealerDecorator() dealer: DealerEntity,
   ) {
     return await this.productService.createProduct(
