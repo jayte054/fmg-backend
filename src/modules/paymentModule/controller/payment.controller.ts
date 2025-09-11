@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
   UseGuards,
@@ -14,6 +16,7 @@ import { PaymentService } from '../service/payment.service';
 import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator';
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
+  BuyerPaymentResponseDto,
   InitializePaymentDto,
   UpdateBankDetailDto,
   WithdrawalDto,
@@ -83,5 +86,20 @@ export class PaymentController {
       updateBankDetailDto.accountName,
       driver,
     );
+  }
+
+  @Get('findPayment/:paymentId')
+  @ApiOperation({ summary: 'find payment' })
+  @ApiResponse({
+    status: 201,
+    description: 'find payment',
+    type: BuyerPaymentResponseDto,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async findPayment(
+    @GetBuyerDecorator() buyer: BuyerEntity,
+    @Param('paymentId') paymentId: string,
+  ) {
+    return await this.paymentService.findPayment(buyer, paymentId);
   }
 }

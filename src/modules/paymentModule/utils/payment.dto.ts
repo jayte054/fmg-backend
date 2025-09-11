@@ -18,6 +18,7 @@ import {
   ApiPropertyOptional,
   // ApiPropertyOptional
 } from '@nestjs/swagger';
+import { PaymentStatus } from './interface';
 
 class PurchaseCredentials {
   @ApiProperty()
@@ -129,4 +130,36 @@ export class DebutOrderCredentialsDto {
   @IsOptional()
   @IsString()
   address?: string;
+}
+
+export class BuyerPaymentResponseDto {
+  @ApiProperty()
+  @IsString()
+  paymentId: string;
+  @ApiProperty()
+  @IsString()
+  email: string;
+  @ApiProperty()
+  @IsString()
+  purchaseId: string;
+  @ApiProperty()
+  @IsString()
+  reference: string;
+  @ApiProperty()
+  @IsNumber()
+  amount: number;
+  @ApiProperty()
+  @IsNumber()
+  productAmount: number;
+  @ApiProperty()
+  @IsNumber()
+  deliveryFee: number;
+  @ApiProperty()
+  @IsEnum({ type: 'enum', enum: PaymentStatus })
+  status: PaymentStatus;
+  @ApiProperty()
+  @IsString()
+  createdAt: string;
+  @ApiProperty()
+  metadata?: Record<string, string>;
 }

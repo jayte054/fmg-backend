@@ -133,3 +133,57 @@ export interface CreateCashbackWalletResponse {
   status: string;
   data: CashbackWalletEntity;
 }
+
+export interface AdminPaymentResponseInterface {
+  paymentId: string;
+
+  email: string;
+
+  purchaseId: string;
+
+  reference: string;
+
+  amount: number;
+
+  productAmount: number;
+
+  deliveryFee: number;
+
+  driverShare: number;
+
+  platformCommission: number;
+
+  dealerSubAccount: string;
+
+  dealersWalletAccount: string;
+
+  driversWalletAccount: string;
+
+  status: PaymentStatus;
+
+  createdAt: Date;
+
+  metadata?: Record<string, string>;
+}
+
+export interface BuyerPaymentResponseInterface {
+  paymentId: string;
+
+  email: string;
+
+  purchaseId: string;
+
+  reference: string;
+
+  amount: number;
+
+  productAmount: number;
+
+  deliveryFee: number;
+
+  status: PaymentStatus;
+
+  createdAt: string;
+
+  metadata?: Record<string, string>;
+}

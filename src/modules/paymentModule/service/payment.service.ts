@@ -19,6 +19,7 @@ import { IWalletRepository } from '../interface/IWalletRepository';
 import { WalletEntity } from '../entity/wallet.entity';
 import {
   ActivateSubAccountInterface,
+  BuyerPaymentResponseInterface,
   CashbackWalletFilter,
   CreateCashbackWalletResponse,
   PaginatedCashbackWalletResponse,
@@ -855,5 +856,100 @@ export class PaymentService {
     this.logger.log(`cashback wallet ${walletId} updated successfully`);
 
     return updateWallet;
+  };
+
+  findPayment = async (buyer: BuyerEntity, paymentId: string) => {
+    const { email, buyerId } = buyer;
+    const payment = await this.paymentRepository.findPayment(paymentId);
+
+    if (!payment) {
+      this.logger.error(`failed to find payment with payment Id ${paymentId}`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'failed to find payment',
+        email,
+        details: {
+          paymentId,
+          buyerId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('failed to find payment');
+    }
+
+    if (payment.email !== email) {
+      this.logger.error('buyer not authorized to view payment');
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'unauthorized access',
+        email,
+        details: {
+          paymentId,
+          buyerId: buyer.buyerId,
+        },
+        status: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'payment successfully found',
+      email: buyer.email,
+      details: {
+        paymentId,
+        buyer: buyer.buyerId,
+      },
+    });
+
+    this.logger.log('payment successfully retrieved');
+    return this.mapToBuyerPaymentResponse(payment);
+  };
+
+  findPaymentByAdmin = async (adminId: string, paymentId: string) => {
+    const payment = await this.paymentRepository.findPayment(paymentId);
+
+    if (!payment) {
+      this.logger.error(`failed to find payment with payment Id ${paymentId}`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'failed to find payment',
+        details: {
+          paymentId,
+          adminId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('failed to find payment');
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'payment successfully found',
+      details: {
+        paymentId,
+        buyer: payment.email,
+        adminId,
+      },
+    });
+
+    this.logger.log('payment successfully retrieved');
+    return payment;
+  };
+
+  private mapToBuyerPaymentResponse = (
+    payment: PaymentEntity,
+  ): BuyerPaymentResponseInterface => {
+    return {
+      paymentId: payment.paymentId,
+      email: payment.email,
+      purchaseId: payment.purchaseId,
+      reference: payment.reference,
+      amount: payment.amount,
+      productAmount: payment.productAmount,
+      deliveryFee: payment.deliveryFee,
+      status: payment.status,
+      createdAt: payment.createdAt.toLocaleString(),
+      metadata: payment.metadata,
+    };
   };
 }
