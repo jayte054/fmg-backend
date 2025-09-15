@@ -278,3 +278,20 @@ export class PaginatedRevenueResponseDto {
   @IsNumber()
   perPage: number;
 }
+
+export class TotalRevenueDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  data: number;
+}
+
+export class RevenueResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  data: RevenueEntity;
+}

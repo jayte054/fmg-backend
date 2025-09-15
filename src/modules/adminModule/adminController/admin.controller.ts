@@ -20,6 +20,8 @@ import {
   PaginatedPaymentResponseDto,
   PaginatedRevenueResponseDto,
   RevenueFilterDto,
+  RevenueResponseDto,
+  TotalRevenueDto,
 } from 'src/modules/paymentModule/utils/payment.dto';
 import { AdminPaymentService } from '../adminService/adminPayment.service';
 
@@ -117,6 +119,7 @@ export class AdminController {
   @ApiResponse({
     status: 200,
     description: 'revenue detail fetched successfully',
+    type: RevenueResponseDto,
   })
   @HttpCode(HttpStatus.OK)
   async fetchRevenue(
@@ -131,6 +134,7 @@ export class AdminController {
   @ApiResponse({
     status: 200,
     description: 'revenue calculation fetched successfully',
+    type: TotalRevenueDto,
   })
   @HttpCode(HttpStatus.OK)
   async fetchTotalRevenue(@GetAdminDecorator() admin: AdminEntity) {
