@@ -40,6 +40,7 @@ import { PaymentService } from '../../paymentModule/service/payment.service';
 import { PaymentVerification } from 'src/common/exceptions/exceptions';
 import { DebutOrderCredentialsDto } from 'src/modules/paymentModule/utils/payment.dto';
 import { AccessoryService } from 'src/modules/accessoryModule/accessoryService/accessory.service';
+import { RevenueSource } from 'src/modules/paymentModule/utils/interface';
 // import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 
 @Injectable()
@@ -133,6 +134,7 @@ export class PurchaseService {
         reference,
         purchase,
         email: buyer.email,
+        source: RevenueSource.GasPurchase,
       });
 
       if (purchase) {
@@ -294,6 +296,7 @@ export class PurchaseService {
         reference,
         purchase,
         email: buyer.email,
+        source: RevenueSource.DebutGasPurchase,
       });
 
       if (purchase) {
@@ -447,6 +450,7 @@ export class PurchaseService {
         reference,
         purchase,
         email: buyer.email,
+        source: RevenueSource.AccessoryPurchase,
       });
 
       const notificationDto: NotificationDto = {

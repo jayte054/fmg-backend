@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -18,6 +19,8 @@ import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   BuyerPaymentResponseDto,
   InitializePaymentDto,
+  PaginatedPaymentResponseDto,
+  PaymentFilterDto,
   UpdateBankDetailDto,
   WithdrawalDto,
 } from '../utils/payment.dto';
@@ -101,5 +104,20 @@ export class PaymentController {
     @Param('paymentId') paymentId: string,
   ) {
     return await this.paymentService.findPayment(buyer, paymentId);
+  }
+
+  @Get('findPayments')
+  @ApiOperation({ summary: 'find Payments' })
+  @ApiResponse({
+    status: 201,
+    description: 'find payments',
+    type: PaginatedPaymentResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async findPayments(
+    @GetBuyerDecorator() buyer: BuyerEntity,
+    @Query() paymentFilter: PaymentFilterDto,
+  ) {
+    return await this.paymentService.findPayments(buyer, paymentFilter);
   }
 }

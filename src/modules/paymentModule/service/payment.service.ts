@@ -9,7 +9,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { InitializePaymentDto, VerifyPaymentDto } from '../utils/payment.dto';
+import {
+  InitializePaymentDto,
+  PaymentFilterDto,
+  RevenueFilterDto,
+  UpdatePaymentDto,
+} from '../utils/payment.dto';
 import { ConfigService } from '@nestjs/config';
 import { ProductService } from '../../ProductModule/productService/product.service';
 import { firstValueFrom } from 'rxjs';
@@ -19,11 +24,14 @@ import { IWalletRepository } from '../interface/IWalletRepository';
 import { WalletEntity } from '../entity/wallet.entity';
 import {
   ActivateSubAccountInterface,
+  AdminPaymentFilter,
   BuyerPaymentResponseInterface,
   CashbackWalletFilter,
   CreateCashbackWalletResponse,
   PaginatedCashbackWalletResponse,
+  PaymentFilter,
   PaymentStatus,
+  RevenueFilter,
   SubAccountResponse,
   UpdateCashbackInputInterface,
   UpdateWalletData,
@@ -40,6 +48,7 @@ import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { ICashbackWalletRepository } from '../interface/ICashbackWallet.interface';
 import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
 import { PaymentEntity } from '../entity/payment.entity';
+import { IRevenueRepository } from '../interface/IRevenueRepository';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
@@ -57,6 +66,9 @@ export class PaymentService {
 
     @Inject('ICashbackWalletRepository')
     private readonly cashbackRepository: ICashbackWalletRepository,
+
+    @Inject('IRevenueRepository')
+    private readonly revenueRepository: IRevenueRepository,
 
     private readonly configService: ConfigService,
     private readonly productService: ProductService,
@@ -171,8 +183,9 @@ export class PaymentService {
     return { message: 'payment verified successfully' };
   }
 
-  updatePayment = async (paymentDto: VerifyPaymentDto) => {
-    const { reference, purchase, email } = paymentDto;
+  // when testin, test the commented updated payment method
+  updatePayment = async (paymentDto: UpdatePaymentDto) => {
+    const { reference, purchase, email, source } = paymentDto;
     const deliveryFee = parseFloat(purchase.deliveryFee);
     const productAmount = parseFloat(purchase.price);
     const totalAmount = deliveryFee + productAmount;
@@ -183,18 +196,21 @@ export class PaymentService {
     const driverShare = deliveryFee - commissionOnDeliveryFee;
     const dealerShare = productAmount - commissionOnProductFee;
 
-    const buyer = await this.buyerService.findBuyer(email);
+    const [buyer, { dealerId }] = await Promise.all([
+      this.buyerService.findBuyer(email),
+      this.productService.findProductByPaymentService(purchase.productId),
+    ]);
 
-    const { dealerId } = await this.productService.findProductByPaymentService(
-      purchase.productId,
-    );
     const dealerSub =
       await this.subAccountRepository.findSubAccountUserId(dealerId);
 
     const driverId = purchase.metadata?.driverId;
 
-    const driverWallet = await this.walletRepository.findWalletUserId(driverId);
-    const dealerWallet = await this.walletRepository.findWalletUserId(dealerId);
+    const [driverWallet, dealerWallet] = await Promise.all([
+      this.walletRepository.findWalletUserId(driverId),
+      this.walletRepository.findWalletUserId(dealerId),
+    ]);
+
     if (!driverWallet || !dealerWallet) {
       throw new NotFoundException('Driver or Dealer wallet not found');
     }
@@ -227,16 +243,18 @@ export class PaymentService {
       updatedAt: new Date(),
     };
 
-    await this.walletRepository.updateWallet(
-      driverWallet.walletAccount,
-      updateDriverWalletData,
-    );
-    await this.walletRepository.updateWallet(
-      dealerWallet.walletAccount,
-      updateDealerWalletData,
-    );
+    await Promise.all([
+      this.walletRepository.updateWallet(
+        driverWallet.walletAccount,
+        updateDriverWalletData,
+      ),
+      this.walletRepository.updateWallet(
+        dealerWallet.walletAccount,
+        updateDealerWalletData,
+      ),
+    ]);
 
-    let paymentRecord: PaymentEntity;
+    // let paymentRecord: PaymentEntity;
     const commonFields = {
       email: email,
       purchaseId: purchase.purchaseId,
@@ -257,10 +275,31 @@ export class PaymentService {
       const amount = platformCommission * 0.01;
       const commission = platformCommission - amount;
       this.updatCashbackMethod(amount.toString(), buyer.buyerId);
-      paymentRecord = await this.paymentRepository.makePayment({
-        ...commonFields,
-        platformCommission: commission,
-      });
+
+      const [paymentRecord, revenueRecord] = await Promise.all([
+        await this.paymentRepository.makePayment({
+          ...commonFields,
+          platformCommission: commission,
+        }),
+
+        await this.revenueRepository.createRevenue({
+          amount: commission.toString(),
+          reference,
+          source,
+          recordedAt: new Date(),
+        }),
+      ]);
+      // paymentRecord = await this.paymentRepository.makePayment({
+      //   ...commonFields,
+      //   platformCommission: commission,
+      // });
+
+      // await this.revenueRepository.createRevenue({
+      //   amount: commission.toString(),
+      //   reference,
+      //   source,
+      //   recordedAt: new Date(),
+      // });
 
       this.auditLogService.log({
         logCategory: LogCategory.PAYMENT,
@@ -271,15 +310,29 @@ export class PaymentService {
           dealerId,
           driverId,
           amount: totalAmount.toString(),
+          revenueId: revenueRecord.revenueId,
         },
       });
 
       return paymentRecord;
     } else {
-      paymentRecord = await this.paymentRepository.makePayment({
-        ...commonFields,
-        platformCommission,
-      });
+      const [paymentRecord, revenueRecord] = await Promise.all([
+        await this.paymentRepository.makePayment({
+          ...commonFields,
+          platformCommission,
+        }),
+
+        await this.revenueRepository.createRevenue({
+          amount: platformCommission.toString(),
+          reference,
+          source,
+          recordedAt: new Date(),
+        }),
+      ]);
+      // paymentRecord = await this.paymentRepository.makePayment({
+      //   ...commonFields,
+      //   platformCommission,
+      // });
 
       this.auditLogService.log({
         logCategory: LogCategory.PAYMENT,
@@ -290,6 +343,7 @@ export class PaymentService {
           dealerId,
           driverId,
           amount: totalAmount.toString(),
+          revenueId: revenueRecord.revenueId,
         },
       });
 
@@ -933,7 +987,65 @@ export class PaymentService {
     });
 
     this.logger.log('payment successfully retrieved');
-    return payment;
+    return this.mapToBuyerPaymentResponse(payment);
+  };
+
+  findPayments = async (
+    buyer: BuyerEntity,
+    paymentFilter: PaymentFilterDto,
+  ) => {
+    const { userId, search, createdAt, status, skip, take } = paymentFilter;
+    const filter: PaymentFilter = {
+      userId,
+      ...(search !== undefined && { search }),
+      ...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
+      ...(status !== undefined && { status }),
+      skip,
+      take,
+    };
+
+    const payments = await this.paymentRepository.findPayments(filter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'payments retrieved by buyer',
+      email: buyer.email,
+      details: {
+        count: payments.total.toString(),
+        buyer: buyer.buyerId,
+      },
+    });
+
+    this.logger.log('payments successfully retrieved by buyer', buyer.buyerId);
+    return payments;
+  };
+
+  findPaymentsByAdmin = async (
+    adminId: string,
+    paymentFilter: AdminPaymentFilter,
+  ) => {
+    const { search, createdAt, status, skip, take } = paymentFilter;
+    const filter: AdminPaymentFilter = {
+      ...(search !== undefined && { search }),
+      ...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
+      ...(status !== undefined && { status }),
+      skip,
+      take,
+    };
+
+    const payments = await this.paymentRepository.findPaymentsByAdmin(filter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'payments retrieved by buyer',
+      details: {
+        count: payments.total.toString(),
+        adminId,
+      },
+    });
+
+    this.logger.log('payments successfully retrieved by admin', adminId);
+    return payments;
   };
 
   private mapToBuyerPaymentResponse = (
@@ -952,4 +1064,187 @@ export class PaymentService {
       metadata: payment.metadata,
     };
   };
+
+  fetchRevenues = async (adminId: string, filterDto: RevenueFilterDto) => {
+    const { search, isReversed, recordedAt, skip, take } = filterDto;
+
+    const filter: RevenueFilter = {
+      ...(search !== undefined && { search }),
+      ...(isReversed !== undefined && { isReversed }),
+      ...(recordedAt !== undefined && { recordedAt }),
+      skip,
+      take,
+    };
+
+    const revenues = await this.revenueRepository.fetchRevenues(filter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'fetched a list a revenues',
+      details: {
+        adminId,
+        filter: JSON.stringify(filter),
+        count: revenues.total.toString(),
+      },
+    });
+
+    this.logger.log('revenues fetched successfully');
+    return revenues;
+  };
+
+  fetchRevenue = async (adminId: string, revenueId: string) => {
+    const revenue = await this.revenueRepository.fetchRevenue(revenueId);
+
+    if (!revenue) {
+      this.logger.log(`revenue with id ${revenueId} does not exist`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: `revenue with id ${revenueId} does not exist`,
+        details: {
+          adminId,
+          revenueId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('revenue not found');
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: `revenue with id ${revenueId} ffetched successfully`,
+      details: {
+        adminId,
+        revenueId,
+      },
+    });
+
+    this.logger.log(`revenue ${revenueId} fetched successfully`);
+    return revenue;
+  };
+
+  calculateRevenue = async (adminId: string) => {
+    const totalRevenue = await this.revenueRepository.getTotalRevenue();
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: `revenue calculation fetched successfully`,
+      details: {
+        adminId,
+      },
+    });
+    this.logger.log('revenue calculation fetched successfully');
+    return {
+      message: 'revenue fetched successfully',
+      data: totalRevenue,
+    };
+  };
 }
+
+// private calculateCommissions(deliveryFee: number, productAmount: number) {
+//   const commissionOnDelivery = deliveryFee * 0.3;
+//   const commissionOnProduct = productAmount * 0.05;
+//   return {
+//     platformCommission: commissionOnDelivery + commissionOnProduct,
+//     driverShare: deliveryFee - commissionOnDelivery,
+//     dealerShare: productAmount - commissionOnProduct,
+//   };
+// }
+
+// private incrementTransactions(metadata: any) {
+//   return {
+//     ...metadata,
+//     numberOfTransactions: (Number(metadata?.numberOfTransactions) || 0) + 1,
+//   };
+// }
+
+// async updatePayment(paymentDto: UpdatePaymentDto) {
+//   const { reference, purchase, email, source } = paymentDto;
+//   const deliveryFee = Number(purchase.deliveryFee);
+//   const productAmount = Number(purchase.price);
+//   const totalAmount = deliveryFee + productAmount;
+
+//   const { platformCommission, driverShare, dealerShare } = this.calculateCommissions(deliveryFee, productAmount);
+
+//   const [buyer, { dealerId }] = await Promise.all([
+//     this.buyerService.findBuyer(email),
+//     this.productService.findProductByPaymentService(purchase.productId),
+//   ]);
+
+//   const dealerSub = await this.subAccountRepository.findSubAccountUserId(dealerId);
+//   if (!dealerSub?.subAccountCode) throw new NotFoundException('Dealer sub-account not found');
+
+//   const driverId = purchase.metadata?.driverId;
+//   const [driverWallet, dealerWallet] = await Promise.all([
+//     this.walletRepository.findWalletUserId(driverId),
+//     this.walletRepository.findWalletUserId(dealerId),
+//   ]);
+//   if (!driverWallet || !dealerWallet) throw new NotFoundException('Driver or Dealer wallet not found');
+
+//   const driverUpdate: UpdateWalletData = {
+//     balance: driverShare + driverWallet.balance,
+//     previousBalance: driverWallet.balance,
+//     metadata: this.incrementTransactions(driverWallet.metadata),
+//     updatedAt: new Date(),
+//   };
+
+//   const dealerUpdate: UpdateWalletData = {
+//     balance: dealerShare + dealerWallet.balance,
+//     previousBalance: dealerWallet.balance,
+//     metadata: this.incrementTransactions(dealerWallet.metadata),
+//     updatedAt: new Date(),
+//   };
+
+//   // 🔐 Consider wrapping below in a DB transaction
+//   await Promise.all([
+//     this.walletRepository.updateWallet(driverWallet.walletAccount, driverUpdate),
+//     this.walletRepository.updateWallet(dealerWallet.walletAccount, dealerUpdate),
+//   ]);
+
+//   // Cashback adjustment
+//   let finalCommission = platformCommission;
+//   if (buyer.metadata?.cashbackWallet === 'true') {
+//     const cashback = platformCommission * 0.01;
+//     finalCommission -= cashback;
+//     await this.updatCashbackMethod(cashback.toString(), buyer.buyerId);
+//   }
+
+//   const [paymentRecord, revenueRecord] = await Promise.all([
+//     this.paymentRepository.makePayment({
+//       email,
+//       purchaseId: purchase.purchaseId,
+//       reference,
+//       amount: totalAmount,
+//       productAmount,
+//       deliveryFee,
+//       driverShare,
+//       dealerSubAccount: dealerSub.subAccountCode,
+//       dealersWalletAccount: dealerWallet.walletAccount,
+//       driversWalletAccount: driverWallet.walletAccount,
+//       platformCommission: finalCommission,
+//       status: PaymentStatus.paid,
+//       createdAt: new Date(),
+//       metadata: {},
+//     }),
+//     this.revenueRepository.createRevenue({
+//       amount: finalCommission.toString(),
+//       reference,
+//       source,
+//       recordedAt: new Date(),
+//     }),
+//   ]);
+
+//   await this.auditLogService.log({
+//     logCategory: LogCategory.PAYMENT,
+//     description: 'Payment updated and processed successfully',
+//     email,
+//     details: {
+//       reference,
+//       dealerId,
+//       driverId,
+//       amount: totalAmount.toString(),
+//       revenueId: revenueRecord.revenueId,
+//     },
+//   });
+
+//   return paymentRecord;
+// }

@@ -23,6 +23,7 @@ import { DealerRepositoryMiddleware } from 'src/common/middleware/dealer.reposit
 import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.repository.middleware';
 import { AdminRepositoryMiddleware } from 'src/common/middleware/admin.repository.middleware';
 import { CashbackWalletEntity } from './entity/cashback.entity';
+import { RevenueRepository } from './repository/revenue.repository';
 
 @Module({
   imports: [
@@ -55,6 +56,10 @@ import { CashbackWalletEntity } from './entity/cashback.entity';
     {
       provide: 'ICashbackWalletRepository',
       useClass: WalletRepository,
+    },
+    {
+      provide: 'IRevenueRepository',
+      useClass: RevenueRepository,
     },
   ],
   controllers: [PaymentController],

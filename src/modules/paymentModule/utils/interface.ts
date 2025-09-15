@@ -1,5 +1,6 @@
 import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { PaymentEntity } from '../entity/payment.entity';
+import { RevenueEntity } from '../entity/revenue.entity';
 import { SubAccountEntity } from '../entity/subaccount.entity';
 import { WalletEntity } from '../entity/wallet.entity';
 
@@ -17,7 +18,15 @@ export enum WalletStatus {
 export interface PaymentFilter {
   userId: string;
   search?: string;
-  createdAt?: string;
+  createdAt?: Date;
+  status?: string;
+  skip: number;
+  take: number;
+}
+
+export interface AdminPaymentFilter {
+  search?: string;
+  createdAt?: Date;
   status?: string;
   skip: number;
   take: number;
@@ -186,4 +195,32 @@ export interface BuyerPaymentResponseInterface {
   createdAt: string;
 
   metadata?: Record<string, string>;
+}
+
+export enum RevenueSource {
+  DebutGasPurchase = 'DebutGasOurchase',
+  GasPurchase = 'GasPurchase',
+  AccessoryPurchase = 'AccessoryPurchase',
+}
+
+export interface RevenueFilter {
+  search?: string;
+  isReversed?: boolean;
+  recordedAt?: Date;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedRevenueInterface {
+  revenues: RevenueEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedRevenueResponse {
+  revenues: RevenueEntity[];
+  total: number;
+  page: number;
+  perPage: number;
 }

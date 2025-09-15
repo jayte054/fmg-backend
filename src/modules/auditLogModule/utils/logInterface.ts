@@ -13,6 +13,7 @@ export enum LogCategory {
   HttpException = 'HttpException',
   Accessories = 'Accessories',
   Template = 'Template',
+  Admin = 'Admin',
 }
 
 export interface LogFilterInterface {

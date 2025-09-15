@@ -1,5 +1,7 @@
 import {
   IsArray,
+  IsBoolean,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNotEmptyObject,
@@ -18,7 +20,9 @@ import {
   ApiPropertyOptional,
   // ApiPropertyOptional
 } from '@nestjs/swagger';
-import { PaymentStatus } from './interface';
+import { PaymentStatus, RevenueSource } from './interface';
+import { PaymentEntity } from '../entity/payment.entity';
+import { RevenueEntity } from '../entity/revenue.entity';
 
 class PurchaseCredentials {
   @ApiProperty()
@@ -63,6 +67,25 @@ export class VerifyPaymentDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+}
+
+export class UpdatePaymentDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  reference: string;
+
+  @ApiProperty()
+  @IsNotEmptyObject()
+  purchase: PurchaseResponse;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+  @ApiProperty()
+  @IsEnum(RevenueSource)
+  source: RevenueSource;
 }
 
 export class UpdateBankDetailDto {
@@ -162,4 +185,96 @@ export class BuyerPaymentResponseDto {
   createdAt: string;
   @ApiProperty()
   metadata?: Record<string, string>;
+}
+
+export class PaymentFilterDto {
+  @ApiProperty()
+  @IsString()
+  userId: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  createdAt?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  status?: string;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class AdminPaymentFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsDate()
+  @IsOptional()
+  createdAt?: Date;
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  status?: string;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class PaginatedPaymentResponseDto {
+  @ApiProperty()
+  @IsArray()
+  payments: PaymentEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
+}
+
+export class RevenueFilterDto {
+  @ApiProperty()
+  @IsString()
+  search?: string;
+  @ApiProperty()
+  @IsBoolean()
+  isReversed?: boolean;
+  @ApiProperty()
+  @IsDate()
+  recordedAt?: Date;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class PaginatedRevenueResponseDto {
+  @ApiProperty()
+  revenues: RevenueEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
 }
