@@ -15,11 +15,16 @@ import {
   AddDriverCredential,
   CreateProductCredentials,
   DriverDetails,
+  FindProductsFilter,
   ProductResponse,
   Reviewers,
   UpdateProductCredentials,
 } from '../utils/products.type';
-import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
+import {
+  CreateProductDto,
+  FindProductsFilterDto,
+  UpdateProductDto,
+} from '../utils/products.dto';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { productResObj } from '../utils/products.type';
 import {
@@ -195,22 +200,27 @@ export class ProductService {
   };
 
   findProducts = async (
-    page: number = 1,
-    limit: number = 10,
+    filterDto: FindProductsFilterDto,
   ): Promise<{
     data: ProductResponse[];
     total: number;
     currentPage: number;
   }> => {
-    const currentPage = Math.max(page, 1);
-    const currentLimit = Math.max(limit, 1);
-    const skip = (currentPage - 1) * currentLimit;
+    const { search, scale, price, createdAt, skip, take } = filterDto;
 
+    const productsFilter: FindProductsFilter = {
+      ...(search !== undefined && { search }),
+      ...(scale !== undefined && { scale }),
+      ...(price !== undefined && { price }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
     try {
       const { products, total }: productResObj =
-        await this.productRepository.findProducts({ skip, take: limit });
+        await this.productRepository.findProducts(productsFilter);
 
-      if (!products) {
+      if (!products.length) {
         this.logger.warn('products not found');
         throw new NotFoundException('products not found');
       }
@@ -227,7 +237,7 @@ export class ProductService {
       return {
         data: products,
         total,
-        currentPage: page,
+        currentPage: Math.floor(skip / take) + 1,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {

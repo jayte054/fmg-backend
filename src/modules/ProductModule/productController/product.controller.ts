@@ -23,7 +23,10 @@ import { GetDealerDecorator } from '../../../common/decorators/getDealerDecorato
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
 import { Request } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateProductCredentialsDto } from '../utils/products.dto';
+import {
+  CreateProductCredentialsDto,
+  FindProductsFilterDto,
+} from '../utils/products.dto';
 
 @ApiTags('Product')
 @UseGuards(JwtAuthGuard)
@@ -62,11 +65,8 @@ export class ProductController {
   @ApiOperation({ summary: 'find products' })
   @ApiResponse({ status: 200, description: 'user fetched products' })
   @HttpCode(HttpStatus.OK)
-  async findProducts(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-  ) {
-    return await this.productService.findProducts(page, limit);
+  async findProducts(@Query() filterDto: FindProductsFilterDto) {
+    return await this.productService.findProducts(filterDto);
   }
 
   @Put('/updateProduct/:productId')

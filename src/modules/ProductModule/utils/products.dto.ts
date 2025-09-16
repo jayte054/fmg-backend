@@ -11,7 +11,7 @@ import {
 import { RetailScale } from '../../usersModule/utils/user.types';
 import { DriverDetails, Reviewers } from './products.type';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -98,4 +98,72 @@ export class CreateProductCredentialsDto {
   @ApiProperty()
   @IsBoolean()
   supportsCommissionOrder: boolean;
+}
+
+export class FindProductsFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  price?: string;
+  @ApiPropertyOptional()
+  @IsEnum(RetailScale)
+  scale?: RetailScale;
+  @ApiPropertyOptional()
+  @IsString()
+  createdAt?: string;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class ProductResponseDto {
+  @ApiProperty()
+  @IsString()
+  productId: string;
+  @ApiProperty()
+  @IsString()
+  providerName: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsEnum(RetailScale)
+  scale: RetailScale;
+  @ApiProperty()
+  @IsNumber()
+  pricePerKg: number;
+  @ApiProperty()
+  @IsNumber()
+  rating: number;
+  @ApiProperty()
+  @IsString()
+  address: string;
+  @ApiPropertyOptional()
+  location: { latitude: number; longitude: number };
+  @ApiProperty()
+  linkedDrivers: DriverDetails[];
+  @ApiPropertyOptional()
+  reviews: Reviewers[];
+  @ApiProperty()
+  @IsNumber()
+  purchases: number;
+  @ApiProperty()
+  @IsString()
+  dealerId: string;
+}
+
+export class ProductsResponseDto {
+  @ApiProperty()
+  data: ProductResponseDto[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  currentPage: number;
 }

@@ -1,14 +1,13 @@
 import { ProductEntity } from '../productEntity/product.entity';
 import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
-import { ProductResponse } from '../utils/products.type';
+import { FindProductsFilter, ProductResponse } from '../utils/products.type';
 
 export interface IProductRepository {
   createProduct(createProductDto: CreateProductDto): Promise<ProductResponse>;
   findProductById(productId: string): Promise<ProductResponse>;
-  findProducts(options: {
-    skip: number;
-    take: number;
-  }): Promise<{ products: ProductResponse[]; total: number }>;
+  findProducts(
+    productsFilter: FindProductsFilter,
+  ): Promise<{ products: ProductResponse[]; total: number }>;
   updateProduct(
     productId: string,
     updateProductDto: UpdateProductDto,

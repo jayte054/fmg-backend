@@ -2,10 +2,12 @@ import { RetailScale } from '../../usersModule/utils/user.types';
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { DriverDetails, Reviewers } from '../utils/products.type';
 import { DealerEntity } from '../../usersModule/userEntity/dealerEntity';
@@ -51,6 +53,12 @@ export class ProductEntity extends BaseEntity {
 
   @Column()
   dealerId: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column({ type: 'jsonb', default: [] })
   metadata?: Record<string, string | boolean>;

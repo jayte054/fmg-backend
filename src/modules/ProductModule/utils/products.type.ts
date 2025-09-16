@@ -59,3 +59,12 @@ export interface AddDriverCredential {
   driverEmail: string;
   driverPhoneNumber: number;
 }
+
+export interface FindProductsFilter {
+  search?: string;
+  price?: string;
+  scale?: RetailScale;
+  createdAt?: string;
+  skip: number;
+  take: number;
+}

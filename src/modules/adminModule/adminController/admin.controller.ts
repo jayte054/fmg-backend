@@ -24,6 +24,12 @@ import {
   TotalRevenueDto,
 } from 'src/modules/paymentModule/utils/payment.dto';
 import { AdminPaymentService } from '../adminService/adminPayment.service';
+import {
+  FindProductsFilterDto,
+  ProductResponseDto,
+  ProductsResponseDto,
+} from 'src/modules/ProductModule/utils/products.dto';
+import { AdminProductService } from '../adminService/adminProduct.service';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -32,6 +38,7 @@ export class AdminController {
   constructor(
     private readonly adminAuditLogService: AdminAuditLogService,
     private readonly adminPaymentService: AdminPaymentService,
+    private readonly adminProductService: AdminProductService,
   ) {}
 
   @Get('fetchAuditLogs')
@@ -139,5 +146,35 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async fetchTotalRevenue(@GetAdminDecorator() admin: AdminEntity) {
     return await this.adminPaymentService.fetchTotalRevenue(admin);
+  }
+
+  @Get('products')
+  @ApiOperation({ summary: 'fetch products' })
+  @ApiResponse({
+    status: 200,
+    description: 'products fetched successfully',
+    type: ProductsResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchProducts(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() filterDto: FindProductsFilterDto,
+  ) {
+    return await this.adminProductService.findProducts(admin, filterDto);
+  }
+
+  @Get('findProduct/:productId')
+  @ApiOperation({ summary: 'fetch product' })
+  @ApiResponse({
+    status: 200,
+    description: 'product fetched successfully',
+    type: ProductResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchProduct(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Param('productId') productId: string,
+  ) {
+    return await this.adminProductService.findProduct(admin, productId);
   }
 }

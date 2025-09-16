@@ -6,11 +6,18 @@ import { AdminAuditLogService } from './adminService/adminAuditLog.service';
 import { AdminEntityRepository } from '../usersModule/repository/admin.entity.repository';
 import { PaymentModule } from '../paymentModule/payment.module';
 import { AdminPaymentService } from './adminService/adminPayment.service';
+import { ProductModule } from '../ProductModule/product.module';
+import { AdminProductService } from './adminService/adminProduct.service';
 
 @Module({
-  imports: [AuditLogModule, PaymentModule],
+  imports: [AuditLogModule, PaymentModule, ProductModule],
   controllers: [AdminController],
-  providers: [AdminPaymentService, AdminAuditLogService, AdminEntityRepository],
+  providers: [
+    AdminProductService,
+    AdminPaymentService,
+    AdminAuditLogService,
+    AdminEntityRepository,
+  ],
 })
 export class AdminModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

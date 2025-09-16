@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ProductEntity } from '../productEntity/product.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateProductDto, UpdateProductDto } from '../utils/products.dto';
+import { FindProductsFilter } from '../utils/products.type';
 
 @Injectable()
 export class ProductRepository extends Repository<ProductEntity> {
@@ -22,12 +23,40 @@ export class ProductRepository extends Repository<ProductEntity> {
     return product;
   };
 
-  findProducts = async (options: { skip: number; take: number }) => {
+  findProducts = async (productsFilter: FindProductsFilter) => {
+    const { search, scale, price, createdAt, skip, take } = productsFilter;
     const productsQuery = this.createQueryBuilder('products');
 
+    if (search) {
+      const lowerCaseSearch = `%${search.toLowerCase()}%`;
+      productsQuery.andWhere(
+        `
+        LOWER(products.providerName) ILIKE :lowerCaseSearch
+        OR LOWER(products.address) ILIKE :lowerCaseSearch
+        `,
+        { lowerCaseSearch },
+      );
+    }
+
+    if (scale) {
+      productsQuery.andWhere('products.scale = :scale', { scale });
+    }
+
+    if (price) {
+      productsQuery.andWhere('products.pricePerKg = :price', {
+        price,
+      });
+    }
+
+    if (createdAt) {
+      productsQuery.andWhere('products.createdAt = :createdAt', { createdAt });
+    }
+
+    productsQuery.orderBy('products.createdAt', 'DESC');
+
     const [products, total] = await productsQuery
-      .skip(options.skip)
-      .take(options.take)
+      .skip(skip)
+      .take(take)
       .getManyAndCount();
 
     return { products, total };
