@@ -10,9 +10,17 @@ import { ProductModule } from '../ProductModule/product.module';
 import { AdminProductService } from './adminService/adminProduct.service';
 import { PurchaseModule } from '../purchaseModule/purchase.module';
 import { AdminPurchaseService } from './adminService/adminPurchase.service';
+import { UserModule } from '../usersModule/user.module';
+import { AdminUsersService } from './adminService/adminUser.service';
 
 @Module({
-  imports: [AuditLogModule, PaymentModule, ProductModule, PurchaseModule],
+  imports: [
+    AuditLogModule,
+    PaymentModule,
+    ProductModule,
+    PurchaseModule,
+    UserModule,
+  ],
   controllers: [AdminController],
   providers: [
     AdminPurchaseService,
@@ -20,6 +28,7 @@ import { AdminPurchaseService } from './adminService/adminPurchase.service';
     AdminPaymentService,
     AdminAuditLogService,
     AdminEntityRepository,
+    AdminUsersService,
   ],
 })
 export class AdminModule implements NestModule {

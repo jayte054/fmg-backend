@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminEntity } from '../userEntity/admin.entity';
+import { BuyerEntity } from '../userEntity/buyer.entity';
 
 export interface BuyerResponse {
   buyerId: string;
@@ -200,4 +201,28 @@ export interface AccDealerResponse {
   isAdmin: boolean;
   rating: number;
   userId: string;
+}
+
+export interface BuyersFilterInterface {
+  search?: string;
+  role?: string;
+  createdAt?: Date;
+  isDeleted?: boolean;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedBuyerInterface {
+  buyers: BuyerEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedBuyerResponseInterface {
+  buyers: BuyerEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
 }

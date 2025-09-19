@@ -2,6 +2,7 @@ import { DataSource, Repository } from 'typeorm';
 import { BuyerEntity } from '../userEntity/buyer.entity';
 import { Injectable } from '@nestjs/common';
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
+import { BuyersFilterInterface } from '../utils/user.types';
 
 @Injectable()
 export class BuyerRepository extends Repository<BuyerEntity> {
@@ -23,12 +24,40 @@ export class BuyerRepository extends Repository<BuyerEntity> {
     return buyer;
   };
 
-  findBuyers = async (options: { skip: number; take: number }) => {
+  findBuyers = async (filter: BuyersFilterInterface) => {
+    const { search, role, createdAt, isDeleted, skip, take } = filter;
     const buyersQuery = this.createQueryBuilder('buyer');
 
+    if (search) {
+      const lowerCaseSearch = `%${search.toLowerCase()}%`;
+      buyersQuery.andWhere(
+        `
+          LOWER(buyers.firstName) ILIKE :lowerCaseSearch
+          OR LOWER(buyer.lastName) ILIKE :lowerCaseSearch
+          OR LOWER(buyers.phoneNumber) ILIKE :lowerCaseSearch
+          OR LOWER(buyer.email) ILIKE :lowerCaseSearch
+        `,
+        { lowerCaseSearch },
+      );
+    }
+
+    if (role) {
+      buyersQuery.andWhere('buyer.role = :role', { role });
+    }
+
+    if (createdAt) {
+      buyersQuery.andWhere('buyer.createdAt = :createdAt', { createdAt });
+    }
+
+    if (isDeleted) {
+      buyersQuery.andWhere('buyer.isDeleted = :isDeleted', { isDeleted });
+    }
+
+    buyersQuery.orderBy('createdAt', 'DESC');
+
     const [buyers, total] = await buyersQuery
-      .skip(options.skip)
-      .take(options.take)
+      .skip(skip)
+      .take(take)
       .getManyAndCount();
 
     return { buyers, total };

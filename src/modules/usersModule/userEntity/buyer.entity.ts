@@ -4,11 +4,13 @@ import { PurchaseEntity } from '../../purchaseModule/purchaseEntity/purchase.ent
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -58,6 +60,15 @@ export class BuyerEntity extends BaseEntity {
 
   @Column('uuid')
   userId: string;
+
+  @CreateDateColumn()
+  createdAt?: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
+
+  @Column({ default: false })
+  isDeleted?: boolean;
 
   @Column({ type: 'jsonb' })
   metadata?: Record<string, string>;
