@@ -27,8 +27,8 @@ import { AuditLogModule } from '../auditLogModule/auditLog.module';
 import { PaymentModule } from '../paymentModule/payment.module';
 import { AdminEntity } from './userEntity/admin.entity';
 import { AdminRepository } from './repository/admin.repository';
-import { AdminService } from './service/admin.service';
-import { AdminController } from './controller/admin.controller';
+import { AdminUserService } from './service/admin.service';
+import { AdminUserController } from './controller/admin.controller';
 import { AdminEntityRepository } from './repository/admin.entity.repository';
 import { AccessoryDealerRepository } from './repository/accessoryDealer.repository';
 import { AccessoryDealerEntity } from './userEntity/accessoryDealer.entity';
@@ -51,13 +51,13 @@ import { AccessoryDealerEntity } from './userEntity/accessoryDealer.entity';
     BuyerController,
     DealerController,
     DriverController,
-    AdminController,
+    AdminUserController,
   ],
   providers: [
     BuyerService,
     DealerService,
     DriverService,
-    AdminService,
+    AdminUserService,
     DealerEntityRepository,
     BuyerEntityRepository,
     DriverEntityRepository,

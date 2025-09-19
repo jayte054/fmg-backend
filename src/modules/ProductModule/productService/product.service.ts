@@ -220,6 +220,8 @@ export class ProductService {
       const { products, total }: productResObj =
         await this.productRepository.findProducts(productsFilter);
 
+      console.log(products);
+
       if (!products.length) {
         this.logger.warn('products not found');
         throw new NotFoundException('products not found');
@@ -243,6 +245,7 @@ export class ProductService {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      console.log(error);
       this.logger.error('error fetching products');
       throw new InternalServerErrorException(
         'an error occurred, please try again',

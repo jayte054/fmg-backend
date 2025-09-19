@@ -8,8 +8,8 @@ import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/audi
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
 
 @Injectable()
-export class AdminService {
-  private logger = new Logger(AdminService.name);
+export class AdminUserService {
+  private logger = new Logger(AdminUserService.name);
   constructor(
     @Inject('IAdminRepository')
     private readonly adminRepository: IAdminRepository,

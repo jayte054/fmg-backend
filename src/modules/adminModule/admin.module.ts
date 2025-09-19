@@ -8,11 +8,14 @@ import { PaymentModule } from '../paymentModule/payment.module';
 import { AdminPaymentService } from './adminService/adminPayment.service';
 import { ProductModule } from '../ProductModule/product.module';
 import { AdminProductService } from './adminService/adminProduct.service';
+import { PurchaseModule } from '../purchaseModule/purchase.module';
+import { AdminPurchaseService } from './adminService/adminPurchase.service';
 
 @Module({
-  imports: [AuditLogModule, PaymentModule, ProductModule],
+  imports: [AuditLogModule, PaymentModule, ProductModule, PurchaseModule],
   controllers: [AdminController],
   providers: [
+    AdminPurchaseService,
     AdminProductService,
     AdminPaymentService,
     AdminAuditLogService,

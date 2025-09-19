@@ -138,3 +138,13 @@ export interface StandardPurchaseResponse {
   driverNotificationResponse: UserNotificationResponse;
   userNotificationResponse: UserNotificationResponse;
 }
+
+export interface PurchaseFilterInterface {
+  search?: string;
+  priceType?: PriceType;
+  cylinder?: CylinderType;
+  purchaseType?: PurchaseType;
+  purchaseDate?: string;
+  skip: number;
+  take: number;
+}

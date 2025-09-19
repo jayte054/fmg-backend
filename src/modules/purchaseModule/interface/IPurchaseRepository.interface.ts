@@ -1,6 +1,10 @@
 import { PurchaseEntity } from '../purchaseEntity/purchase.entity';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
-import { PurchaseResObj, PurchaseResponse } from '../utils/purchase.type';
+import {
+  PurchaseFilterInterface,
+  PurchaseResObj,
+  PurchaseResponse,
+} from '../utils/purchase.type';
 
 export interface IPurchaseRepository {
   createPurchase(
@@ -13,10 +17,14 @@ export interface IPurchaseRepository {
     limit: number,
   ): Promise<PaginatedPurchaseResponse>;
   find(): Promise<PurchaseEntity[]>;
-  findPurchases(options: {
-    skip: number;
-    take: number;
-  }): Promise<PurchaseResObj>;
+  getPurchaseStats(): Promise<{
+    totalPurchases: number;
+    totalSpent: number;
+    totalDeliverySpent: number;
+  }>;
+  findPurchases(
+    purchaseFilter: PurchaseFilterInterface,
+  ): Promise<PurchaseResObj>;
   updatePurchase(
     purchaseId: string,
     updatePurchaseDto: UpdatePurchaseDto,

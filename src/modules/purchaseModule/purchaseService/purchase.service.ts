@@ -19,13 +19,19 @@ import {
   FindPurchaseByIdInterface,
   NotificationDto,
   PriceType,
+  PurchaseFilterInterface,
   PurchaseResObj,
   PurchaseResponse,
+  PurchaseType,
   StandardPurchaseResponse,
   UpdatePurchaseCredentials,
   UserNotificationResponse,
 } from '../utils/purchase.type';
-import { CreatePurchaseDto, UpdatePurchaseDto } from '../utils/purchase.dto';
+import {
+  CreatePurchaseDto,
+  PurchaseFilterDto,
+  UpdatePurchaseDto,
+} from '../utils/purchase.dto';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import { ProductService } from '../../ProductModule/productService/product.service';
 import { PushNotificationService } from '../../notificationModule/notificationService/push-notification.service';
@@ -709,23 +715,37 @@ export class PurchaseService {
   };
 
   findPurchases = async (
-    page: number = 1,
-    limit: number = 10,
+    purchasesFilterDto: PurchaseFilterDto,
   ): Promise<{
     data: PurchaseResponse[];
     total: number;
     currentPage: number;
   }> => {
-    const currentPage = Math.max(page, 1);
-    const currentLimit = Math.max(limit, 1);
-    const skip = (currentPage - 1) * currentLimit;
+    const {
+      search,
+      priceType,
+      cylinder,
+      purchaseType,
+      purchaseDate,
+      skip,
+      take,
+    } = purchasesFilterDto;
+
+    const purchaseFilter: PurchaseFilterInterface = {
+      ...(search !== undefined && { search }),
+      ...(priceType !== undefined && { priceType: priceType as PriceType }),
+      ...(cylinder !== undefined && { cylinder: cylinder as CylinderType }),
+      ...(purchaseType !== undefined && {
+        purchaseType: purchaseType as PurchaseType,
+      }),
+      ...(purchaseDate !== undefined && { purchaseDate }),
+      skip,
+      take,
+    };
 
     try {
       const { purchases, total }: PurchaseResObj =
-        await this.purchaseRepository.findPurchases({
-          skip,
-          take: limit,
-        });
+        await this.purchaseRepository.findPurchases(purchaseFilter);
 
       if (!purchases) {
         this.logger.warn('purchases not found');
@@ -745,17 +765,33 @@ export class PurchaseService {
       return {
         data: purchases,
         total,
-        currentPage: page,
+        currentPage: skip,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      console.log(error);
       this.logger.error('error fetching purchases');
       throw new InternalServerErrorException(
         'an error occurred, please try again',
       );
     }
+  };
+
+  findPurchasesForStat = async (adminId: string) => {
+    const purchases = await this.purchaseRepository.getPurchaseStats();
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PURCHASE,
+      description: 'find purchases',
+      details: {
+        purchases: JSON.stringify(purchases),
+        adminId,
+      },
+    });
+    this.logger.log('purchases for stats fetched by', adminId);
+    return purchases;
   };
 
   updatePurchase = async (
@@ -837,6 +873,7 @@ export class PurchaseService {
     const metadata = { ...purchase.metadata };
 
     metadata.pickedUp = new Date().toLocaleString();
+    metadata.purchaseStatus = 'picked up';
 
     const pickedUpPurchase = await this.purchaseRepository.updatePurchase(
       purchaseId,
@@ -888,6 +925,7 @@ export class PurchaseService {
     const metadata = { ...purchase.metadata };
     metadata.delivery = delivery.toString();
     metadata.deliveryDate = new Date().toLocaleDateString();
+    metadata.purchaseStatus = 'delivered';
 
     const deliverPurchase = await this.purchaseRepository.updatePurchase(
       purchaseId,

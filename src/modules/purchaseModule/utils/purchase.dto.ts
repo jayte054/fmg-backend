@@ -318,3 +318,27 @@ export class GenericResponse {
   @IsBoolean()
   Ok: boolean;
 }
+
+export class PurchaseFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  priceType?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  cylinder?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  purchaseType?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  purchaseDate?: string;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}

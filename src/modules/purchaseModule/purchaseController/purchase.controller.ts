@@ -34,6 +34,7 @@ import {
   FindPurchasesResponseDto,
   GenericResponse,
   PaginatedPurchaseResponseDto,
+  PurchaseFilterDto,
   PurchaseResponseDto,
   StandardPurchaseResponseDto,
 } from '../utils/purchase.dto';
@@ -132,11 +133,8 @@ export class PurchaseController {
     type: FindPurchasesResponseDto,
   })
   @HttpCode(HttpStatus.OK)
-  async findPurchases(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-  ) {
-    return await this.purchaseService.findPurchases(page, limit);
+  async findPurchases(@Query() filter: PurchaseFilterDto) {
+    return await this.purchaseService.findPurchases(filter);
   }
 
   @Get('findPurchaseByBuyerId')

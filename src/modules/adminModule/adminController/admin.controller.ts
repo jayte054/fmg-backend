@@ -12,7 +12,11 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.authGuard';
 import { AdminAuditLogService } from '../adminService/adminAuditLog.service';
 import { GetAdminDecorator } from 'src/common/decorators/getAdminDecorator';
 import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
-import { AuditLogFilterDto, PaginatedLogResponseDto } from '../utils/dto';
+import {
+  AuditLogFilterDto,
+  PaginatedLogResponseDto,
+  PurchaseStatsDto,
+} from '../utils/dto';
 import { AuditLogEntity } from 'src/modules/auditLogModule/auditLogEntity/auditLog.entity';
 import {
   AdminPaymentFilterDto,
@@ -30,15 +34,22 @@ import {
   ProductsResponseDto,
 } from 'src/modules/ProductModule/utils/products.dto';
 import { AdminProductService } from '../adminService/adminProduct.service';
+import {
+  FindPurchasesResponseDto,
+  PurchaseFilterDto,
+  PurchaseResponseDto,
+} from 'src/modules/purchaseModule/utils/purchase.dto';
+import { AdminPurchaseService } from '../adminService/adminPurchase.service';
 
 @ApiTags('Admin')
-@Controller('admin')
 @UseGuards(JwtAuthGuard)
+@Controller('admin')
 export class AdminController {
   constructor(
     private readonly adminAuditLogService: AdminAuditLogService,
     private readonly adminPaymentService: AdminPaymentService,
     private readonly adminProductService: AdminProductService,
+    private readonly adminPurchaseService: AdminPurchaseService,
   ) {}
 
   @Get('fetchAuditLogs')
@@ -176,5 +187,47 @@ export class AdminController {
     @Param('productId') productId: string,
   ) {
     return await this.adminProductService.findProduct(admin, productId);
+  }
+
+  @Get('purchases')
+  @ApiOperation({ summary: 'fetch purchases' })
+  @ApiResponse({
+    status: 200,
+    description: 'purchases fetched successfully',
+    type: FindPurchasesResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async findPurchases(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() filterDto: PurchaseFilterDto,
+  ) {
+    return await this.adminPurchaseService.fetchPurchases(admin, filterDto);
+  }
+
+  @Get('purchase/:purchaseId')
+  @ApiOperation({ summary: 'fetch purchase' })
+  @ApiResponse({
+    status: 200,
+    description: 'purchase fetched successfully',
+    type: PurchaseResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchPurchase(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Param('purchaseId') purchaseId: string,
+  ) {
+    return await this.adminPurchaseService.fetchPurchase(admin, purchaseId);
+  }
+
+  @Get('/purchaseStats')
+  @ApiOperation({ summary: 'purchase stats' })
+  @ApiResponse({
+    status: 200,
+    description: 'purchase stats',
+    type: PurchaseStatsDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async getPurchaseStats(@GetAdminDecorator() admin: AdminEntity) {
+    return await this.adminPurchaseService.getPurchaseStats(admin);
   }
 }

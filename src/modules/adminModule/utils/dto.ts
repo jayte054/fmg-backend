@@ -43,3 +43,12 @@ export class PaginatedLogResponseDto {
   @IsNumber()
   perPage: number;
 }
+
+export class PurchaseStatsDto {
+  @ApiProperty()
+  totalPurchases: number;
+  @ApiProperty()
+  totalSpent: number;
+  @ApiProperty()
+  totalDeliverySpent: number;
+}

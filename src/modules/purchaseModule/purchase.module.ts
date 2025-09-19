@@ -36,7 +36,7 @@ import { AccessoryModule } from '../accessoryModule/accessory.module';
       useClass: PurchaseRepository,
     },
   ],
-  exports: [],
+  exports: [PurchaseService],
 })
 export class PurchaseModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
