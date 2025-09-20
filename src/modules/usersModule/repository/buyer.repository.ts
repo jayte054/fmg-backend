@@ -3,6 +3,7 @@ import { BuyerEntity } from '../userEntity/buyer.entity';
 import { Injectable } from '@nestjs/common';
 import { CreateBuyerDto, UpdateBuyerDto } from '../utils/user.dto';
 import { BuyersFilterInterface } from '../utils/user.types';
+import { paginatedBuyerResponse } from '../utils/utils';
 
 @Injectable()
 export class BuyerRepository extends Repository<BuyerEntity> {
@@ -60,7 +61,7 @@ export class BuyerRepository extends Repository<BuyerEntity> {
       .take(take)
       .getManyAndCount();
 
-    return { buyers, total };
+    return paginatedBuyerResponse({ buyers, total, skip, take });
   };
 
   updateBuyer = async (buyerId: string, updateDto: UpdateBuyerDto) => {

@@ -8,8 +8,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { RetailScale, VehicleType } from './user.types';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { BuyerEntity } from '../userEntity/buyer.entity';
 
 export class CreateBuyerDto {
   @IsString()
@@ -51,26 +52,39 @@ export class CreateBuyerDto {
 }
 
 export class UpdateBuyerDto {
+  @ApiPropertyOptional()
+  @IsString()
   buyerId?: string;
-
+  @ApiPropertyOptional()
+  @IsString()
   firstName?: string;
-
+  @ApiPropertyOptional()
+  @IsString()
   lastName?: string;
-
+  @ApiPropertyOptional()
+  @IsString()
   phoneNumber?: string;
-
+  @ApiPropertyOptional()
+  @IsString()
   email?: string;
-
+  @ApiPropertyOptional()
+  @IsString()
   address?: string;
-
+  @ApiPropertyOptional()
   location?: { latitude: number; longitude: number };
-
+  @ApiPropertyOptional()
+  @IsString()
   role?: string;
-
+  @ApiPropertyOptional()
+  @IsBoolean()
   isAdmin?: boolean;
-
+  @ApiPropertyOptional()
+  @IsString()
   userId?: string;
-
+  @ApiPropertyOptional()
+  @IsBoolean()
+  isDeleted?: boolean;
+  @ApiPropertyOptional()
   metadata?: Record<string, string>;
 }
 
@@ -428,4 +442,80 @@ export class CreateDriverCredentialsDto {
     description: 'Additional file (e.g., ID card, utility bill)',
   })
   file: Express.Multer.File;
+}
+
+export class BuyersFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  role?: string;
+  @ApiPropertyOptional()
+  createdAt?: Date;
+  @ApiPropertyOptional()
+  isDeleted?: boolean;
+  @ApiProperty()
+  skip: number;
+  @ApiProperty()
+  take: number;
+}
+
+export class PaginatedBuyerResponseDto {
+  @ApiProperty()
+  buyers: BuyerEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
+  @ApiProperty()
+  @IsBoolean()
+  hasMore: boolean;
+}
+
+export class BuyerResponseInterfaceDto {
+  @ApiProperty()
+  @IsString()
+  buyerId: string;
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+  @ApiProperty()
+  @IsString()
+  lastName: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
+  address: string;
+  @ApiProperty()
+  location: { latitude: number; longitude: number };
+  @ApiProperty()
+  @IsString()
+  email: string;
+  @ApiProperty()
+  @IsString()
+  role: string;
+  @ApiProperty()
+  @IsBoolean()
+  isAdmin: boolean;
+  @ApiProperty()
+  @IsString()
+  userId: string;
+  @ApiProperty()
+  metadata: Record<string, string>;
+}
+
+export class BuyerResponseDto {
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: BuyerResponseInterfaceDto;
 }

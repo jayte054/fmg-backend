@@ -3,6 +3,11 @@ import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
 
 export interface BuyerResponse {
+  status: number;
+  data: BuyerResponseInterface;
+}
+
+export interface BuyerResponseInterface {
   buyerId: string;
   firstName: string;
   lastName: string;
@@ -225,4 +230,19 @@ export interface PaginatedBuyerResponseInterface {
   page: number;
   perPage: number;
   hasMore: boolean;
+}
+
+export interface UpdateBuyerInterface {
+  buyerId?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+  address?: string;
+  location?: { latitude: number; longitude: number };
+  role?: string;
+  isAdmin?: boolean;
+  userId?: string;
+  isDeleted?: boolean;
+  metadata?: Record<string, string>;
 }

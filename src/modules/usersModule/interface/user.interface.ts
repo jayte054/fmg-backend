@@ -4,7 +4,6 @@ import {
   CreateBuyerDto,
   CreateDriverDto,
   CreateDealerDto,
-  UpdateBuyerDto,
   UpdateDriverDto,
   UpdateDealerDto,
   CreateAdminDto,
@@ -13,27 +12,29 @@ import {
   CreateAccDealerDto,
 } from '../utils/user.dto';
 import {
-  BuyerResponse,
   driverResObj,
   DriverResponse,
   DealerResponse,
   AdminResponse,
   AccDealerResponse,
+  PaginatedBuyerResponseInterface,
+  BuyerResponseInterface,
+  UpdateBuyerInterface,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
-  createBuyer(createBuyerDto: CreateBuyerDto): Promise<BuyerResponse>;
-  findBuyerById(userId: string): Promise<BuyerResponse>;
+  createBuyer(createBuyerDto: CreateBuyerDto): Promise<BuyerResponseInterface>;
+  findBuyerById(userId: string): Promise<BuyerResponseInterface>;
   findBuyers(options: {
     skip: number;
     take: number;
-  }): Promise<{ buyers: BuyerResponse[]; total: number }>;
+  }): Promise<PaginatedBuyerResponseInterface>;
   updateBuyer(
     buyerId: string,
-    updateDto: UpdateBuyerDto,
-  ): Promise<BuyerResponse>;
+    updateDto: UpdateBuyerInterface,
+  ): Promise<BuyerResponseInterface>;
   deleteBuyer(buyerId: string): Promise<any>;
-  saveBuyer(buyer: BuyerEntity): Promise<BuyerResponse>;
+  saveBuyer(buyer: BuyerEntity): Promise<BuyerResponseInterface>;
   findBuyer(buyerId?: string, email?: string): Promise<BuyerEntity>;
 }
 

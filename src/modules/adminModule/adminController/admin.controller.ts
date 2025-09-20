@@ -40,6 +40,11 @@ import {
   PurchaseResponseDto,
 } from 'src/modules/purchaseModule/utils/purchase.dto';
 import { AdminPurchaseService } from '../adminService/adminPurchase.service';
+import {
+  BuyersFilterDto,
+  PaginatedBuyerResponseDto,
+} from 'src/modules/usersModule/utils/user.dto';
+import { AdminUsersService } from '../adminService/adminUser.service';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard)
@@ -50,6 +55,7 @@ export class AdminController {
     private readonly adminPaymentService: AdminPaymentService,
     private readonly adminProductService: AdminProductService,
     private readonly adminPurchaseService: AdminPurchaseService,
+    private readonly adminUserService: AdminUsersService,
   ) {}
 
   @Get('fetchAuditLogs')
@@ -229,5 +235,20 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async getPurchaseStats(@GetAdminDecorator() admin: AdminEntity) {
     return await this.adminPurchaseService.getPurchaseStats(admin);
+  }
+
+  @Get('/buyers')
+  @ApiOperation({ summary: 'fetch buyers' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch buyers',
+    type: PaginatedBuyerResponseDto,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchBuyers(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() buyerFilterDto: BuyersFilterDto,
+  ) {
+    return await this.adminUserService.fetchBuyers(admin, buyerFilterDto);
   }
 }

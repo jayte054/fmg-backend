@@ -8,9 +8,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { IBuyerRepository } from '../interface/user.interface';
-import { buyerResObj, BuyerResponse } from '../utils/user.types';
+import {
+  BuyerResponse,
+  BuyerResponseInterface,
+  BuyersFilterInterface,
+  PaginatedBuyerResponseInterface,
+  UpdateBuyerInterface,
+} from '../utils/user.types';
 import {
   BuyerCredentialsDto,
+  BuyersFilterDto,
   CreateBuyerDto,
   UpdateBuyerDto,
 } from '../utils/user.dto';
@@ -69,7 +76,10 @@ export class BuyerService {
           message: 'buyer created successfully',
         },
       });
-      return this.mapToBuyerResponse(buyer);
+      return {
+        status: 200,
+        data: this.mapToBuyerResponse(buyer),
+      };
     } catch (error) {
       console.log(error);
       this.logger.error('failed to create new buyer');
@@ -89,7 +99,6 @@ export class BuyerService {
         throw new NotFoundException('user not found');
       }
 
-      this.logger.verbose(`user with id ${user.id} successfully fetched`);
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
         description: 'buyer fetched',
@@ -98,7 +107,12 @@ export class BuyerService {
           message: 'buyer fetched successfully',
         },
       });
-      return this.mapToBuyerResponse(buyer);
+      this.logger.verbose(`user with id ${user.id} successfully fetched`);
+
+      return {
+        status: 200,
+        data: this.mapToBuyerResponse(buyer),
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error; // Allow known errors to propagate
@@ -133,33 +147,42 @@ export class BuyerService {
   };
 
   findBuyers = async (
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<{ data: BuyerResponse[]; total: number; currentPage: number }> => {
-    const currentPage = Math.max(page, 1);
-    const currentLimit = Math.max(limit, 1);
-    const skip = (currentPage - 1) * currentLimit;
+    filterDto: BuyersFilterDto,
+    adminId?: string,
+  ): Promise<PaginatedBuyerResponseInterface> => {
+    const { search, role, isDeleted, createdAt, skip, take } = filterDto;
+
+    const filter: BuyersFilterInterface = {
+      ...(search !== undefined && { search }),
+      ...(role !== undefined && { role }),
+      ...(isDeleted !== undefined && { isDeleted }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
 
     try {
-      const { buyers, total }: buyerResObj =
-        await this.buyerRepository.findBuyers({
-          skip,
-          take: limit,
-        });
+      const buyers = await this.buyerRepository.findBuyers(filter);
 
-      await this.auditLogService.log({
-        logCategory: LogCategory.USER,
-        description: 'buyers fetched',
-        details: {
-          count: total.toString(),
-        },
-      });
+      adminId
+        ? this.auditLogService.log({
+            logCategory: LogCategory.USER,
+            description: 'buyers fetched',
+            details: {
+              count: buyers.total.toString(),
+              adminId,
+            },
+          })
+        : this.auditLogService.log({
+            logCategory: LogCategory.USER,
+            description: 'buyers fetched',
+            details: {
+              count: buyers.total.toString(),
+            },
+          });
 
-      return {
-        data: buyers,
-        total,
-        currentPage: page,
-      };
+      this.logger.log('buyers list fetched successfully');
+      return buyers;
     } catch (error) {
       this.logger.error('failed to fetch buyers');
       throw new InternalServerErrorException('failed to fetch buyers');
@@ -171,9 +194,8 @@ export class BuyerService {
     updateData: UpdateBuyerDto,
   ): Promise<BuyerResponse> => {
     try {
-      const buyer: BuyerResponse = await this.buyerRepository.findBuyerById(
-        user.id,
-      );
+      const buyer: BuyerResponseInterface =
+        await this.buyerRepository.findBuyerById(user.id);
 
       if (!buyer) {
         throw new NotFoundException(`Buyer with ID ${user.buyerId} not found`);
@@ -211,14 +233,17 @@ export class BuyerService {
           message: 'buyer updated successfully',
         },
       });
-      return this.mapToBuyerResponse(updateBuyer);
+      return {
+        status: 200,
+        data: this.mapToBuyerResponse(updateBuyer),
+      };
     } catch (error) {
       this.logger.error('failed to update buyer details');
       throw new InternalServerErrorException('failed to update buyer details');
     }
   };
 
-  saveBuyer = async (buyer: BuyerEntity): Promise<BuyerResponse> => {
+  saveBuyer = async (buyer: BuyerEntity): Promise<BuyerResponseInterface> => {
     try {
       const _buyer = await this.buyerRepository.saveBuyer(buyer);
 
@@ -238,24 +263,18 @@ export class BuyerService {
     }
   };
 
-  deleteBuyer = async (user: AuthEntity) => {
+  deleteBuyerByAdmin = async (adminId: string, buyerId: string) => {
     try {
-      const buyer = await this.buyerRepository.findBuyerById(user.id);
-      if (user.id !== buyer.userId) {
-        this.logger.log('unauthorized user');
-        throw new UnauthorizedException('user not authorized');
-      }
-
-      await this.buyerRepository.deleteBuyer(buyer.buyerId);
+      await this.buyerRepository.deleteBuyer(buyerId);
       this.logger.verbose(
-        `buyer with id ${user.id} profile deleted successfully`,
+        `buyer with id ${buyerId} profile deleted successfully`,
       );
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
         description: 'buyer deleted',
-        email: user.email,
         details: {
           message: 'buyer deleted successfully',
+          adminId,
         },
       });
       return 'buyer profile successfully deleted';
@@ -265,7 +284,36 @@ export class BuyerService {
     }
   };
 
-  private mapToBuyerResponse = (buyer: BuyerResponse): BuyerResponse => {
+  deleteBuyer = async (user: AuthEntity) => {
+    const buyer = await this.buyerRepository.findBuyerById(user.id);
+    if (user.id !== buyer.userId) {
+      this.logger.log('unauthorized user');
+      throw new UnauthorizedException('user not authorized');
+    }
+
+    const updateDto: UpdateBuyerInterface = {
+      isDeleted: true,
+    };
+
+    await this.buyerRepository.updateBuyer(buyer.buyerId, updateDto);
+
+    await this.auditLogService.log({
+      logCategory: LogCategory.USER,
+      description: 'buyer deleted',
+      email: user.email,
+      details: {
+        message: 'buyer deleted successfully',
+      },
+    });
+    this.logger.verbose(
+      `buyer with id ${user.id} profile deleted successfully`,
+    );
+    return 'buyer delete status successfully updated';
+  };
+
+  private mapToBuyerResponse = (
+    buyer: BuyerResponseInterface,
+  ): BuyerResponseInterface => {
     return {
       buyerId: buyer.buyerId,
       firstName: buyer.firstName,

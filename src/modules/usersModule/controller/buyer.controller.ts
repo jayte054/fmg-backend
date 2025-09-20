@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -17,7 +16,14 @@ import { BuyerService } from '../service/buyer.service';
 import { JwtAuthGuard } from '../../../common/guards/jwt.authGuard';
 import { Request } from 'express';
 import { DuplicateException } from '../../../common/exceptions/exceptions';
-import { BuyerCredentialsDto, UpdateBuyerDto } from '../utils/user.dto';
+import {
+  BuyerCredentialsDto,
+  BuyerResponseDto,
+  BuyersFilterDto,
+  PaginatedBuyerResponseDto,
+  UpdateBuyerDto,
+} from '../utils/user.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
 @Controller('user')
@@ -25,6 +31,12 @@ export class BuyerController {
   constructor(private buyerService: BuyerService) {}
 
   @Post('/buyer')
+  @ApiOperation({ summary: 'create buyer' })
+  @ApiResponse({
+    status: 200,
+    description: 'buyer created successfully',
+    type: BuyerResponseDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   async createBuyer(
     @Body(ValidationPipe) buyerCredentials: BuyerCredentialsDto,
@@ -42,6 +54,12 @@ export class BuyerController {
   }
 
   @Get('/findBuyerById')
+  @ApiOperation({ summary: 'find buyer' })
+  @ApiResponse({
+    status: 200,
+    description: 'buyer fetched successfully',
+    type: BuyerResponseDto,
+  })
   @HttpCode(HttpStatus.FOUND)
   async findBuyerById(@Req() req: Request) {
     const { user }: any = req;
@@ -49,14 +67,24 @@ export class BuyerController {
   }
 
   @Get('/findBuyers')
+  @ApiOperation({ summary: 'fetch buyers list' })
+  @ApiResponse({
+    status: 302,
+    description: 'buyer list fetched successfully',
+    type: PaginatedBuyerResponseDto,
+  })
   @HttpCode(HttpStatus.FOUND)
-  async findBuyers(@Query('page') page: string, @Query('limit') limit: string) {
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    return await this.buyerService.findBuyers(pageNum, limitNum);
+  async findBuyers(@Query() filterDto: BuyersFilterDto) {
+    return await this.buyerService.findBuyers(filterDto);
   }
 
   @Put('/updateBuyer')
+  @ApiOperation({ summary: 'updated buyer' })
+  @ApiResponse({
+    status: 200,
+    description: 'buyer created successfully',
+    type: BuyerResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   async updateBuyer(
     @Req() req: Request,
@@ -66,7 +94,13 @@ export class BuyerController {
     return await this.buyerService.updateBuyer(user, updateData);
   }
 
-  @Delete('/deleteBuyer')
+  @Put('/deleteBuyer')
+  @ApiOperation({ summary: 'set buyer status to deleted' })
+  @ApiResponse({
+    status: 200,
+    description: 'buyer delete status successful',
+    type: String,
+  })
   @HttpCode(HttpStatus.OK)
   async deleteBuyer(@Req() req: Request) {
     const { user }: any = req;
