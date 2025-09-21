@@ -295,3 +295,23 @@ export class RevenueResponseDto {
   @ApiProperty()
   data: RevenueEntity;
 }
+
+export class CashbackWalletFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsBoolean()
+  isActive?: boolean;
+  @ApiPropertyOptional()
+  @IsString()
+  balance?: string;
+  @ApiPropertyOptional()
+  createdAt?: Date;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}

@@ -49,6 +49,7 @@ import { ICashbackWalletRepository } from '../interface/ICashbackWallet.interfac
 import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
 import { PaymentEntity } from '../entity/payment.entity';
 import { IRevenueRepository } from '../interface/IRevenueRepository';
+import { DuplicateException } from 'src/common/exceptions/exceptions';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
@@ -744,9 +745,30 @@ export class PaymentService {
       balance: '0',
       metadata: {
         numberOfTransactions: 0,
+        email,
       },
     };
 
+    const duplicateWallet =
+      await this.cashbackRepository.findCashbackWalletByUserId(buyer.userId);
+
+    if (duplicateWallet) {
+      this.logger.error(
+        'cashback wallet already exists for user ',
+        buyer.buyerId,
+      );
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        email: buyer.email,
+        description: 'duplicate wallet',
+        details: {
+          userId: buyer.userId,
+        },
+        status: HttpStatus.CONFLICT,
+      });
+      throw new DuplicateException('wallet already exists');
+    }
+    
     const cashbackWallet =
       await this.cashbackRepository.createCashbackWallet(input);
 

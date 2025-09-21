@@ -100,4 +100,6 @@ export class CashbackWalletRepository extends Repository<CashbackWalletEntity> {
     await this.save(wallet);
     return { ok: true };
   };
+
+  getCashbackWalletStats = async () => {}
 }
