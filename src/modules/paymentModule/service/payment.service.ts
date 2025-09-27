@@ -50,6 +50,8 @@ import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
 import { PaymentEntity } from '../entity/payment.entity';
 import { IRevenueRepository } from '../interface/IRevenueRepository';
 import { DuplicateException } from 'src/common/exceptions/exceptions';
+import { DataSource } from 'typeorm';
+import { RevenueEntity } from '../entity/revenue.entity';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
@@ -77,6 +79,7 @@ export class PaymentService {
     private readonly auditLogService: AuditLogService,
     private readonly messagingService: MessagingService,
     private readonly buyerService: BuyerService,
+    private readonly dataSource: DataSource,
   ) {}
 
   initializePayment = async (
@@ -220,87 +223,149 @@ export class PaymentService {
       throw new NotFoundException('Dealer sub-account not found');
     }
 
-    const driverMetadata = { ...driverWallet.metadata };
-    const prev = driverMetadata.numberOfTransactions;
-    driverMetadata.numberOfTransactions =
-      typeof prev === 'number' ? prev + 1 : 1;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const dealerMetadata = { ...dealerWallet.metadata };
-    const previous = Number(dealerMetadata.numberOfTransactions);
-    dealerMetadata.numberOfTransactions =
-      typeof previous === 'number' ? previous + 1 : 1;
+    try {
+      const driverMetadata = { ...driverWallet.metadata };
+      const prev = driverMetadata.numberOfTransactions;
+      driverMetadata.numberOfTransactions =
+        typeof prev === 'number' ? prev + 1 : 1;
 
-    const updateDriverWalletData: UpdateWalletData = {
-      balance: driverShare + driverWallet.balance,
-      previousBalance: driverWallet.balance,
-      metadata: driverMetadata,
-      updatedAt: new Date(),
-    };
+      const updateDriverWalletData: UpdateWalletData = {
+        balance: driverShare + driverWallet.balance,
+        previousBalance: driverWallet.balance,
+        metadata: driverMetadata,
+        updatedAt: new Date(),
+      };
 
-    const updateDealerWalletData: UpdateWalletData = {
-      balance: dealerShare + dealerWallet.balance,
-      previousBalance: dealerWallet.balance,
-      metadata: dealerMetadata,
-      updatedAt: new Date(),
-    };
-
-    await Promise.all([
-      this.walletRepository.updateWallet(
+      await queryRunner.manager.update(
+        WalletEntity,
         driverWallet.walletAccount,
         updateDriverWalletData,
-      ),
-      this.walletRepository.updateWallet(
+      );
+
+      const dealerMetadata = { ...dealerWallet.metadata };
+      const previous = Number(dealerMetadata.numberOfTransactions);
+      dealerMetadata.numberOfTransactions =
+        typeof previous === 'number' ? previous + 1 : 1;
+
+      const updateDealerWalletData: UpdateWalletData = {
+        balance: dealerShare + dealerWallet.balance,
+        previousBalance: dealerWallet.balance,
+        metadata: dealerMetadata,
+        updatedAt: new Date(),
+      };
+
+      await queryRunner.manager.update(
+        WalletEntity,
         dealerWallet.walletAccount,
         updateDealerWalletData,
-      ),
-    ]);
+      );
 
-    // let paymentRecord: PaymentEntity;
-    const commonFields = {
-      email: email,
-      purchaseId: purchase.purchaseId,
-      reference,
-      amount: totalAmount,
-      productAmount,
-      deliveryFee,
-      driverShare,
-      dealerSubAccount: dealerSub.subAccountCode,
-      dealersWalletAccount: dealerWallet.walletAccount,
-      driversWalletAccount: driverWallet.walletAccount,
-      status: PaymentStatus.paid,
-      createdAt: new Date(),
-      metadata: {},
-    };
+      // await Promise.all([
+      //   this.walletRepository.updateWallet(
+      //     driverWallet.walletAccount,
+      //     updateDriverWalletData,
+      //   ),
+      //   this.walletRepository.updateWallet(
+      //     dealerWallet.walletAccount,
+      //     updateDealerWalletData,
+      //   ),
+      // ]);
 
-    if (buyer.metadata['cashbackWallet'] === 'true') {
-      const amount = platformCommission * 0.01;
-      const commission = platformCommission - amount;
-      this.updatCashbackMethod(amount.toString(), buyer.buyerId);
+      // let paymentRecord: PaymentEntity;
+      const commonFields = {
+        email: email,
+        purchaseId: purchase.purchaseId,
+        reference,
+        amount: totalAmount,
+        productAmount,
+        deliveryFee,
+        driverShare,
+        dealerSubAccount: dealerSub.subAccountCode,
+        dealersWalletAccount: dealerWallet.walletAccount,
+        driversWalletAccount: driverWallet.walletAccount,
+        status: PaymentStatus.paid,
+        createdAt: new Date(),
+        metadata: {},
+      };
 
-      const [paymentRecord, revenueRecord] = await Promise.all([
-        await this.paymentRepository.makePayment({
-          ...commonFields,
-          platformCommission: commission,
-        }),
+      //update buyer metadata
+      const prevAmount = Number(buyer.metadata?.amountTransacted) || 0;
+      const updatedBuyerMetadata = { ...buyer.metadata };
+      updatedBuyerMetadata['amountTransacted'] = (
+        prevAmount + totalAmount
+      ).toString();
 
-        await this.revenueRepository.createRevenue({
-          amount: commission.toString(),
-          reference,
-          source,
-          recordedAt: new Date(),
-        }),
-      ]);
-      // paymentRecord = await this.paymentRepository.makePayment({
-      //   ...commonFields,
-      //   platformCommission: commission,
-      // });
+      let paymentRecord: PaymentEntity;
+      let revenueRecord: RevenueEntity;
 
-      // await this.revenueRepository.createRevenue({
-      //   amount: commission.toString(),
-      //   reference,
-      //   source,
-      //   recordedAt: new Date(),
-      // });
+      if (buyer.metadata['cashbackWallet'] === 'true') {
+        const amount = platformCommission * 0.01;
+        const commission = platformCommission - amount;
+        await this.updateCashbackMethod(amount.toString(), buyer.buyerId);
+
+        [paymentRecord, revenueRecord] = await Promise.all([
+          // await this.paymentRepository.makePayment({
+          //   ...commonFields,
+          //   platformCommission: commission,
+          // }),
+          queryRunner.manager.save(PaymentEntity, {
+            ...commonFields,
+            platformCommission: commission,
+          }),
+
+          // await this.revenueRepository.createRevenue({
+          //   amount: commission.toString(),
+          //   reference,
+          //   source,
+          //   recordedAt: new Date(),
+          // }),
+          queryRunner.manager.save(RevenueEntity, {
+            amount: commission.toString(),
+            reference,
+            source,
+            recordedAt: new Date(),
+          }),
+        ]);
+      } else {
+        [paymentRecord, revenueRecord] = await Promise.all([
+          // await this.paymentRepository.makePayment({
+          //   ...commonFields,
+          //   platformCommission,
+          // }),
+          queryRunner.manager.save(PaymentEntity, {
+            ...commonFields,
+            platformCommission,
+          }),
+
+          // await this.revenueRepository.createRevenue({
+          //   amount: platformCommission.toString(),
+          //   reference,
+          //   source,
+          //   recordedAt: new Date(),
+          // }),
+          queryRunner.manager.save(RevenueEntity, {
+            amount: platformCommission.toString(),
+            reference,
+            source,
+            recordedAt: new Date(),
+          }),
+        ]);
+        // paymentRecord = await this.paymentRepository.makePayment({
+        //   ...commonFields,
+        //   platformCommission,
+        // });
+
+        // await this.buyerService.updateBuyerByPayment(buyer, buyer.metadata),
+      }
+
+      await queryRunner.manager.update(BuyerEntity, buyer.buyerId, {
+        metadata: updatedBuyerMetadata,
+      });
+      await queryRunner.commitTransaction();
 
       this.auditLogService.log({
         logCategory: LogCategory.PAYMENT,
@@ -316,39 +381,21 @@ export class PaymentService {
       });
 
       return paymentRecord;
-    } else {
-      const [paymentRecord, revenueRecord] = await Promise.all([
-        await this.paymentRepository.makePayment({
-          ...commonFields,
-          platformCommission,
-        }),
-
-        await this.revenueRepository.createRevenue({
-          amount: platformCommission.toString(),
-          reference,
-          source,
-          recordedAt: new Date(),
-        }),
-      ]);
-      // paymentRecord = await this.paymentRepository.makePayment({
-      //   ...commonFields,
-      //   platformCommission,
-      // });
-
-      this.auditLogService.log({
+    } catch (error) {
+      //rollback everything if something fails
+      await queryRunner.rollbackTransaction();
+      this.auditLogService.error({
         logCategory: LogCategory.PAYMENT,
-        description: 'Payment updated and processed successfully',
-        email: email,
-        details: {
-          reference,
-          dealerId,
-          driverId,
-          amount: totalAmount.toString(),
-          revenueId: revenueRecord.revenueId,
-        },
+        description: 'Payment transaction failed',
+        email,
+        details: { error: error.message, reference },
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
       });
-
-      return paymentRecord;
+      throw new InternalServerErrorException(
+        'An error occurred while processing the payment',
+      );
+    } finally {
+      await queryRunner.release();
     }
   };
 
@@ -768,7 +815,7 @@ export class PaymentService {
       });
       throw new DuplicateException('wallet already exists');
     }
-    
+
     const cashbackWallet =
       await this.cashbackRepository.createCashbackWallet(input);
 
@@ -797,6 +844,7 @@ export class PaymentService {
   };
 
   findCashbackWallets = async (
+    adminId: string,
     filter: CashbackWalletFilter,
   ): Promise<PaginatedCashbackWalletResponse> => {
     const { search, isActive, createdAt, skip, take } = filter;
@@ -814,9 +862,10 @@ export class PaymentService {
 
     this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
-      description: 'cashback wallets fetched by admin ${}',
+      description: 'cashback wallets fetched by admin',
       details: {
         total: wallets.total.toString(),
+        adminId,
       },
     });
 
@@ -889,7 +938,7 @@ export class PaymentService {
     return wallet;
   };
 
-  private updatCashbackMethod = async (amount: string, buyerId: string) => {
+  private updateCashbackMethod = async (amount: string, buyerId: string) => {
     const wallet =
       await this.cashbackRepository.findCashbackWalletByUserId(buyerId);
     const prev = (wallet.metadata?.numberOfTransactions as number) ?? 0;
@@ -932,6 +981,21 @@ export class PaymentService {
     this.logger.log(`cashback wallet ${walletId} updated successfully`);
 
     return updateWallet;
+  };
+
+  getCashbackStats = async (adminId: string) => {
+    const stats = await this.cashbackRepository.getCashbackWalletStats();
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'cashback wallet stats',
+      details: {
+        adminId,
+      },
+    });
+    this.logger.log('cashback wallet stats fetched successfully');
+
+    return stats;
   };
 
   findPayment = async (buyer: BuyerEntity, paymentId: string) => {

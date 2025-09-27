@@ -9,13 +9,15 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { IDriverRepository } from '../interface/user.interface';
 import {
-  driverResObj,
+  DriverDetails,
+  DriverFilterInterface,
   DriverResponse,
   UpdateDriverCredentials,
 } from '../utils/user.types';
 import {
   CreateDriverCredentialsDto,
   CreateDriverDto,
+  DriverFilterDto,
   UpdateDriverDto,
 } from '../utils/user.dto';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
@@ -100,8 +102,7 @@ export class DriverService {
         userId: user.id,
       };
 
-      const driver: DriverResponse =
-        await this.driverRepository.createDriver(createDriverDto);
+      const driver = await this.driverRepository.createDriver(createDriverDto);
 
       const walletInput: Partial<WalletEntity> = {
         walletName: `${driver.firstName} ${driver.lastName}`,
@@ -125,7 +126,10 @@ export class DriverService {
           message: 'driver created successfully',
         },
       });
-      return this.mapDriverResponse(driver);
+      return {
+        message: 'drivers fetched successfully',
+        data: this.mapDriverResponse(driver),
+      };
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -139,9 +143,7 @@ export class DriverService {
 
   findDriverById = async (user: AuthEntity): Promise<DriverResponse> => {
     try {
-      const driver: DriverResponse = await this.driverRepository.findDriverById(
-        user.id,
-      );
+      const driver = await this.driverRepository.findDriverById(user.id);
       if (!driver) {
         this.logger.verbose(`driver profile with id ${user.id} does not exist`);
         throw new NotFoundException('driver profile not found');
@@ -156,7 +158,10 @@ export class DriverService {
         },
       });
 
-      return this.mapDriverResponse(driver);
+      return {
+        message: 'driver fetched successfully',
+        data: this.mapDriverResponse(driver),
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -171,8 +176,7 @@ export class DriverService {
     driverId: string,
   ): Promise<DriverResponse> => {
     try {
-      const driver: DriverResponse =
-        await this.driverRepository.findDriverById2(driverId);
+      const driver = await this.driverRepository.findDriverById2(driverId);
       if (!driver) {
         this.logger.verbose(`driver profile with id ${user.id} does not exist`);
         throw new NotFoundException('driver profile not found');
@@ -187,7 +191,10 @@ export class DriverService {
         },
       });
 
-      return this.mapDriverResponse(driver);
+      return {
+        message: 'driver fetched successfully',
+        data: this.mapDriverResponse(driver),
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -199,33 +206,31 @@ export class DriverService {
 
   findDriverByService = async (driverId: string): Promise<DriverResponse> => {
     try {
-      const driver: DriverResponse =
-        await this.driverRepository.findDriverById2(driverId);
-      return this.mapDriverResponse(driver);
+      const driver = await this.driverRepository.findDriverById2(driverId);
+      return {
+        message: 'driver fetched successfully',
+        data: this.mapDriverResponse(driver),
+      };
     } catch (error) {
       this.logger.error(`failed to find driver with id`);
       throw new InternalServerErrorException('failed to find driver');
     }
   };
 
-  findDrivers = async (
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<{
-    data: DriverResponse[];
-    total: number;
-    currentPage: number;
-  }> => {
-    const currentPage = Math.max(page, 1);
-    const currentLimit = Math.max(limit, 1);
-    const skip = (currentPage - 1) * currentLimit;
+  findDrivers = async (filter: DriverFilterDto) => {
+    const { search, createdAt, isDeleted, skip, take } = filter;
+
+    const filterInterface: DriverFilterInterface = {
+      ...(search !== undefined && { search }),
+      ...(createdAt !== undefined && { createdAt }),
+      ...(isDeleted !== undefined && { isDeleted }),
+      skip,
+      take,
+    };
 
     try {
-      const { drivers, total }: driverResObj =
-        await this.driverRepository.findDrivers({
-          skip,
-          take: limit,
-        });
+      const driversResponse =
+        await this.driverRepository.findDrivers(filterInterface);
 
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
@@ -235,11 +240,7 @@ export class DriverService {
         },
       });
 
-      return {
-        data: drivers,
-        total,
-        currentPage: page,
-      };
+      return driversResponse;
     } catch (error) {
       this.logger.error('failed to fetch drivers');
       throw new InternalServerErrorException('failed to fetch drivers');
@@ -305,8 +306,10 @@ export class DriverService {
         imageUrl: driver.imageUrl,
       };
 
-      const updateDriver: DriverResponse =
-        await this.driverRepository.updateDriver(driver.driverId, updateDto);
+      const updatedDriver = await this.driverRepository.updateDriver(
+        driver.driverId,
+        updateDto,
+      );
 
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
@@ -316,7 +319,10 @@ export class DriverService {
           message: 'driver updated  successfully',
         },
       });
-      return this.mapDriverResponse(updateDriver);
+      return {
+        message: 'driver fetched successfully',
+        data: this.mapDriverResponse(updatedDriver),
+      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -365,8 +371,10 @@ export class DriverService {
         imageUrl: driver.imageUrl,
       };
 
-      const updateDriver: DriverResponse =
-        await this.driverRepository.updateDriver(driver.driverId, updateDto);
+      const updatedDriver = await this.driverRepository.updateDriver(
+        driver.driverId,
+        updateDto,
+      );
 
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
@@ -376,7 +384,10 @@ export class DriverService {
           message: 'driver image updated',
         },
       });
-      return this.mapDriverResponse(updateDriver);
+      return {
+        message: 'driver fetched successfully',
+        data: this.mapDriverResponse(updatedDriver),
+      };
     } catch (error) {
       this.logger.error('failed to update driver profile');
       throw new InternalServerErrorException('failed to update driver');
@@ -508,8 +519,8 @@ export class DriverService {
   };
 
   private mapDriverResponse = (
-    driverResponse: DriverResponse,
-  ): DriverResponse => {
+    driverResponse: DriverDetails,
+  ): DriverDetails => {
     return {
       driverId: driverResponse.driverId,
       firstName: driverResponse.firstName,

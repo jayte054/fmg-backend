@@ -51,7 +51,9 @@ export class BuyerService {
       address,
       location,
       userId: user.id,
-      metadata: {},
+      metadata: {
+        amountTransacted: '0',
+      },
     };
     try {
       const duplicateBuyer = await this.buyerRepository.findBuyerById(user.id);
@@ -210,19 +212,16 @@ export class BuyerService {
       buyer.metadata = updateData.metadata || buyer.metadata;
 
       const updateDto: UpdateBuyerDto = {
-        buyerId: buyer.buyerId,
         firstName: buyer.firstName,
         lastName: buyer.lastName,
         phoneNumber: buyer.phoneNumber,
         email: buyer.email,
         address: buyer.address,
         location: buyer.location,
-        role: buyer.role,
-        isAdmin: buyer.isAdmin,
       };
 
       const updateBuyer = await this.buyerRepository.updateBuyer(
-        updateDto.buyerId,
+        buyer.buyerId,
         updateDto,
       );
       await this.auditLogService.log({
@@ -309,6 +308,33 @@ export class BuyerService {
       `buyer with id ${user.id} profile deleted successfully`,
     );
     return 'buyer delete status successfully updated';
+  };
+
+  updateBuyerByPayment = async (
+    buyer: BuyerEntity,
+    metadata: Record<string, string>,
+  ) => {
+    const updateData: UpdateBuyerDto = {
+      metadata,
+    };
+    const updatedBuyer = await this.buyerRepository.updateBuyer(
+      buyer.buyerId,
+      updateData,
+    );
+
+    if (!updatedBuyer) {
+      this.logger.error('failed to update buyer');
+      this.auditLogService.error({
+        logCategory: LogCategory.USER,
+        description: 'failed to update buyer by payment',
+        email: buyer.email,
+        details: {
+          metadata: JSON.stringify(metadata),
+        },
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+      throw new InternalServerErrorException('failed to update buyer');
+    }
   };
 
   private mapToBuyerResponse = (

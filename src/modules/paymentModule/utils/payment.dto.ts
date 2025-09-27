@@ -23,6 +23,7 @@ import {
 import { PaymentStatus, RevenueSource } from './interface';
 import { PaymentEntity } from '../entity/payment.entity';
 import { RevenueEntity } from '../entity/revenue.entity';
+import { CashbackWalletEntity } from '../entity/cashback.entity';
 
 class PurchaseCredentials {
   @ApiProperty()
@@ -314,4 +315,33 @@ export class CashbackWalletFilterDto {
   @ApiProperty()
   @IsNumber()
   take: number;
+}
+
+export class CashbackWalletStatsResponseDto {
+  @ApiProperty()
+  @IsNumber()
+  totalWallets: number;
+  @ApiProperty()
+  @IsNumber()
+  activeWallet: number;
+  @ApiProperty()
+  @IsNumber()
+  totalBalance: number;
+  @ApiProperty()
+  @IsNumber()
+  averageBalance: number;
+}
+
+export class PaginatedCashbackWalletResponseDto {
+  @ApiProperty()
+  wallets: CashbackWalletEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
 }

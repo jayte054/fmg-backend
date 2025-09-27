@@ -124,10 +124,10 @@ export interface ActivateSubAccountInterface {
 }
 
 export interface CashbackWalletFilter {
-  search: string;
-  isActive: boolean;
-  balance: string;
-  createdAt: Date;
+  search?: string;
+  isActive?: boolean;
+  balance?: string;
+  createdAt?: Date;
   skip: number;
   take: number;
 }
@@ -223,4 +223,11 @@ export interface PaginatedRevenueResponse {
   total: number;
   page: number;
   perPage: number;
+}
+
+export interface CashbackWalletStatsInterface {
+  totalWallets: number;
+  activeWallet: number;
+  totalBalance: number;
+  averageBalance: number;
 }

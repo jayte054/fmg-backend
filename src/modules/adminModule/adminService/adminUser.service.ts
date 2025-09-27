@@ -1,10 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from 'src/modules/auditLogModule/utils/logInterface';
-import { CashbackWalletFilterDto } from 'src/modules/paymentModule/utils/payment.dto';
 import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
+import { DriverService } from 'src/modules/usersModule/service/driver.service';
 import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
-import { BuyersFilterDto } from 'src/modules/usersModule/utils/user.dto';
+import {
+  BuyersFilterDto,
+  DriverFilterDto,
+} from 'src/modules/usersModule/utils/user.dto';
 
 @Injectable()
 export class AdminUsersService {
@@ -12,6 +15,7 @@ export class AdminUsersService {
   constructor(
     private readonly buyerService: BuyerService,
     private readonly auditLogService: AuditLogService,
+    private readonly driverService: DriverService,
   ) {}
 
   fetchBuyers = async (admin: AdminEntity, filterDto: BuyersFilterDto) => {
@@ -37,8 +41,31 @@ export class AdminUsersService {
     return buyer;
   };
 
-  fetchBuyerCashbackWalletStats = async (
-    admin: AdminEntity,
-    filterDto: CashbackWalletFilterDto,
-  ) => {};
+  fetchDrivers = async (admin: AdminEntity, filterDto: DriverFilterDto) => {
+    const drivers = await this.driverService.findDrivers(filterDto);
+
+    if (drivers.total === 0) {
+      this.auditLogService.error({
+        logCategory: LogCategory.Admin,
+        description: 'fetched drivers',
+        email: admin.email,
+        details: {
+          filterDto: JSON.stringify(filterDto),
+        },
+        status: HttpStatus.NO_CONTENT,
+      });
+      return drivers;
+    }
+    this.auditLogService.log({
+      logCategory: LogCategory.Admin,
+      description: 'fetched drivers',
+      email: admin.email,
+      details: {
+        filterDto: JSON.stringify(filterDto),
+      },
+    });
+    this.logger.log('drivers fetched by admin ', admin.adminId);
+
+    return drivers;
+  };
 }

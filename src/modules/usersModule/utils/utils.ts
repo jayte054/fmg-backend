@@ -1,6 +1,8 @@
 import {
   PaginatedBuyerInterface,
   PaginatedBuyerResponseInterface,
+  PaginatedDriverResponseInterface,
+  PaginatedDriversResponse,
 } from './user.types';
 
 export const paginatedBuyerResponse = (
@@ -23,5 +25,28 @@ export const paginatedBuyerResponse = (
     page: Math.floor(skip / take) + 1,
     perPage: take,
     hasMore: skip + buyers.length < total,
+  };
+};
+
+export const paginatedDriverResponse = (
+  responseInterface: PaginatedDriverResponseInterface,
+): PaginatedDriversResponse => {
+  const { drivers, total, skip, take } = responseInterface;
+  if (!drivers || drivers.length === 0) {
+    return {
+      data: [],
+      total,
+      page: 0,
+      perPage: take,
+      hasMore: false,
+    };
+  }
+
+  return {
+    data: drivers,
+    total,
+    page: Math.floor(skip / take) + 1,
+    perPage: take,
+    hasMore: skip + drivers.length < total,
   };
 };

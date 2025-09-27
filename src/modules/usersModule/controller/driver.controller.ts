@@ -20,7 +20,13 @@ import { DriverService } from '../service/driver.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { UpdateDriverCredentials } from '../utils/user.types';
-import { CreateDriverCredentialsDto } from '../utils/user.dto';
+import {
+  CreateDriverCredentialsDto,
+  DriverFilterDto,
+  DriverResponseDto,
+  PaginatedDriversResponseDto,
+} from '../utils/user.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
 @Controller('driver')
@@ -28,6 +34,12 @@ export class DriverController {
   constructor(private driverService: DriverService) {}
 
   @Post('/createDriver')
+  @ApiOperation({ summary: 'create driver' })
+  @ApiResponse({
+    status: 201,
+    description: 'driver created successfully',
+    type: DriverResponseDto,
+  })
   @UseInterceptors(FilesInterceptor('files', 2))
   @HttpCode(HttpStatus.CREATED)
   async createDriver(
@@ -44,6 +56,12 @@ export class DriverController {
   }
 
   @Get('/findDriver')
+  @ApiOperation({ summary: 'find driver' })
+  @ApiResponse({
+    status: 302,
+    description: 'driver found successfully',
+    type: DriverResponseDto,
+  })
   @HttpCode(HttpStatus.FOUND)
   async findDriverById(@Req() req: Request) {
     const { user }: any = req;
@@ -51,6 +69,12 @@ export class DriverController {
   }
 
   @Get('/findDriver/:driverId')
+  @ApiOperation({ summary: 'find driver' })
+  @ApiResponse({
+    status: 302,
+    description: 'driver found successfully',
+    type: DriverResponseDto,
+  })
   @HttpCode(HttpStatus.FOUND)
   async findDriverById2(
     @Req() req: Request,
@@ -61,17 +85,24 @@ export class DriverController {
   }
 
   @Get('/findDrivers')
+  @ApiOperation({ summary: 'find drivers' })
+  @ApiResponse({
+    status: 302,
+    description: 'drivers fetched successfully',
+    type: PaginatedDriversResponseDto,
+  })
   @HttpCode(HttpStatus.FOUND)
-  async findDrivers(
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-  ) {
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    return await this.driverService.findDrivers(pageNum, limitNum);
+  async findDrivers(@Query() filter: DriverFilterDto) {
+    return await this.driverService.findDrivers(filter);
   }
 
   @Put('/updateDriver')
+  @ApiOperation({ summary: 'find driver' })
+  @ApiResponse({
+    status: 200,
+    description: 'driver found successfully',
+    type: DriverResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file'))
   async updateDriver(
@@ -88,6 +119,12 @@ export class DriverController {
   }
 
   @Put('/updateDriverImage')
+  @ApiOperation({ summary: 'find driver' })
+  @ApiResponse({
+    status: 200,
+    description: 'driver found successfully',
+    type: DriverResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file'))
   async updateDriverImage(
@@ -104,6 +141,11 @@ export class DriverController {
   }
 
   @Delete('deleteDriverProfile')
+  @ApiOperation({ summary: 'find driver' })
+  @ApiResponse({
+    status: 200,
+    description: 'driver found successfully',
+  })
   @HttpCode(HttpStatus.OK)
   async deleteDriver(@Req() req: Request) {
     const { user }: any = req;

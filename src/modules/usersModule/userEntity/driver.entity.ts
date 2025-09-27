@@ -2,9 +2,11 @@ import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { VehicleType } from '../utils/user.types';
 
@@ -54,6 +56,18 @@ export class DriverEntity extends BaseEntity {
     onDelete: 'CASCADE',
   })
   user: AuthEntity;
+
+  @CreateDateColumn({ nullable: true })
+  createdAt?: Date;
+
+  @UpdateDateColumn({ nullable: true })
+  updatedAt?: Date;
+
+  @Column({ default: false })
+  isDeleted?: boolean;
+
+  @Column({ type: 'jsonb' })
+  metadata: Record<string, unknown>;
 
   @Column()
   userId: string;

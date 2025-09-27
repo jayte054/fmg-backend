@@ -21,6 +21,9 @@ import { AuditLogEntity } from 'src/modules/auditLogModule/auditLogEntity/auditL
 import {
   AdminPaymentFilterDto,
   BuyerPaymentResponseDto,
+  CashbackWalletFilterDto,
+  CashbackWalletStatsResponseDto,
+  PaginatedCashbackWalletResponseDto,
   PaginatedPaymentResponseDto,
   PaginatedRevenueResponseDto,
   RevenueFilterDto,
@@ -250,5 +253,35 @@ export class AdminController {
     @Query() buyerFilterDto: BuyersFilterDto,
   ) {
     return await this.adminUserService.fetchBuyers(admin, buyerFilterDto);
+  }
+
+  @Get('/stats')
+  @ApiOperation({ summary: 'fetch stats' })
+  @ApiResponse({
+    status: 200,
+    description: 'fetch cashback wallet stats',
+    type: CashbackWalletStatsResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchStats(@GetAdminDecorator() admin: AdminEntity) {
+    return await this.adminPaymentService.fetchBuyerCashbackWalletStats(admin);
+  }
+
+  @Get('/cashBackWallets')
+  @ApiOperation({ summary: 'fetch cashback wallets' })
+  @ApiResponse({
+    status: 200,
+    description: 'fetch cashback wallets',
+    type: PaginatedCashbackWalletResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchCashbackWallets(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() filterDto: CashbackWalletFilterDto,
+  ) {
+    return await this.adminPaymentService.fetchCashbackWallets(
+      admin,
+      filterDto,
+    );
   }
 }

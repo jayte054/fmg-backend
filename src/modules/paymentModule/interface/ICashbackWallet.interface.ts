@@ -1,6 +1,7 @@
 import { CashbackWalletEntity } from '../entity/cashback.entity';
 import {
   CashbackWalletFilter,
+  CashbackWalletStatsInterface,
   PaginatedCashbackWalletResponse,
   UpdateCashbackInputInterface,
 } from '../utils/interface';
@@ -19,4 +20,5 @@ export interface ICashbackWalletRepository {
     updateInput: UpdateCashbackInputInterface,
   ): Promise<CashbackWalletEntity>;
   toggleCashbackWalletStatus(walletId: string): Promise<{ ok: true }>;
+  getCashbackWalletStats(): Promise<CashbackWalletStatsInterface>;
 }

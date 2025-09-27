@@ -12,14 +12,15 @@ import {
   CreateAccDealerDto,
 } from '../utils/user.dto';
 import {
-  driverResObj,
-  DriverResponse,
   DealerResponse,
   AdminResponse,
   AccDealerResponse,
   PaginatedBuyerResponseInterface,
   BuyerResponseInterface,
   UpdateBuyerInterface,
+  PaginatedDriversResponse,
+  DriverFilterInterface,
+  DriverDetails,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
@@ -53,18 +54,18 @@ export interface IDealerRepository {
 }
 
 export interface IDriverRepository {
-  createDriver(createDriverDto: CreateDriverDto): Promise<DriverResponse>;
-  findDriverById(userId: string): Promise<DriverResponse>;
-  findDrivers(options: { skip: number; take: number }): Promise<driverResObj>;
-  findDriverById2(driverId: string): Promise<DriverResponse>;
+  createDriver(createDriverDto: CreateDriverDto): Promise<DriverDetails>;
+  findDriverById(userId: string): Promise<DriverDetails>;
+  findDrivers(filter: DriverFilterInterface): Promise<PaginatedDriversResponse>;
+  findDriverById2(driverId: string): Promise<DriverDetails>;
   updateDriver(
     driverId: string,
     updateDto: UpdateDriverDto,
-  ): Promise<DriverResponse>;
+  ): Promise<DriverDetails>;
   updateDriverImage(
     driverId: string,
     updateDto: UpdateDriverDto,
-  ): Promise<DriverResponse>;
+  ): Promise<DriverDetails>;
   deleteDriverProfile(driverId: string): Promise<any>;
 }
 

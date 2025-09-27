@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DriverEntity } from '../userEntity/driver.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateDriverDto, UpdateDriverDto } from '../utils/user.dto';
+import { DriverFilterInterface } from '../utils/user.types';
+import { paginatedDriverResponse } from '../utils/utils';
 
 @Injectable()
 export class DriverRepository extends Repository<DriverEntity> {
@@ -30,15 +32,44 @@ export class DriverRepository extends Repository<DriverEntity> {
     return driver;
   };
 
-  findDrivers = async (options: { skip: number; take: number }) => {
+  findDrivers = async (filter: DriverFilterInterface) => {
+    const { search, createdAt, isDeleted, skip, take } = filter;
     const driversQuery = this.createQueryBuilder('drivers');
 
+    if (search) {
+      const lowerCaseSearch = `%${search.toLowerCase()}%`;
+      driversQuery.andWhere(
+        `
+        drivers.firstName ILIKE :lowerCaseSearch
+        OR drivers.lastName ILIKE :lowerCaseSearch
+        OR drivers.email ILIKE :lowerCaseSearch
+        OR drivers.address ILIKE :lowerCaseSearch
+        `,
+        { lowerCaseSearch },
+      );
+    }
+
+    if (createdAt) {
+      driversQuery.andWhere('drivers.createdAt = :createdAt', { createdAt });
+    }
+
+    if (isDeleted) {
+      driversQuery.andWhere('drivers.isDeleted = :isDeleted', { isDeleted });
+    }
+
+    driversQuery.orderBy('drivers.createdAt', 'DESC');
+
     const [drivers, total] = await driversQuery
-      .skip(options.skip)
-      .take(options.take)
+      .skip(skip)
+      .take(take)
       .getManyAndCount();
 
-    return { drivers, total };
+    return paginatedDriverResponse({
+      drivers,
+      total,
+      skip,
+      take,
+    });
   };
 
   updateDriver = async (driverId: string, updateDto: UpdateDriverDto) => {

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
+import { DriverEntity } from '../userEntity/driver.entity';
 
 export interface BuyerResponse {
   status: number;
@@ -105,7 +106,7 @@ export enum VehicleType {
   van = 'van',
 }
 
-export interface DriverResponse {
+export interface DriverDetails {
   driverId: string;
 
   firstName: string;
@@ -131,6 +132,11 @@ export interface DriverResponse {
   isAdmin: boolean;
 
   userId: string;
+}
+
+export interface DriverResponse {
+  message: string;
+  data: DriverDetails;
 }
 
 export class CreateDriverCredentials {
@@ -245,4 +251,27 @@ export interface UpdateBuyerInterface {
   userId?: string;
   isDeleted?: boolean;
   metadata?: Record<string, string>;
+}
+
+export interface DriverFilterInterface {
+  search: string;
+  createdAt?: Date;
+  isDeleted?: boolean;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedDriverResponseInterface {
+  drivers: DriverEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedDriversResponse {
+  data: DriverEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
 }

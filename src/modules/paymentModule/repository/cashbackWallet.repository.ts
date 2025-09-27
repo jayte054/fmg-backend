@@ -101,5 +101,22 @@ export class CashbackWalletRepository extends Repository<CashbackWalletEntity> {
     return { ok: true };
   };
 
-  getCashbackWalletStats = async () => {}
+  getCashbackWalletStats = async () => {
+    const result = await this.createQueryBuilder('wallet')
+      .select(`COUNT(wallet."walletId")`, 'totalWallets')
+      .addSelect(
+        `COUNT(CASE WHEN wallet."isActive" = true THEN 1 END)`,
+        'activeWallets',
+      )
+      .addSelect(`SUM(wallet.balance::numberic)`, 'totalBalance')
+      .addSelect(`AVG(wallet.balance::numeric)`, 'averageBalance')
+      .getRawOne();
+
+    return {
+      totalWallets: Number(result.totalWallets) ?? 0,
+      activeWallet: Number(result.activeWallets) ?? 0,
+      totalBalance: Number(result.totalBalance) ?? 0,
+      averageBalance: Number(result.averageBalance),
+    };
+  };
 }

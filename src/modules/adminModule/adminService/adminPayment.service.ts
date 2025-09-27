@@ -3,6 +3,7 @@ import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/audi
 import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
 import {
   AdminPaymentFilterDto,
+  CashbackWalletFilterDto,
   RevenueFilterDto,
 } from 'src/modules/paymentModule/utils/payment.dto';
 import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
@@ -64,5 +65,23 @@ export class AdminPaymentService {
     const response = await this.paymentService.calculateRevenue(admin.adminId);
 
     return response;
+  };
+
+  fetchBuyerCashbackWalletStats = async (admin: AdminEntity) => {
+    const stats = await this.paymentService.getCashbackStats(admin.adminId);
+
+    return stats;
+  };
+
+  fetchCashbackWallets = async (
+    admin: AdminEntity,
+    filterDto: CashbackWalletFilterDto,
+  ) => {
+    const wallets = await this.paymentService.findCashbackWallets(
+      admin.adminId,
+      filterDto,
+    );
+
+    return wallets;
   };
 }

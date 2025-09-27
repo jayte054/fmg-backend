@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Length,
   ValidateNested,
@@ -11,6 +12,7 @@ import { RetailScale, VehicleType } from './user.types';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { BuyerEntity } from '../userEntity/buyer.entity';
+import { DriverEntity } from '../userEntity/driver.entity';
 
 export class CreateBuyerDto {
   @IsString()
@@ -54,9 +56,6 @@ export class CreateBuyerDto {
 export class UpdateBuyerDto {
   @ApiPropertyOptional()
   @IsString()
-  buyerId?: string;
-  @ApiPropertyOptional()
-  @IsString()
   firstName?: string;
   @ApiPropertyOptional()
   @IsString()
@@ -72,15 +71,6 @@ export class UpdateBuyerDto {
   address?: string;
   @ApiPropertyOptional()
   location?: { latitude: number; longitude: number };
-  @ApiPropertyOptional()
-  @IsString()
-  role?: string;
-  @ApiPropertyOptional()
-  @IsBoolean()
-  isAdmin?: boolean;
-  @ApiPropertyOptional()
-  @IsString()
-  userId?: string;
   @ApiPropertyOptional()
   @IsBoolean()
   isDeleted?: boolean;
@@ -518,4 +508,91 @@ export class BuyerResponseDto {
   status: number;
   @ApiProperty()
   data: BuyerResponseInterfaceDto;
+}
+
+export class DriverFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  createdAt?: Date;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isDeleted?: boolean;
+  @ApiProperty()
+  @IsNumber()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class PaginatedDriversResponseDto {
+  @ApiProperty()
+  data: DriverEntity[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
+  @ApiProperty()
+  @IsBoolean()
+  hasMore: boolean;
+}
+
+export class DriverDetailsDto {
+  @ApiProperty()
+  @IsString()
+  driverId: string;
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+  @ApiProperty()
+  @IsString()
+  lastName: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
+  email: string;
+  @ApiProperty()
+  @IsString()
+  address: string;
+  @ApiProperty()
+  @IsString()
+  vehicle: VehicleType;
+  @ApiProperty()
+  @IsString()
+  vehicleNumber: string;
+  @ApiProperty()
+  @IsString()
+  role: string;
+  @ApiProperty()
+  @IsString()
+  driversLicense: string;
+  @ApiProperty()
+  @IsString()
+  imageUrl: string;
+  @ApiProperty()
+  @IsBoolean()
+  isAdmin: boolean;
+  @ApiProperty()
+  @IsString()
+  userId: string;
+}
+
+export class DriverResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  data: DriverDetailsDto;
 }

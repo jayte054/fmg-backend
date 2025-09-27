@@ -934,6 +934,8 @@ export class PurchaseService {
       },
     );
 
+    // update driver metadata total number of purchases and total amount
+
     if (deliverPurchase) {
       await this.auditLogService.log({
         logCategory: LogCategory.PURCHASE,
