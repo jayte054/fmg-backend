@@ -5,6 +5,8 @@ import {
   PaginatedWalletResponse,
   UpdateWalletData,
   WalletFilter,
+  WalletStatus,
+  WalletUserEnum,
 } from '../utils/interface';
 import { paginatedWallet } from '../utils/utils';
 
@@ -78,5 +80,26 @@ export class WalletRepository extends Repository<WalletEntity> {
     wallet.metadata = metadata ?? wallet.metadata;
     wallet.updatedAt = updatedAt;
     return await this.save(wallet);
+  };
+
+  getWalletStats = async (type: WalletUserEnum) => {
+    const result = await this.createQueryBuilder('wallets')
+      .select('COUNT(wallets."walletId"', 'totalWallets')
+      .addSelect(
+        'COUNT(CASE WHEN wallets."status" = :active THEN 1 END)',
+        'activeWallets',
+      )
+      .addSelect(`SUM(wallets.balance::numeric)`, 'totalBalance')
+      .addSelect('AVG(wallets.balance::numeric)', 'averageBalance')
+      .where('wallets.type = :type', { type })
+      .setParameter('active', WalletStatus.active)
+      .getRawOne();
+
+    return {
+      totalWallets: Number(result.totalWallets) ?? 0,
+      activeWallet: Number(result.activeWallets) ?? 0,
+      totalBalance: Number(result.totalBalance) ?? 0,
+      averageBalance: Number(result.averageBalance) ?? 0,
+    };
   };
 }

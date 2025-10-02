@@ -9,6 +9,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { IDriverRepository } from '../interface/user.interface';
 import {
+  CreateDriverInterface,
   DriverDetails,
   DriverFilterInterface,
   DriverResponse,
@@ -16,7 +17,6 @@ import {
 } from '../utils/user.types';
 import {
   CreateDriverCredentialsDto,
-  CreateDriverDto,
   DriverFilterDto,
   UpdateDriverDto,
 } from '../utils/user.dto';
@@ -28,6 +28,7 @@ import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.s
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
 import { PaymentService } from '../../paymentModule/service/payment.service';
+import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
 
 config();
 
@@ -85,7 +86,7 @@ export class DriverService {
 
       const imageUrl = await this.cloudinaryService.uploadImage(imageFile);
 
-      const createDriverDto: CreateDriverDto = {
+      const drivrInterface: CreateDriverInterface = {
         driverId: uuidv4(),
         firstName,
         lastName,
@@ -99,14 +100,18 @@ export class DriverService {
         imageUrl: imageUrl.secure_url,
         role: user.role,
         isAdmin: user.isAdmin,
+        metadata: {
+          totalAmountTransacted: 0,
+        },
         userId: user.id,
       };
 
-      const driver = await this.driverRepository.createDriver(createDriverDto);
+      const driver = await this.driverRepository.createDriver(drivrInterface);
 
       const walletInput: Partial<WalletEntity> = {
         walletName: `${driver.firstName} ${driver.lastName}`,
         userId: driver.userId,
+        type: WalletUserEnum.driver,
       };
       const accountId = `${driver.firstName.slice(0, 2)}${driver.lastName.slice(0, 2)}`;
       await this.walletService.createWallet(

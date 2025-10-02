@@ -36,6 +36,7 @@ import {
   UpdateCashbackInputInterface,
   UpdateWalletData,
   WalletStatus,
+  WalletUserEnum,
 } from '../utils/interface';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
 import { LogCategory } from '../../auditLogModule/utils/logInterface';
@@ -229,9 +230,17 @@ export class PaymentService {
 
     try {
       const driverMetadata = { ...driverWallet.metadata };
-      const prev = driverMetadata.numberOfTransactions;
+      const prevTransactions = driverMetadata.numberOfTransactions;
+      const prevAmountTransacted =
+        Number(driverMetadata.totalAmountTransacted) || 0;
       driverMetadata.numberOfTransactions =
-        typeof prev === 'number' ? prev + 1 : 1;
+        typeof prevTransactions === 'number' ? prevTransactions + 1 : 1;
+      driverMetadata['totalAmountTransacted'] =
+        prevAmountTransacted + driverShare;
+      driverMetadata.lastTransactionDate = new Date().toISOString();
+      if (!driverMetadata.driverId) {
+        driverMetadata['driverId'] = driverId;
+      }
 
       const updateDriverWalletData: UpdateWalletData = {
         balance: driverShare + driverWallet.balance,
@@ -248,8 +257,15 @@ export class PaymentService {
 
       const dealerMetadata = { ...dealerWallet.metadata };
       const previous = Number(dealerMetadata.numberOfTransactions);
+      const prevDealerAmount =
+        Number(dealerMetadata.totalAmountTransacted) || 0;
       dealerMetadata.numberOfTransactions =
         typeof previous === 'number' ? previous + 1 : 1;
+      dealerMetadata['totalAmountTransacted'] = prevDealerAmount + dealerShare;
+      dealerMetadata.lastTransactionDate = new Date().toISOString();
+      if (!dealerMetadata.dealerId) {
+        dealerMetadata['dealerId'] = dealerId;
+      }
 
       const updateDealerWalletData: UpdateWalletData = {
         balance: dealerShare + dealerWallet.balance,
@@ -404,7 +420,7 @@ export class PaymentService {
     accountId: string,
     email: string,
   ): Promise<WalletEntity> => {
-    const { walletName, userId } = walletInput;
+    const { walletName, userId, type } = walletInput;
     const accExtension = Math.floor(100000 + Math.random() * 900000).toString();
     const walletAccount = `${accountId}-${accExtension}`;
 
@@ -413,6 +429,7 @@ export class PaymentService {
       walletAccount,
       userId,
       status: WalletStatus.active,
+      type,
       balance: 0,
       previousBalance: 0,
       createdAt: new Date(),
@@ -580,6 +597,21 @@ export class PaymentService {
       this.logger.error('failed to implement withdrawal');
       return { message: 'failed to implement withdrawal' };
     }
+  };
+
+  getWalletStats = async (adminId: string, type: WalletUserEnum) => {
+    const stats = await this.walletRepository.getWalletStats(type);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.Admin,
+      description: 'fetch wallet Stats',
+      details: {
+        adminId,
+        stats: JSON.stringify(stats),
+      },
+    });
+
+    return stats;
   };
 
   createSubAccount = async (

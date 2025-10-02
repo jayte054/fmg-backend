@@ -108,7 +108,7 @@ export class CashbackWalletRepository extends Repository<CashbackWalletEntity> {
         `COUNT(CASE WHEN wallet."isActive" = true THEN 1 END)`,
         'activeWallets',
       )
-      .addSelect(`SUM(wallet.balance::numberic)`, 'totalBalance')
+      .addSelect(`SUM(wallet.balance::numeric)`, 'totalBalance')
       .addSelect(`AVG(wallet.balance::numeric)`, 'averageBalance')
       .getRawOne();
 

@@ -203,6 +203,8 @@ export class CreateDriverDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  metadata: Record<string, unknown>;
 }
 
 export class UpdateDriverDto {

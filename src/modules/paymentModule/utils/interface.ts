@@ -231,3 +231,9 @@ export interface CashbackWalletStatsInterface {
   totalBalance: number;
   averageBalance: number;
 }
+
+export enum WalletUserEnum {
+  driver = 'driver',
+  dealer = 'dealer',
+  buyer = 'buyer',
+}

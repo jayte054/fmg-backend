@@ -2,7 +2,6 @@ import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
 import {
   CreateBuyerDto,
-  CreateDriverDto,
   CreateDealerDto,
   UpdateDriverDto,
   UpdateDealerDto,
@@ -21,6 +20,7 @@ import {
   PaginatedDriversResponse,
   DriverFilterInterface,
   DriverDetails,
+  CreateDriverInterface,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
@@ -54,7 +54,7 @@ export interface IDealerRepository {
 }
 
 export interface IDriverRepository {
-  createDriver(createDriverDto: CreateDriverDto): Promise<DriverDetails>;
+  createDriver(createDriverDto: CreateDriverInterface): Promise<DriverDetails>;
   findDriverById(userId: string): Promise<DriverDetails>;
   findDrivers(filter: DriverFilterInterface): Promise<PaginatedDriversResponse>;
   findDriverById2(driverId: string): Promise<DriverDetails>;

@@ -68,4 +68,21 @@ export class AdminUsersService {
 
     return drivers;
   };
+
+  fetchDriver = async (admin: AdminEntity, driverId: string) => {
+    const driver = await this.driverService.findDriverByService(driverId);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.Admin,
+      description: 'fetched drivers',
+      email: admin.email,
+      details: {
+        driverId,
+        adminId: admin.adminId,
+      },
+    });
+
+    this.logger.log('driver fetched by admin', admin.adminId);
+    return driver;
+  };
 }

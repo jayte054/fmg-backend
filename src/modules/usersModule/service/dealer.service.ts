@@ -24,6 +24,7 @@ import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
 import { PaymentService } from '../../paymentModule/service/payment.service';
 import { SubAccountEntity } from '../../paymentModule/entity/subaccount.entity';
+import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
 
 @Injectable()
 export class DealerService {
@@ -73,6 +74,7 @@ export class DealerService {
       const walletInput: Partial<WalletEntity> = {
         walletName: `${dealer.name}`,
         userId: dealer.dealerId,
+        type: WalletUserEnum.dealer,
       };
       const accountId = `${dealer.name.slice(0, 3)}`;
       const wallet = await this.paymentService.createWallet(

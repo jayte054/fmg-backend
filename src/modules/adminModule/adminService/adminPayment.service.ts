@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
+import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
 import {
   AdminPaymentFilterDto,
   CashbackWalletFilterDto,
@@ -83,5 +84,11 @@ export class AdminPaymentService {
     );
 
     return wallets;
+  };
+
+  fetchStatsByUserType = async (admin: AdminEntity, type: WalletUserEnum) => {
+    const stats = await this.paymentService.getWalletStats(admin.adminId, type);
+
+    return stats;
   };
 }

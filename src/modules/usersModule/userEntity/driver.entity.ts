@@ -67,7 +67,7 @@ export class DriverEntity extends BaseEntity {
   isDeleted?: boolean;
 
   @Column({ type: 'jsonb' })
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 
   @Column()
   userId: string;

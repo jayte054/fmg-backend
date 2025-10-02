@@ -3,6 +3,7 @@ import {
   WalletFilter,
   PaginatedWalletResponse,
   UpdateWalletData,
+  WalletUserEnum,
 } from '../utils/interface';
 
 export interface IWalletRepository {
@@ -14,4 +15,10 @@ export interface IWalletRepository {
     walletAccount: string,
     updateWalletData: UpdateWalletData,
   ): Promise<WalletEntity>;
+  getWalletStats(type: WalletUserEnum): Promise<{
+    totalWallets: number;
+    activeWallet: number;
+    totalBalance: number;
+    averageBalance: number;
+  }>;
 }

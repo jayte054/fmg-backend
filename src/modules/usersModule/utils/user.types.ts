@@ -165,6 +165,24 @@ export class CreateDriverCredentials {
   file: Express.Multer.File;
 }
 
+export interface CreateDriverInterface {
+  driverId: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+  vehicle: VehicleType;
+  vehicleNumber: string;
+  driversLicenseNumber: string;
+  role: string;
+  driversLicense: string;
+  imageUrl: string;
+  isAdmin: boolean;
+  userId: string;
+  metadata: Record<string, unknown>;
+}
+
 export interface driverResObj {
   drivers: DriverResponse[];
   total: number;

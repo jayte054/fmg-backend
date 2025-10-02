@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { WalletStatus } from '../utils/interface';
+import { WalletStatus, WalletUserEnum } from '../utils/interface';
 
 @Entity()
 export class WalletEntity extends BaseEntity {
@@ -23,6 +23,9 @@ export class WalletEntity extends BaseEntity {
 
   @Column()
   previousBalance: number;
+
+  @Column({ type: 'enum', enum: WalletUserEnum })
+  type: WalletUserEnum;
 
   @Column()
   createdAt: Date;
