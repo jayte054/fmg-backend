@@ -1,5 +1,6 @@
 import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
+import { DealerEntity } from '../userEntity/dealerEntity';
 import {
   CreateBuyerDto,
   CreateDealerDto,
@@ -14,22 +15,25 @@ import {
   DealerResponse,
   AdminResponse,
   AccDealerResponse,
-  PaginatedBuyerResponseInterface,
+  // PaginatedBuyerResponseInterface,
   BuyerResponseInterface,
   UpdateBuyerInterface,
   PaginatedDriversResponse,
   DriverFilterInterface,
   DriverDetails,
   CreateDriverInterface,
+  DealersFilterInterface,
+  // PaginatedDealerResponse,
+  PaginatedUserResponseInterface,
+  BuyersFilterInterface,
 } from '../utils/user.types';
 
 export interface IBuyerRepository {
   createBuyer(createBuyerDto: CreateBuyerDto): Promise<BuyerResponseInterface>;
   findBuyerById(userId: string): Promise<BuyerResponseInterface>;
-  findBuyers(options: {
-    skip: number;
-    take: number;
-  }): Promise<PaginatedBuyerResponseInterface>;
+  findBuyers(
+    filter: BuyersFilterInterface,
+  ): Promise<PaginatedUserResponseInterface<BuyerEntity>>;
   updateBuyer(
     buyerId: string,
     updateDto: UpdateBuyerInterface,
@@ -42,10 +46,9 @@ export interface IBuyerRepository {
 export interface IDealerRepository {
   createDealer(createDealerDto: CreateDealerDto): Promise<DealerResponse>;
   findDealerId(dealerId: string): Promise<DealerResponse>;
-  findDealers(options: {
-    skip: number;
-    take: number;
-  }): Promise<Promise<{ dealers: DealerResponse[]; total: number }>>;
+  findDealers(
+    filter: DealersFilterInterface,
+  ): Promise<PaginatedUserResponseInterface<DealerEntity>>;
   updateDealer(
     dealerId: string,
     dealerDto: UpdateDealerDto,

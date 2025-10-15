@@ -345,3 +345,18 @@ export class PaginatedCashbackWalletResponseDto {
   @IsNumber()
   perPage: number;
 }
+
+export class WalletStatsResponseDto {
+  @ApiProperty()
+  @IsNumber()
+  totalWallets: number;
+  @ApiProperty()
+  @IsNumber()
+  activeWallet: number;
+  @ApiProperty()
+  @IsNumber()
+  totalBalance: number;
+  @ApiProperty()
+  @IsNumber()
+  averageBalance: number;
+}

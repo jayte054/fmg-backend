@@ -1,10 +1,12 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { RetailScale } from '../utils/user.types';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
@@ -43,6 +45,12 @@ export class DealerEntity extends BaseEntity {
   @Column()
   rating: number;
 
+  @Column()
+  license: number;
+
+  @Column({ default: false })
+  verified?: boolean;
+
   @ManyToOne(() => AuthEntity, (user) => user.dealerId, { eager: false })
   user: AuthEntity;
 
@@ -55,6 +63,15 @@ export class DealerEntity extends BaseEntity {
     eager: true,
   })
   accessory: AccessoryEntity;
+
+  @CreateDateColumn()
+  createdAt?: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
+
+  @Column({ type: 'jsonb' })
+  metadata?: Record<string, unknown>;
 
   @Column('uuid')
   userId: string;

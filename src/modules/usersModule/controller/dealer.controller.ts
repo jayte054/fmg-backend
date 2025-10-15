@@ -18,7 +18,12 @@ import { DealerService } from '../service/dealer.service';
 import { UpdateCredentials } from '../utils/user.types';
 import { Request } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DealerCredentialsDto } from '../utils/user.dto';
+import {
+  DealerCredentialsDto,
+  DealersFilterDto,
+  UserResponseDto,
+} from '../utils/user.dto';
+import { DealerEntity } from '../userEntity/dealerEntity';
 
 @ApiTags('dealer')
 @UseGuards(JwtAuthGuard)
@@ -52,18 +57,18 @@ export class DealerController {
 
   @Get('/findDealers')
   @ApiOperation({ summary: 'fetched dealers' })
-  @ApiResponse({ status: 200, description: 'user fetched dealers' })
+  @ApiResponse({
+    status: 200,
+    description: 'user fetched dealers',
+    type: UserResponseDto<DealerEntity>,
+  })
   @HttpCode(HttpStatus.FOUND)
   async findBuyers(
     @Req() req: Request,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
+    @Query() dealersFilterDto: DealersFilterDto,
   ) {
     const { user }: any = req;
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-
-    return await this.dealerService.findDealers(user, pageNum, limitNum);
+    return await this.dealerService.findDealers(dealersFilterDto, user);
   }
 
   @Put('/updateDealer/:dealerId')

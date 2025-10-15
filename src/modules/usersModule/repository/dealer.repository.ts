@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { DealerEntity } from '../userEntity/dealerEntity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
+import { DealersFilterInterface } from '../utils/user.types';
+import { paginatedDealerResponse } from '../utils/utils';
 
 @Injectable()
 export class DealerRepository extends Repository<DealerEntity> {
@@ -22,15 +24,42 @@ export class DealerRepository extends Repository<DealerEntity> {
     return dealer;
   };
 
-  findDealers = async (options: { skip: number; take: number }) => {
+  findDealers = async (filter: DealersFilterInterface) => {
+    const { search, scale, verified, createdAt, skip, take } = filter;
     const dealersQuery = this.createQueryBuilder('dealer');
 
+    if (search) {
+      const lowerCaseSearch = `%${search.toLowerCase()}%`;
+      dealersQuery.andWhere(
+        `
+          LOWER(dealer.name) ILIKE :lowerCaseSearch
+          OR LOWER(dealer.email) ILIKE :email
+          OR LOWER(dealer.address) ILIKE :address
+        `,
+        { lowerCaseSearch },
+      );
+    }
+
+    if (scale) {
+      dealersQuery.andWhere('dealer.scale = :scale', { scale });
+    }
+
+    if (verified) {
+      dealersQuery.andWhere('dealer.verified = :verified', { verified });
+    }
+
+    if (createdAt) {
+      dealersQuery.andWhere('dealer.createdAt = :createdAt', { createdAt });
+    }
+
+    dealersQuery.orderBy('dealer.createdAt', 'DESC');
+
     const [dealers, total] = await dealersQuery
-      .skip(options.skip)
-      .take(options.take)
+      .skip(skip)
+      .take(take)
       .getManyAndCount();
 
-    return { dealers, total };
+    return paginatedDealerResponse({ dealers, total, skip, take });
   };
 
   updateDealer = async (dealerId: string, updateDto: UpdateDealerDto) => {

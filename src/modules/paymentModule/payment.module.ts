@@ -24,9 +24,16 @@ import { DriverRepositoryMiddleware } from 'src/common/middleware/driver.reposit
 import { AdminRepositoryMiddleware } from 'src/common/middleware/admin.repository.middleware';
 import { CashbackWalletEntity } from './entity/cashback.entity';
 import { RevenueRepository } from './repository/revenue.repository';
+import { TransactionEntity } from './entity/transaction.entity';
+import { TransactionRepository } from './repository/transaction.repository';
+// import { BullModule } from '@nestjs/bullmq';
+// import { PaymentProcessor } from './service/paymentProcessor.service';
 
 @Module({
   imports: [
+    // BullModule.registerQueue({
+    //   name: 'payment',
+    // }),
     forwardRef(() => NotificationModule),
     HttpModule,
     forwardRef(() => UserModule),
@@ -37,9 +44,11 @@ import { RevenueRepository } from './repository/revenue.repository';
       SubAccountEntity,
       WalletEntity,
       CashbackWalletEntity,
+      TransactionEntity,
     ]),
   ],
   providers: [
+    // PaymentProcessor,
     PaymentService,
     {
       provide: 'IPaymentRepository',
@@ -60,6 +69,10 @@ import { RevenueRepository } from './repository/revenue.repository';
     {
       provide: 'IRevenueRepository',
       useClass: RevenueRepository,
+    },
+    {
+      provide: 'ITransactionRepositoryInterface',
+      useClass: TransactionRepository,
     },
   ],
   controllers: [PaymentController],

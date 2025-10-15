@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -14,6 +15,7 @@ import {
   DriverFilterInterface,
   DriverResponse,
   UpdateDriverCredentials,
+  UserResponseInterface,
 } from '../utils/user.types';
 import {
   CreateDriverCredentialsDto,
@@ -209,11 +211,14 @@ export class DriverService {
     }
   };
 
-  findDriverByService = async (driverId: string): Promise<DriverResponse> => {
+  findDriverByService = async (
+    driverId: string,
+  ): Promise<UserResponseInterface<DriverDetails>> => {
     try {
       const driver = await this.driverRepository.findDriverById2(driverId);
       return {
         message: 'driver fetched successfully',
+        status: HttpStatus.FOUND,
         data: this.mapDriverResponse(driver),
       };
     } catch (error) {
@@ -245,7 +250,11 @@ export class DriverService {
         },
       });
 
-      return driversResponse;
+      return {
+        message: 'drivers fetched successfully',
+        status: HttpStatus.FOUND,
+        data: driversResponse,
+      };
     } catch (error) {
       this.logger.error('failed to fetch drivers');
       throw new InternalServerErrorException('failed to fetch drivers');
@@ -539,6 +548,9 @@ export class DriverService {
       driversLicense: driverResponse.driversLicense,
       imageUrl: driverResponse.imageUrl,
       isAdmin: driverResponse.isAdmin,
+      createdAt: driverResponse.createdAt,
+      updatedAt: driverResponse.updatedAt,
+      isDeleted: driverResponse.isDeleted,
       userId: driverResponse.userId,
     };
   };

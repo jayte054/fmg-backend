@@ -2,6 +2,7 @@ import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { PaymentEntity } from '../entity/payment.entity';
 import { RevenueEntity } from '../entity/revenue.entity';
 import { SubAccountEntity } from '../entity/subaccount.entity';
+import { TransactionEntity } from '../entity/transaction.entity';
 import { WalletEntity } from '../entity/wallet.entity';
 
 export enum PaymentStatus {
@@ -236,4 +237,135 @@ export enum WalletUserEnum {
   driver = 'driver',
   dealer = 'dealer',
   buyer = 'buyer',
+}
+
+export enum TransactionType {
+  credit = 'credit',
+  debit = 'debit',
+  reversal = 'reversal',
+  settlement = 'settlement',
+}
+
+export enum TransactionStatus {
+  pending = 'pending',
+  processing = 'processing',
+  success = 'success',
+  failed = 'failed',
+}
+
+export interface TransactionFilterInterface {
+  search?: string;
+  type?: TransactionType;
+  status?: TransactionStatus;
+  createdAt?: Date;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedTransactionResponse {
+  transactions: TransactionEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+}
+
+export interface PaginatedTransactionInterfaceResponse {
+  transactions: TransactionEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaystackVerifyResponse {
+  status: boolean;
+  message: string;
+  data: PaystackTransactionData | any;
+}
+
+export interface PaystackTransactionData {
+  id: number;
+  domain: string;
+  status: string;
+  reference: string;
+  receipt_number: string | null;
+  amount: number;
+  message: string | null;
+  gateway_response: string;
+  paid_at: string;
+  created_at: string;
+  channel: string;
+  currency: string;
+  ip_address: string;
+  metadata: Record<string, any> | string | null;
+  log: PaystackTransactionLog | null;
+  fees: number;
+  fees_split: any | null;
+  authorization: PaystackAuthorization;
+  customer: PaystackCustomer;
+  plan: string | null;
+  split: Record<string, any>;
+  order_id: string | null;
+  paidAt: string;
+  createdAt: string;
+  requested_amount: number;
+  pos_transaction_data: any | null;
+  source: any | null;
+  fees_breakdown: any | null;
+  connect: any | null;
+  transaction_date: string;
+  plan_object: Record<string, any>;
+  subaccount: Record<string, any>;
+}
+
+export interface PaystackTransactionLog {
+  start_time: number;
+  time_spent: number;
+  attempts: number;
+  errors: number;
+  success: boolean;
+  mobile: boolean;
+  input: any[];
+  history: PaystackTransactionHistory[];
+}
+
+export interface PaystackTransactionHistory {
+  type: string;
+  message: string;
+  time: number;
+}
+
+export interface PaystackAuthorization {
+  authorization_code: string;
+  bin: string;
+  last4: string;
+  exp_month: string;
+  exp_year: string;
+  channel: string;
+  card_type: string;
+  bank: string;
+  country_code: string;
+  brand: string;
+  reusable: boolean;
+  signature: string;
+  account_name: string | null;
+}
+
+export interface PaystackCustomer {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  customer_code: string;
+  phone: string | null;
+  metadata: any | null;
+  risk_action: string;
+  international_format_phone: string | null;
+}
+
+export class JobInterface {
+  name: string;
+  data: {
+    reference?: string;
+  };
 }

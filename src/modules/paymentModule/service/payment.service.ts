@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
@@ -31,8 +32,12 @@ import {
   PaginatedCashbackWalletResponse,
   PaymentFilter,
   PaymentStatus,
+  PaystackTransactionData,
   RevenueFilter,
   SubAccountResponse,
+  TransactionFilterInterface,
+  TransactionStatus,
+  TransactionType,
   UpdateCashbackInputInterface,
   UpdateWalletData,
   WalletStatus,
@@ -53,11 +58,17 @@ import { IRevenueRepository } from '../interface/IRevenueRepository';
 import { DuplicateException } from 'src/common/exceptions/exceptions';
 import { DataSource } from 'typeorm';
 import { RevenueEntity } from '../entity/revenue.entity';
+import { ITransactionRepositoryInterface } from '../interface/ITransactionrepository.interface';
+import { TransactionEntity } from '../entity/transaction.entity';
+// import { InjectQueue } from '@nestjs/bullmq';
+// import { Queue } from 'bullmq';
 // import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
+  private readonly paystack_secret: string;
+  private readonly paystack_url: string;
   constructor(
     @Inject('IPaymentRepository')
     private readonly paymentRepository: IPaymentRepository,
@@ -74,6 +85,9 @@ export class PaymentService {
     @Inject('IRevenueRepository')
     private readonly revenueRepository: IRevenueRepository,
 
+    @Inject('ITransactionRepositoryInterface')
+    private readonly transactionRepository: ITransactionRepositoryInterface,
+
     private readonly configService: ConfigService,
     private readonly productService: ProductService,
     private readonly httpService: HttpService,
@@ -81,7 +95,14 @@ export class PaymentService {
     private readonly messagingService: MessagingService,
     private readonly buyerService: BuyerService,
     private readonly dataSource: DataSource,
-  ) {}
+    // @InjectQueue('payment')
+    // private readonly paymentQueue: Queue,
+  ) {
+    this.paystack_secret = this.configService.get<string>(
+      'paystack_test_secret_key',
+    );
+    this.paystack_url = this.configService.get<string>('paystack_url');
+  }
 
   initializePayment = async (
     buyer: BuyerEntity,
@@ -152,8 +173,39 @@ export class PaymentService {
 
       const authUrl = response.data?.data?.authorization_url;
       if (!authUrl) {
+        this.auditLogService.error({
+          logCategory: LogCategory.PAYMENT,
+          email: buyer.email,
+          description: 'payment initiation failed',
+          details: {
+            response: JSON.stringify(response),
+          },
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+        });
         throw new InternalServerErrorException('failed to initialize payment');
       }
+
+      const transactionInput: Partial<TransactionEntity> = {
+        reference: response.data?.data?.reference,
+        amount: totalAmount,
+        location: buyer.location,
+        type: TransactionType.debit,
+        userId: buyer.buyerId,
+        metadata: {
+          purchase: JSON.stringify(purchase),
+        },
+      };
+      await this.initiateTransaction(transactionInput);
+
+      this.auditLogService.log({
+        logCategory: LogCategory.PAYMENT,
+        email: buyer.email,
+        description: 'payment initiated',
+        details: {
+          authUrl,
+          reference: response.data?.data?.reference,
+        },
+      });
 
       return { authorizationUrl: authUrl };
     } catch (error) {
@@ -161,32 +213,143 @@ export class PaymentService {
     }
   };
 
-  async verifyPayment(reference: string): Promise<{ message: string }> {
-    const paystack_secret = this.configService.get('paystack_test_secret_key');
-    const paystack_url = this.configService.get<string>('paystack_url');
+  async verifyPayment(
+    buyer: BuyerEntity,
+    reference: string,
+  ): Promise<{ message: string }> {
+    // const paystack_secret = this.configService.get('paystack_test_secret_key');
+    // const paystack_url = this.configService.get<string>('paystack_url');
 
-    const url = `${paystack_url}/transaction/verify/${reference}`;
-    const headers = { Authorization: `Bearer ${paystack_secret}` };
+    const url = `${this.paystack_url}/transaction/verify/${reference}`;
+    const headers = { Authorization: `Bearer ${this.paystack_secret}` };
 
     const response = await firstValueFrom(
       this.httpService.get(url, { headers }),
     );
-    const paymentData = response.data?.data;
-    if (!paymentData || paymentData.status !== 'success') {
+    const paymentData: PaystackTransactionData = response.data?.data;
+
+    if (!paymentData) {
+      throw new BadRequestException('No payment data returned from Paystack');
+    }
+
+    if (['failed', 'abandoned', 'reversed'].includes(paymentData.status)) {
+      const input: Partial<TransactionEntity> = {
+        status: TransactionStatus.failed,
+        metadata: {
+          status: paymentData.status,
+          paymentVerified: true,
+        },
+      };
+      await this.updateTransaction(input, reference);
       throw new BadRequestException('payment verification failed');
     }
+
+    if (paymentData.status === 'processing') {
+      const input: Partial<TransactionEntity> = {
+        metadata: {
+          note: 'Awaiting paystack confirmation',
+        },
+      };
+
+      await this.updateTransaction(input, reference);
+
+      await this.requeryPayment(reference);
+
+      return { message: 'payment queued for re-verification' };
+    }
+
+    const input: Partial<TransactionEntity> = {
+      status: TransactionStatus.processing,
+      metadata: {
+        status: paymentData.status,
+        paymentVerified: true,
+        verifiedAmount: paymentData.amount,
+        channel: paymentData.channel,
+        paidAt: paymentData.paid_at,
+        ip: paymentData.ip_address,
+        fees: paymentData.fees,
+        subAccount: paymentData.subaccount,
+        orderId: paymentData.order_id,
+      },
+    };
+
+    await this.updateTransaction(input, reference);
 
     this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
       description: 'Payment verified and processed successfully',
-      email: paymentData.email,
       details: {
         reference,
+        status: paymentData.status,
       },
     });
 
     return { message: 'payment verified successfully' };
   }
+
+  requeryPayment = async (reference: string, retries = 3, delayMs = 10000) => {
+    const url = `${this.paystack_url}/transaction/verify/${reference}`;
+    const headers = { Authorization: `Bearer ${this.paystack_secret}` };
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers }),
+      );
+      const paymentData: PaystackTransactionData = response.data?.data;
+
+      if (['failed', 'reversed'].includes(paymentData.status)) {
+        const input: Partial<TransactionEntity> = {
+          status: TransactionStatus.failed,
+          metadata: {
+            status: paymentData.status,
+            paymentVerified: true,
+          },
+        };
+        await this.updateTransaction(input, reference);
+
+        return { message: 'payment verified successfully' };
+      }
+
+      if (paymentData.status === 'success') {
+        const input: Partial<TransactionEntity> = {
+          status: TransactionStatus.processing,
+          metadata: {
+            status: paymentData.status,
+            paymentVerified: true,
+            verifiedAmount: paymentData.amount,
+            channel: paymentData.channel,
+            paidAt: paymentData.paid_at,
+            ip: paymentData.ip_address,
+            fees: paymentData.fees,
+            subAccount: paymentData.subaccount,
+            orderId: paymentData.order_id,
+          },
+        };
+
+        await this.updateTransaction(input, reference);
+
+        this.auditLogService.log({
+          logCategory: LogCategory.PAYMENT,
+          description: 'Payment verified and processed successfully',
+          details: {
+            reference,
+            status: paymentData.status,
+          },
+        });
+
+        return { message: 'payment verified successfully' };
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+    }
+
+    this.auditLogService.error({
+      logCategory: LogCategory.PAYMENT,
+      description: 'Payment verification timed out after all retries',
+      details: { reference },
+      status: HttpStatus.GATEWAY_TIMEOUT,
+    });
+
+    return { message: 'Payment verification timed out, please retry later' };
+  };
 
   // when testin, test the commented updated payment method
   updatePayment = async (paymentDto: UpdatePaymentDto) => {
@@ -201,9 +364,10 @@ export class PaymentService {
     const driverShare = deliveryFee - commissionOnDeliveryFee;
     const dealerShare = productAmount - commissionOnProductFee;
 
-    const [buyer, { dealerId }] = await Promise.all([
+    const [buyer, { dealerId }, transaction] = await Promise.all([
       this.buyerService.findBuyer(email),
       this.productService.findProductByPaymentService(purchase.productId),
+      this.transactionRepository.findTransaction({ reference }),
     ]);
 
     const dealerSub =
@@ -309,8 +473,8 @@ export class PaymentService {
       };
 
       //update buyer metadata
-      const prevAmount = Number(buyer.metadata?.amountTransacted) || 0;
-      const updatedBuyerMetadata = { ...buyer.metadata };
+      const prevAmount = Number(buyer.data.metadata?.amountTransacted) || 0;
+      const updatedBuyerMetadata = { ...buyer.data.metadata };
       updatedBuyerMetadata['amountTransacted'] = (
         prevAmount + totalAmount
       ).toString();
@@ -318,10 +482,10 @@ export class PaymentService {
       let paymentRecord: PaymentEntity;
       let revenueRecord: RevenueEntity;
 
-      if (buyer.metadata['cashbackWallet'] === 'true') {
+      if (buyer.data.metadata['cashbackWallet'] === 'true') {
         const amount = platformCommission * 0.01;
         const commission = platformCommission - amount;
-        await this.updateCashbackMethod(amount.toString(), buyer.buyerId);
+        await this.updateCashbackMethod(amount.toString(), buyer.data.buyerId);
 
         [paymentRecord, revenueRecord] = await Promise.all([
           // await this.paymentRepository.makePayment({
@@ -378,9 +542,46 @@ export class PaymentService {
         // await this.buyerService.updateBuyerByPayment(buyer, buyer.metadata),
       }
 
-      await queryRunner.manager.update(BuyerEntity, buyer.buyerId, {
+      await queryRunner.manager.update(BuyerEntity, buyer.data.buyerId, {
         metadata: updatedBuyerMetadata,
       });
+
+      const updatedMetadata = {
+        ...transaction.metadata,
+        paymentId: paymentRecord.paymentId,
+        revenueId: revenueRecord.revenueId,
+        driverShare,
+        dealerShare,
+        platformCommission,
+        driverId,
+        dealerId,
+      };
+
+      const settlementTransaction = queryRunner.manager.create(
+        TransactionEntity,
+        {
+          reference: `${reference}-settlement`,
+          buyerId: buyer.data.buyerId,
+          amount: totalAmount,
+          status: TransactionStatus.success,
+          type: TransactionType.settlement,
+          revenueId: revenueRecord.revenueId,
+          relatedTransactionid: transaction.transactionId,
+          metadata: updatedMetadata,
+        },
+      );
+
+      await queryRunner.manager.save(settlementTransaction);
+
+      await queryRunner.manager.update(
+        TransactionEntity,
+        transaction.transactionId,
+        {
+          revenueId: revenueRecord.revenueId,
+          status: TransactionStatus.success,
+          metadata: updatedMetadata,
+        },
+      );
       await queryRunner.commitTransaction();
 
       this.auditLogService.log({
@@ -561,6 +762,8 @@ export class PaymentService {
           newBalance: newBalance.toString(),
         },
       });
+
+      //include a transaction query to the database
 
       await this.messagingService.sendWithdrawalRequest(
         request_number,
@@ -852,10 +1055,10 @@ export class PaymentService {
       await this.cashbackRepository.createCashbackWallet(input);
 
     const saidBuyer = await this.buyerService.findBuyer(buyer.userId);
-    saidBuyer.metadata = {
+    saidBuyer.data.metadata = {
       cashbackWallet: 'true',
     };
-    await this.buyerService.saveBuyer(saidBuyer);
+    await this.buyerService.saveBuyer(saidBuyer.data);
 
     this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
@@ -1255,6 +1458,158 @@ export class PaymentService {
       message: 'revenue fetched successfully',
       data: totalRevenue,
     };
+  };
+
+  initiateTransaction = async (
+    transactionInput: Partial<TransactionEntity> | Partial<TransactionEntity>[],
+  ) => {
+    if (Array.isArray(transactionInput)) {
+      this.checkDuplicateTransaction(transactionInput[0].reference);
+
+      const inputArray = transactionInput.map((trx) => ({
+        ...trx,
+        status: TransactionStatus.pending,
+      }));
+
+      const transactions =
+        await this.transactionRepository.createTransaction(inputArray);
+
+      if (Array.isArray(transactions)) {
+        for (const trx of transactions) {
+          this.auditLogService.log({
+            logCategory: LogCategory.PAYMENT,
+            description: 'transaction initialized',
+            details: {
+              id: trx.transactionId,
+            },
+          });
+        }
+      }
+
+      return transactions;
+    }
+    this.checkDuplicateTransaction(transactionInput.reference);
+    const input: Partial<TransactionEntity> = {
+      ...transactionInput,
+      status: TransactionStatus.pending,
+    };
+
+    const transaction =
+      await this.transactionRepository.createTransaction(input);
+
+    if (!Array.isArray(transaction)) {
+      this.auditLogService.log({
+        logCategory: LogCategory.PAYMENT,
+        description: 'transaction initialized',
+        details: {
+          id: transaction.transactionId,
+        },
+      });
+    }
+
+    return transaction;
+  };
+
+  private checkDuplicateTransaction = async (reference: string) => {
+    if (!reference) {
+      throw new BadRequestException('Transaction reference is required');
+    }
+
+    const transaction = await this.transactionRepository.findTransaction({
+      reference,
+    });
+
+    if (transaction) {
+      throw new DuplicateException('transaction already exists', { reference });
+    }
+
+    return;
+  };
+
+  fetchTransactions = async (
+    adminId: string,
+    filter: TransactionFilterInterface,
+  ) => {
+    const { search, type, status, createdAt, skip, take } = filter;
+    const transactionFilter: TransactionFilterInterface = {
+      ...(search !== undefined && { search }),
+      ...(type !== undefined && { type }),
+      ...(status !== undefined && { status }),
+      ...(location !== undefined && { location }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
+
+    const transactions =
+      await this.transactionRepository.findTransactions(transactionFilter);
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'fetch transactions',
+      details: {
+        adminId,
+        transactionFilter: JSON.stringify(transactionFilter),
+      },
+    });
+
+    return transactions;
+  };
+
+  fetchTransaction = async (adminId: string, transactionId: string) => {
+    const transaction = await this.transactionRepository.findTransaction({
+      transactionId,
+    });
+
+    if (!transaction) {
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'transaction not found',
+        details: {
+          adminId,
+          transactionId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('transaction not found');
+    }
+
+    return transaction;
+  };
+
+  updateTransaction = async (
+    input: Partial<TransactionEntity>,
+    reference?: string,
+    transactionId?: string,
+  ) => {
+    const updatedTransaction =
+      await this.transactionRepository.updateTransaction(
+        input,
+        transactionId,
+        reference,
+      );
+
+    if (updatedTransaction.ok === false) {
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'failed to update transaction',
+        details: {
+          input: JSON.stringify(input),
+        },
+        status: HttpStatus.NOT_MODIFIED,
+      });
+      throw new NotImplementedException('failed to implement transaction');
+    }
+
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'transaction updated successfully',
+      details: {
+        input: JSON.stringify(input),
+      },
+    });
+
+    return updatedTransaction;
   };
 }
 

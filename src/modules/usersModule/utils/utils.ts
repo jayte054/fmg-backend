@@ -1,13 +1,17 @@
+import { BuyerEntity } from '../userEntity/buyer.entity';
 import {
   PaginatedBuyerInterface,
-  PaginatedBuyerResponseInterface,
+  // PaginatedBuyerResponseInterface,
+  PaginatedDealerResponse,
+  PaginatedDealersResponseInterface,
   PaginatedDriverResponseInterface,
   PaginatedDriversResponse,
+  PaginatedUserResponseInterface,
 } from './user.types';
 
 export const paginatedBuyerResponse = (
   responseInterface: PaginatedBuyerInterface,
-): PaginatedBuyerResponseInterface => {
+): PaginatedUserResponseInterface<BuyerEntity> => {
   const { buyers, total, skip, take } = responseInterface;
   if (!buyers || buyers.length === 0) {
     return {
@@ -48,5 +52,28 @@ export const paginatedDriverResponse = (
     page: Math.floor(skip / take) + 1,
     perPage: take,
     hasMore: skip + drivers.length < total,
+  };
+};
+
+export const paginatedDealerResponse = (
+  responseInterface: PaginatedDealersResponseInterface,
+): PaginatedDealerResponse => {
+  const { dealers, total, skip, take } = responseInterface;
+  if (!dealers || dealers.length === 0) {
+    return {
+      dealers: [],
+      total,
+      page: 0,
+      perPage: take,
+      hasMore: false,
+    };
+  }
+
+  return {
+    dealers,
+    total,
+    page: Math.floor(skip / take) + 1,
+    perPage: take,
+    hasMore: skip + dealers.length < total,
   };
 };

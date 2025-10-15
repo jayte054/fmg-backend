@@ -29,6 +29,7 @@ import {
   RevenueFilterDto,
   RevenueResponseDto,
   TotalRevenueDto,
+  WalletStatsResponseDto,
 } from 'src/modules/paymentModule/utils/payment.dto';
 import { AdminPaymentService } from '../adminService/adminPayment.service';
 import {
@@ -45,9 +46,17 @@ import {
 import { AdminPurchaseService } from '../adminService/adminPurchase.service';
 import {
   BuyersFilterDto,
-  PaginatedBuyerResponseDto,
+  DealersFilterDto,
+  DriverFilterDto,
+  UserResponseDto,
+  UsersResponseDto,
 } from 'src/modules/usersModule/utils/user.dto';
 import { AdminUsersService } from '../adminService/adminUser.service';
+import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
+import { BuyerEntity } from 'src/modules/usersModule/userEntity/buyer.entity';
+import { DriverEntity } from 'src/modules/usersModule/userEntity/driver.entity';
+import { DriverDetails } from 'src/modules/usersModule/utils/user.types';
+import { DealerEntity } from 'src/modules/usersModule/userEntity/dealerEntity';
 
 @ApiTags('Admin')
 @UseGuards(JwtAuthGuard)
@@ -245,7 +254,7 @@ export class AdminController {
   @ApiResponse({
     status: 302,
     description: 'fetch buyers',
-    type: PaginatedBuyerResponseDto,
+    type: UsersResponseDto<BuyerEntity>,
   })
   @HttpCode(HttpStatus.FOUND)
   async fetchBuyers(
@@ -255,7 +264,22 @@ export class AdminController {
     return await this.adminUserService.fetchBuyers(admin, buyerFilterDto);
   }
 
-  @Get('/stats')
+  @Get('/buyer')
+  @ApiOperation({ summary: 'fetch buyer' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch buyer',
+    type: UserResponseDto<BuyerEntity>,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async findBuyer(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query('buyerId') buyerId: string,
+  ) {
+    return await this.adminUserService.fetchBuyer(admin, buyerId);
+  }
+
+  @Get('/paymentStats')
   @ApiOperation({ summary: 'fetch stats' })
   @ApiResponse({
     status: 200,
@@ -283,5 +307,80 @@ export class AdminController {
       admin,
       filterDto,
     );
+  }
+
+  @Get('/walletStats')
+  @ApiOperation({ summary: 'fetch wallet stats' })
+  @ApiResponse({
+    status: 200,
+    description: 'fetch wallet stats',
+    type: WalletStatsResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchWalletStats(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query('type') type: WalletUserEnum,
+  ) {
+    return await this.adminPaymentService.fetchStatsByUserType(admin, type);
+  }
+
+  @Get('/drivers')
+  @ApiOperation({ summary: 'fetch drivers by admin' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch drivers',
+    type: UsersResponseDto<DriverEntity>,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchDrivers(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() filterDto: DriverFilterDto,
+  ) {
+    return await this.adminUserService.fetchDrivers(admin, filterDto);
+  }
+
+  @Get('/driver')
+  @ApiOperation({ summary: 'fetch driver by admin' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch driver',
+    type: UserResponseDto<DriverDetails>,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchDriver(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query('driverId') driverId: string,
+  ) {
+    return await this.adminUserService.fetchDriver(admin, driverId);
+  }
+
+  @Get('/fetchDealers')
+  @ApiOperation({ summary: 'fetch dealers by admin' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch dealers by admin',
+    type: UsersResponseDto<DealerEntity>,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchDealers(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query() filterDto: DealersFilterDto,
+  ) {
+    return await this.adminUserService.fetchDealers(admin, filterDto);
+  }
+
+  @Get('/fetchDealer')
+  @ApiOperation({ summary: 'fetch dealer by admin' })
+  @ApiResponse({
+    status: 302,
+    description: 'fetch dealer by admin',
+    type: UserResponseDto<DealerEntity>,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchDealer(
+    @GetAdminDecorator() admin: AdminEntity,
+    @Query('dealerId') dealerId: string,
+  ) {
+    return await this.adminUserService.fetchDealer(admin, dealerId);
   }
 }

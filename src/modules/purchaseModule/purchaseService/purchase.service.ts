@@ -88,14 +88,14 @@ export class PurchaseService {
     );
 
     try {
-      const { message } = await this.paymentService.verifyPayment(reference);
+      // const { message } = await this.paymentService.verifyPayment(reference);
 
-      if (message !== 'payment verified successfully') {
-        this.logger.warn('payment verification unsuccessful');
-        throw new PaymentVerification('unverified payment', {
-          context: 'purchaseService',
-        });
-      }
+      // if (message !== 'payment verified successfully') {
+      //   this.logger.warn('payment verification unsuccessful');
+      //   throw new PaymentVerification('unverified payment', {
+      //     context: 'purchaseService',
+      //   });
+      // }
       const product =
         await this.productService.findProductByPurchaseService(productId);
 
@@ -226,14 +226,14 @@ export class PurchaseService {
     );
 
     try {
-      const { message } = await this.paymentService.verifyPayment(reference);
+      // const { message } = await this.paymentService.verifyPayment(reference);
 
-      if (message !== 'payment verified successfully') {
-        this.logger.warn('payment verification unsuccessful');
-        throw new PaymentVerification('unverified payment', {
-          context: 'purchaseService',
-        });
-      }
+      // if (message !== 'payment verified successfully') {
+      //   this.logger.warn('payment verification unsuccessful');
+      //   throw new PaymentVerification('unverified payment', {
+      //     context: 'purchaseService',
+      //   });
+      // }
       const product =
         await this.productService.findProductByPurchaseService(productId);
 
@@ -395,14 +395,14 @@ export class PurchaseService {
     );
 
     try {
-      const { message } = await this.paymentService.verifyPayment(reference);
+      // const { message } = await this.paymentService.verifyPayment(reference);
 
-      if (message !== 'payment verified successfully') {
-        this.logger.warn('payment verification unsuccessful');
-        throw new PaymentVerification('unverified payment', {
-          context: 'purchaseService',
-        });
-      }
+      // if (message !== 'payment verified successfully') {
+      //   this.logger.warn('payment verification unsuccessful');
+      //   throw new PaymentVerification('unverified payment', {
+      //     context: 'purchaseService',
+      //   });
+      // }
 
       const product =
         await this.productService.findProductByPurchaseService(productId);

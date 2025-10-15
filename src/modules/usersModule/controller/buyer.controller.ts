@@ -20,10 +20,13 @@ import {
   BuyerCredentialsDto,
   BuyerResponseDto,
   BuyersFilterDto,
-  PaginatedBuyerResponseDto,
+  // PaginatedBuyerResponseDto,
   UpdateBuyerDto,
+  UserResponseDto,
+  UsersResponseDto,
 } from '../utils/user.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { BuyerEntity } from '../userEntity/buyer.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('user')
@@ -58,7 +61,7 @@ export class BuyerController {
   @ApiResponse({
     status: 200,
     description: 'buyer fetched successfully',
-    type: BuyerResponseDto,
+    type: UserResponseDto<BuyerEntity>,
   })
   @HttpCode(HttpStatus.FOUND)
   async findBuyerById(@Req() req: Request) {
@@ -71,7 +74,7 @@ export class BuyerController {
   @ApiResponse({
     status: 302,
     description: 'buyer list fetched successfully',
-    type: PaginatedBuyerResponseDto,
+    type: UsersResponseDto<BuyerEntity>,
   })
   @HttpCode(HttpStatus.FOUND)
   async findBuyers(@Query() filterDto: BuyersFilterDto) {

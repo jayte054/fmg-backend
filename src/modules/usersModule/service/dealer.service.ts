@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -10,13 +11,16 @@ import { v4 as uuidV4 } from 'uuid';
 import { IDealerRepository } from '../interface/user.interface';
 import { AuthEntity } from '../../authModule/authEntity/authEntity';
 import {
-  DealerResObj,
   DealerResponse,
+  DealersFilterInterface,
   UpdateCredentials,
+  UserResponseInterface,
+  UsersResponseInterface,
 } from '../utils/user.types';
 import {
   CreateDealerDto,
   DealerCredentialsDto,
+  DealersFilterDto,
   UpdateDealerDto,
 } from '../utils/user.dto';
 import { AuditLogService } from '../../auditLogModule/auditLogService/auditLog.service';
@@ -25,6 +29,7 @@ import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
 import { PaymentService } from '../../paymentModule/service/payment.service';
 import { SubAccountEntity } from '../../paymentModule/entity/subaccount.entity';
 import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
+import { DealerEntity } from '../userEntity/dealerEntity';
 
 @Injectable()
 export class DealerService {
@@ -161,24 +166,21 @@ export class DealerService {
   };
 
   findDealers = async (
-    user: AuthEntity,
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<{
-    data: DealerResponse[];
-    total: number;
-    currentPage: number;
-  }> => {
-    const currentPage = Math.max(page, 1);
-    const currentLimit = Math.max(limit, 1);
-    const skip = (currentPage - 1) * currentLimit;
+    filterDto: DealersFilterDto,
+    user?: AuthEntity,
+  ): Promise<UsersResponseInterface<DealerEntity>> => {
+    const { search, scale, verified, createdAt, skip, take } = filterDto;
+    const filter: DealersFilterInterface = {
+      ...(search !== undefined && { search }),
+      ...(scale !== undefined && { scale }),
+      ...(verified !== undefined && { verified }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
 
     try {
-      const { dealers, total }: DealerResObj =
-        await this.dealerRepository.findDealers({
-          skip,
-          take: limit,
-        });
+      const dealers = await this.dealerRepository.findDealers(filter);
 
       await this.auditLogService.log({
         logCategory: LogCategory.USER,
@@ -191,9 +193,9 @@ export class DealerService {
 
       this.logger.verbose('dealers profile successfully fetched');
       return {
+        message: 'dealers fetched successfully',
+        status: HttpStatus.FOUND,
         data: dealers,
-        total,
-        currentPage: page,
       };
     } catch (error) {
       this.logger.error('failed to fetch dealers');
@@ -233,11 +235,17 @@ export class DealerService {
     }
   };
 
-  findDealerByService = async (dealerId: string): Promise<DealerResponse> => {
+  findDealerByService = async (
+    dealerId: string,
+  ): Promise<UserResponseInterface<DealerResponse>> => {
     try {
       const dealer = await this.dealerRepository.findDealerId(dealerId);
 
-      return this.mapToDealerResponse(dealer);
+      return {
+        message: 'dealer fetched successfully',
+        status: HttpStatus.FOUND,
+        data: this.mapToDealerResponse(dealer),
+      };
     } catch (error) {
       this.logger.error(`error finding dealer with id `);
       throw new InternalServerErrorException('failed to find dealer');

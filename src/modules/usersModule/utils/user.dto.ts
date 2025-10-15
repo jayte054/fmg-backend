@@ -598,3 +598,67 @@ export class DriverResponseDto {
   @ApiProperty()
   data: DriverDetailsDto;
 }
+
+export class DealersFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+  @ApiPropertyOptional()
+  @IsEnum(RetailScale)
+  @IsOptional()
+  scale?: RetailScale;
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  verified: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  createdAt?: Date;
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  skip: number;
+  @ApiProperty()
+  @IsNumber()
+  take: number;
+}
+
+export class UserResponseDto<T> {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: T;
+}
+
+export class PaginatedUserResponseDto<T> {
+  @ApiProperty()
+  buyers: T[];
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+  @ApiProperty()
+  @IsNumber()
+  page: number;
+  @ApiProperty()
+  @IsNumber()
+  perPage: number;
+  @ApiProperty()
+  @IsBoolean()
+  hasMore: boolean;
+}
+
+export class UsersResponseDto<T> {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: PaginatedUserResponseDto<T>;
+}

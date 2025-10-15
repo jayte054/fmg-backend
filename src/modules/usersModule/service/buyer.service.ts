@@ -12,8 +12,9 @@ import {
   BuyerResponse,
   BuyerResponseInterface,
   BuyersFilterInterface,
-  PaginatedBuyerResponseInterface,
   UpdateBuyerInterface,
+  UserResponseInterface,
+  UsersResponseInterface,
 } from '../utils/user.types';
 import {
   BuyerCredentialsDto,
@@ -92,7 +93,9 @@ export class BuyerService {
     }
   };
 
-  findBuyerById = async (user: AuthEntity): Promise<BuyerResponse> => {
+  findBuyerById = async (
+    user: AuthEntity,
+  ): Promise<UserResponseInterface<BuyerResponseInterface>> => {
     try {
       const buyer = await this.buyerRepository.findBuyerById(user.id);
 
@@ -112,7 +115,8 @@ export class BuyerService {
       this.logger.verbose(`user with id ${user.id} successfully fetched`);
 
       return {
-        status: 200,
+        message: 'buyer fetched successfully',
+        status: HttpStatus.FOUND,
         data: this.mapToBuyerResponse(buyer),
       };
     } catch (error) {
@@ -127,7 +131,7 @@ export class BuyerService {
   findBuyer = async (
     buyerId?: string,
     email?: string,
-  ): Promise<BuyerEntity> => {
+  ): Promise<UserResponseInterface<BuyerEntity>> => {
     try {
       const buyer = await this.buyerRepository.findBuyer(buyerId, email);
       if (!buyer) {
@@ -141,17 +145,22 @@ export class BuyerService {
           },
         });
       }
-      return buyer;
+      return {
+        message: 'buyer found successfully',
+        status: HttpStatus.FOUND,
+        data: buyer,
+      };
     } catch (error) {
       this.logger.error('failed to find buyer with id', buyerId);
-      throw new InternalServerErrorException('faild to find buyer');
+      throw new InternalServerErrorException('failed to find buyer');
     }
   };
 
   findBuyers = async (
     filterDto: BuyersFilterDto,
     adminId?: string,
-  ): Promise<PaginatedBuyerResponseInterface> => {
+    // eslint-disable-next-line prettier/prettier
+  ): Promise<UsersResponseInterface<BuyerEntity>> => {
     const { search, role, isDeleted, createdAt, skip, take } = filterDto;
 
     const filter: BuyersFilterInterface = {
@@ -184,7 +193,11 @@ export class BuyerService {
           });
 
       this.logger.log('buyers list fetched successfully');
-      return buyers;
+      return {
+        message: 'buyers fetched successfully',
+        status: HttpStatus.OK,
+        data: buyers,
+      };
     } catch (error) {
       this.logger.error('failed to fetch buyers');
       throw new InternalServerErrorException('failed to fetch buyers');
@@ -351,6 +364,9 @@ export class BuyerService {
       role: buyer.role,
       isAdmin: buyer.isAdmin,
       userId: buyer.userId,
+      createdAt: buyer.createdAt,
+      updatedAt: buyer.updatedAt,
+      isDeleted: buyer.isDeleted,
       metadata: buyer.metadata,
     };
   };

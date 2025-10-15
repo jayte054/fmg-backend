@@ -6,6 +6,7 @@ import {
   PaginatedPaymentResponse,
   PaginatedRevenueInterface,
   PaginatedRevenueResponse,
+  PaginatedTransactionInterfaceResponse,
   PaginatedWalletResponse,
   PaymentInterface,
   WalletInterface,
@@ -73,5 +74,28 @@ export const paginatedRevenue = async (
     total,
     page: Math.floor(skip / take) + 1,
     perPage: take,
+  };
+};
+
+export const paginatedTransactionsResponse = (
+  paginatedTransactionInterface: PaginatedTransactionInterfaceResponse,
+) => {
+  const { transactions, total, skip, take } = paginatedTransactionInterface;
+  if (!transactions || transactions.length === 0) {
+    return {
+      transactions: [],
+      total: 0,
+      page: 0,
+      perPage: 0,
+      hasMore: false,
+    };
+  }
+
+  return {
+    transactions,
+    total,
+    page: Math.floor(skip / take) + 1,
+    perPage: take,
+    hasMore: skip + transactions.length < total,
   };
 };

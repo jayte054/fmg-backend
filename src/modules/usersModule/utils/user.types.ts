@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
 import { DriverEntity } from '../userEntity/driver.entity';
+import { DealerEntity } from '../userEntity/dealerEntity';
 
 export interface BuyerResponse {
   status: number;
@@ -19,6 +20,9 @@ export interface BuyerResponseInterface {
   role: string;
   isAdmin: boolean;
   userId: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: string;
   metadata: Record<string, string>;
 }
 
@@ -108,29 +112,20 @@ export enum VehicleType {
 
 export interface DriverDetails {
   driverId: string;
-
   firstName: string;
-
   lastName: string;
-
   phoneNumber: string;
-
   email: string;
-
   address: string;
-
   vehicle: VehicleType;
-
   vehicleNumber: string;
-
   role: string;
-
   driversLicense: string;
-
   imageUrl: string;
-
   isAdmin: boolean;
-
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
   userId: string;
 }
 
@@ -288,6 +283,50 @@ export interface PaginatedDriverResponseInterface {
 
 export interface PaginatedDriversResponse {
   data: DriverEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+}
+
+export interface DealersFilterInterface {
+  search?: string;
+  scale?: RetailScale;
+  createdAt?: Date;
+  verified?: boolean;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedDealersResponseInterface {
+  dealers: DealerEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedDealerResponse {
+  dealers: DealerEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+}
+
+export interface UserResponseInterface<T> {
+  message: string;
+  status: number;
+  data: T;
+}
+
+export interface UsersResponseInterface<T> {
+  message: string;
+  status: number;
+  data: PaginatedUserResponseInterface<T>;
+}
+
+export interface PaginatedUserResponseInterface<T> {
+  buyers: T[];
   total: number;
   page: number;
   perPage: number;
