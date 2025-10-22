@@ -60,9 +60,6 @@ import { DataSource } from 'typeorm';
 import { RevenueEntity } from '../entity/revenue.entity';
 import { ITransactionRepositoryInterface } from '../interface/ITransactionrepository.interface';
 import { TransactionEntity } from '../entity/transaction.entity';
-// import { InjectQueue } from '@nestjs/bullmq';
-// import { Queue } from 'bullmq';
-// import { AdminEntity } from 'src/modules/usersModule/userEntity/admin.entity';
 
 @Injectable()
 export class PaymentService {
@@ -125,9 +122,7 @@ export class PaymentService {
     const commissionOnDeliveryFee = deliveryFee * 0.3;
     const commissionOnProductFee = productAmount * 0.05;
     const platformCommission = commissionOnDeliveryFee + commissionOnProductFee;
-    // const platformCommission = commissionOnDeliveryFee;
     const driversShare = deliveryFee - commissionOnDeliveryFee;
-    // const dealerShare = productAmount;
     const dealerShare = productAmount - commissionOnProductFee;
 
     const amountInKobo = totalAmount * 100;
@@ -137,11 +132,8 @@ export class PaymentService {
     const { dealerId } = await this.productService.findProductByPurchaseService(
       purchase.productId,
     );
-    // const dealer = await this.dealerService.findDealerByService(dealerId);
     const dealerSub =
       await this.subAccountRepository.findSubAccountUserId(dealerId);
-    // const driverId = purchase.metadata?.driverId;
-    // const driver = await this.driverService.findDriverByService(driverId);
 
     try {
       const response = await firstValueFrom(
@@ -217,9 +209,6 @@ export class PaymentService {
     buyer: BuyerEntity,
     reference: string,
   ): Promise<{ message: string }> {
-    // const paystack_secret = this.configService.get('paystack_test_secret_key');
-    // const paystack_url = this.configService.get<string>('paystack_url');
-
     const url = `${this.paystack_url}/transaction/verify/${reference}`;
     const headers = { Authorization: `Bearer ${this.paystack_secret}` };
 
@@ -253,7 +242,7 @@ export class PaymentService {
 
       await this.updateTransaction(input, reference);
 
-      await this.requeryPayment(reference);
+      await this.requeryPaymentVerification(reference);
 
       return { message: 'payment queued for re-verification' };
     }
@@ -287,7 +276,11 @@ export class PaymentService {
     return { message: 'payment verified successfully' };
   }
 
-  requeryPayment = async (reference: string, retries = 3, delayMs = 10000) => {
+  requeryPaymentVerification = async (
+    reference: string,
+    retries = 3,
+    delayMs = 10000,
+  ) => {
     const url = `${this.paystack_url}/transaction/verify/${reference}`;
     const headers = { Authorization: `Bearer ${this.paystack_secret}` };
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -444,18 +437,6 @@ export class PaymentService {
         updateDealerWalletData,
       );
 
-      // await Promise.all([
-      //   this.walletRepository.updateWallet(
-      //     driverWallet.walletAccount,
-      //     updateDriverWalletData,
-      //   ),
-      //   this.walletRepository.updateWallet(
-      //     dealerWallet.walletAccount,
-      //     updateDealerWalletData,
-      //   ),
-      // ]);
-
-      // let paymentRecord: PaymentEntity;
       const commonFields = {
         email: email,
         purchaseId: purchase.purchaseId,
@@ -488,21 +469,11 @@ export class PaymentService {
         await this.updateCashbackMethod(amount.toString(), buyer.data.buyerId);
 
         [paymentRecord, revenueRecord] = await Promise.all([
-          // await this.paymentRepository.makePayment({
-          //   ...commonFields,
-          //   platformCommission: commission,
-          // }),
           queryRunner.manager.save(PaymentEntity, {
             ...commonFields,
             platformCommission: commission,
           }),
 
-          // await this.revenueRepository.createRevenue({
-          //   amount: commission.toString(),
-          //   reference,
-          //   source,
-          //   recordedAt: new Date(),
-          // }),
           queryRunner.manager.save(RevenueEntity, {
             amount: commission.toString(),
             reference,
@@ -512,21 +483,11 @@ export class PaymentService {
         ]);
       } else {
         [paymentRecord, revenueRecord] = await Promise.all([
-          // await this.paymentRepository.makePayment({
-          //   ...commonFields,
-          //   platformCommission,
-          // }),
           queryRunner.manager.save(PaymentEntity, {
             ...commonFields,
             platformCommission,
           }),
 
-          // await this.revenueRepository.createRevenue({
-          //   amount: platformCommission.toString(),
-          //   reference,
-          //   source,
-          //   recordedAt: new Date(),
-          // }),
           queryRunner.manager.save(RevenueEntity, {
             amount: platformCommission.toString(),
             reference,
@@ -534,12 +495,6 @@ export class PaymentService {
             recordedAt: new Date(),
           }),
         ]);
-        // paymentRecord = await this.paymentRepository.makePayment({
-        //   ...commonFields,
-        //   platformCommission,
-        // });
-
-        // await this.buyerService.updateBuyerByPayment(buyer, buyer.metadata),
       }
 
       await queryRunner.manager.update(BuyerEntity, buyer.data.buyerId, {
@@ -698,6 +653,118 @@ export class PaymentService {
     return updateWallet;
   };
 
+  // withdrawFromWallet = async (
+  //   amount: number,
+  //   driver: DriverEntity,
+  // ): Promise<{ wallet?: WalletEntity; message?: string }> => {
+  //   const request_number = this.configService.get<string>(
+  //     'platform_whithdrawal_request_number',
+  //   );
+  //   const { driverId, email } = driver;
+
+  //   const queryRunner = this.dataSource.createQueryRunner();
+  //   await queryRunner.connect();
+  //   await queryRunner.startTransaction();
+
+  //   const wallet = await this.walletRepository.findWalletUserId(driverId);
+  //   if (wallet.balance < amount) {
+  //     this.logger.error(`insufficient balance for driver ${driverId}`);
+  //     return { message: 'insufficient balance' };
+  //   }
+
+  //   if (wallet.userId !== driverId) {
+  //     this.logger.error('unauthorized withdrawal access');
+  //     return { message: 'unauthorized' };
+  //   }
+
+  //   const bankDetails = wallet.metadata?.bankName as {
+  //     bankName: string;
+  //     accountName: string;
+  //     accountNumber: string;
+  //   };
+
+  //   if (!bankDetails?.accountNumber || !bankDetails.accountName) {
+  //     this.logger.error(
+  //       `missing bank details in driver ${driver.driverId} wallet`,
+  //     );
+  //     throw new Error('Missing bank details in wallet metadata');
+  //   }
+
+  //   const newBalance = wallet.balance - amount;
+
+  //   const metadata = wallet.metadata;
+  //   const currentWithdrawals = metadata.numberOfWithdrawals;
+  //   metadata.numberOfWithdrawals =
+  //     typeof currentWithdrawals === 'number' ? currentWithdrawals + 1 : 1;
+  //   const totalAmountWithdrawn = metadata.totalAmountWithdrawn;
+  //   metadata.totalAmountWithdrawn =
+  //     typeof totalAmountWithdrawn === 'number'
+  //       ? totalAmountWithdrawn + amount
+  //       : amount;
+
+  //   const updateWalletData: UpdateWalletData = {
+  //     ...wallet,
+  //     balance: newBalance,
+  //     previousBalance: wallet.balance,
+  //     metadata,
+  //     updatedAt: new Date(),
+  //   };
+
+  //   const updatedWallet = await this.walletRepository.updateWallet(
+  //     wallet.walletAccount,
+  //     updateWalletData,
+  //   );
+
+  //   if (updatedWallet) {
+  //     this.auditLogService.log({
+  //       logCategory: LogCategory.PAYMENT,
+  //       description: 'Driver wallet withdrawal successful',
+  //       email,
+  //       details: {
+  //         amount: amount.toString(),
+  //         newBalance: newBalance.toString(),
+  //       },
+  //     });
+
+  //     //include a transaction query to the database
+
+  //     await this.messagingService.sendWithdrawalRequest(
+  //       request_number,
+  //       `
+  //         driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into
+  //         Account Name: ${bankDetails.accountName}
+  //         Account Number: ${bankDetails.accountNumber}
+  //         Bank Name: ${bankDetails.bankName}
+  //         Amount: ${amount}
+  //         `,
+  //       driverId,
+  //       amount.toString(),
+  //       wallet.walletId,
+  //     );
+
+  //     this.logger.log(
+  //       `Withdrawal of ${amount} from driver ${driverId} successful`,
+  //     );
+  //     return {
+  //       wallet: updatedWallet,
+  //       message: 'withdrawal process successfully initiated',
+  //     };
+  //   } else {
+  //     this.auditLogService.log({
+  //       logCategory: LogCategory.PAYMENT,
+  //       description: 'Driver wallet withdrawal unsuccessful',
+  //       email,
+  //       details: {
+  //         amount: amount.toString(),
+  //         newBalance: newBalance.toString(),
+  //       },
+  //     });
+
+  //     this.logger.error('failed to implement withdrawal');
+  //     return { message: 'failed to implement withdrawal' };
+  //   }
+  // };
+
   withdrawFromWallet = async (
     amount: number,
     driver: DriverEntity,
@@ -706,53 +773,101 @@ export class PaymentService {
       'platform_whithdrawal_request_number',
     );
     const { driverId, email } = driver;
-    const wallet = await this.walletRepository.findWalletUserId(driverId);
-    if (wallet.balance < amount) {
-      this.logger.error(`insufficient balance for driver ${driverId}`);
-      return { message: 'insufficient balance' };
-    }
 
-    if (wallet.userId !== driverId) {
-      this.logger.error('unauthorized withdrawal access');
-      return { message: 'unauthorized' };
-    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const bankDetails = wallet.metadata?.bankName as {
-      bankName: string;
-      accountName: string;
-      accountNumber: string;
-    };
+    try {
+      const wallet = await queryRunner.manager.findOne(WalletEntity, {
+        where: { userId: driverId },
+        lock: { mode: 'pessimistic_write' }, // prevent concurrent modification
+      });
 
-    if (!bankDetails?.accountNumber || !bankDetails.accountName) {
-      throw new Error('Missing bank details in wallet metadata');
-    }
+      if (!wallet) {
+        throw new Error(`Wallet not found for driver ${driverId}`);
+      }
 
-    const newBalance = wallet.balance - amount;
+      if (wallet.balance < amount) {
+        this.logger.error(`Insufficient balance for driver ${driverId}`);
+        await queryRunner.rollbackTransaction();
+        return { message: 'insufficient balance' };
+      }
 
-    const metadata = wallet.metadata;
-    const currentWithdrawals = metadata.numberOfWithdrawals;
-    metadata.numberOfWithdrawals =
-      typeof currentWithdrawals === 'number' ? currentWithdrawals + 1 : 1;
-    const totalAmountWithdrawn = metadata.totalAmountWithdrawn;
-    metadata.totalAmountWithdrawn =
-      typeof totalAmountWithdrawn === 'number'
-        ? totalAmountWithdrawn + amount
-        : amount;
+      if (wallet.userId !== driverId) {
+        this.logger.error('Unauthorized withdrawal access');
+        await queryRunner.rollbackTransaction();
+        return { message: 'unauthorized' };
+      }
 
-    const updateWalletData: UpdateWalletData = {
-      ...wallet,
-      balance: newBalance,
-      previousBalance: wallet.balance,
-      metadata,
-      updatedAt: new Date(),
-    };
+      const bankDetails = wallet.metadata?.bankName as {
+        bankName: string;
+        accountName: string;
+        accountNumber: string;
+      };
 
-    const updatedWallet = await this.walletRepository.updateWallet(
-      wallet.walletAccount,
-      updateWalletData,
-    );
+      if (!bankDetails?.accountNumber || !bankDetails.accountName) {
+        this.logger.error(
+          `Missing bank details in driver ${driver.driverId} wallet`,
+        );
+        throw new Error('Missing bank details in wallet metadata');
+      }
 
-    if (updatedWallet) {
+      // Update wallet balance and metadata
+      const newBalance = wallet.balance - amount;
+      const metadata = wallet.metadata;
+
+      metadata.numberOfWithdrawals =
+        typeof metadata.numberOfWithdrawals === 'number'
+          ? metadata.numberOfWithdrawals + 1
+          : 1;
+
+      metadata.totalAmountWithdrawn =
+        typeof metadata.totalAmountWithdrawn === 'number'
+          ? metadata.totalAmountWithdrawn + amount
+          : amount;
+
+      wallet.previousBalance = wallet.balance;
+      wallet.balance = newBalance;
+      wallet.metadata = metadata;
+      wallet.updatedAt = new Date();
+
+      await queryRunner.manager.save(wallet);
+
+      // Optional: Record the transaction in the transactions table
+      const transaction = queryRunner.manager.create(TransactionEntity, {
+        reference: `WD-${driverId.slice(0, 3)}-${Date.now()}`,
+        userId: driverId,
+        amount,
+        status: TransactionStatus.processing,
+        type: TransactionType.debit,
+        metadata: {
+          bankDetails,
+          previousBalance: wallet.previousBalance,
+          newBalance: wallet.balance,
+        },
+      });
+      await queryRunner.manager.save(transaction);
+
+      // Commit all DB operations before external messaging
+      await queryRunner.commitTransaction();
+
+      // Send notification message (outside transaction)
+      await this.messagingService.sendWithdrawalRequest(
+        request_number,
+        `
+          Driver ${driver.firstName} ${driver.lastName} has requested a withdrawal:
+          Account Name: ${bankDetails.accountName}
+          Account Number: ${bankDetails.accountNumber}
+          Bank Name: ${bankDetails.bankName}
+          Amount: ${amount}
+        `,
+        driverId,
+        amount.toString(),
+        wallet.walletId,
+      );
+
+      // Log audit
       this.auditLogService.log({
         logCategory: LogCategory.PAYMENT,
         description: 'Driver wallet withdrawal successful',
@@ -763,42 +878,26 @@ export class PaymentService {
         },
       });
 
-      //include a transaction query to the database
-
-      await this.messagingService.sendWithdrawalRequest(
-        request_number,
-        `
-          driver ${driver.firstName} ${driver.lastName} has requested a withdrawal into 
-          Account Name: ${bankDetails.accountName}
-          Account Number: ${bankDetails.accountNumber}
-          Bank Name: ${bankDetails.bankName}
-          Amount: ${amount}
-          `,
-        driverId,
-        amount.toString(),
-        wallet.walletId,
-      );
-
       this.logger.log(
         `Withdrawal of ${amount} from driver ${driverId} successful`,
       );
       return {
-        wallet: updatedWallet,
+        wallet,
         message: 'withdrawal process successfully initiated',
       };
-    } else {
-      this.auditLogService.log({
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Withdrawal failed', error.stack);
+      this.auditLogService.error({
         logCategory: LogCategory.PAYMENT,
-        description: 'Driver wallet withdrawal unsuccessful',
-        email,
-        details: {
-          amount: amount.toString(),
-          newBalance: newBalance.toString(),
-        },
+        description: 'Driver wallet withdrawal failed',
+        email: driver.email,
+        details: { driverId, amount: amount.toString(), error: error.message },
+        status: HttpStatus.BAD_REQUEST,
       });
-
-      this.logger.error('failed to implement withdrawal');
-      return { message: 'failed to implement withdrawal' };
+      return { message: 'withdrawal failed' };
+    } finally {
+      await queryRunner.release();
     }
   };
 

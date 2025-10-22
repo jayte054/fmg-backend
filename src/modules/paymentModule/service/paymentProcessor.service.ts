@@ -11,7 +11,7 @@ export class PaymentProcessor extends WorkerHost {
   async process(job: JobInterface): Promise<void> {
     if (job.name === 'requery_payment') {
       const { reference } = job.data;
-      await this.paymentService.requeryPayment(reference);
+      await this.paymentService.requeryPaymentVerification(reference);
     }
   }
 }
