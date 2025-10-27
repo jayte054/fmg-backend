@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpStatus,
   Inject,
   Injectable,
@@ -27,6 +28,7 @@ import {
   ActivateSubAccountInterface,
   AdminPaymentFilter,
   BuyerPaymentResponseInterface,
+  BuyerWalletResponse,
   CashbackWalletFilter,
   CreateCashbackWalletResponse,
   PaginatedCashbackWalletResponse,
@@ -40,6 +42,7 @@ import {
   TransactionType,
   UpdateCashbackInputInterface,
   UpdateWalletData,
+  WalletFilter,
   WalletStatus,
   WalletUserEnum,
 } from '../utils/interface';
@@ -571,6 +574,43 @@ export class PaymentService {
     }
   };
 
+  createBuyerWallet = async (
+    buyer: BuyerEntity,
+  ): Promise<BuyerWalletResponse> => {
+    const accExtension = Math.floor(100000 + Math.random() * 900000).toString();
+    const walletAccount = `${buyer.buyerId.slice(0, 4)}-${accExtension}`;
+
+    const input: Partial<WalletEntity> = {
+      walletName: `${buyer.firstName} ${buyer.lastName}`,
+      walletAccount,
+      userId: buyer.userId,
+      status: WalletStatus.active,
+      type: WalletUserEnum.buyer,
+      balance: 0,
+      previousBalance: 0,
+      createdAt: new Date(),
+      metadata: {},
+    };
+
+    const newWallet = await this.walletRepository.createWallet(input);
+
+    await this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'create new wallet',
+      email: buyer.email,
+      details: {
+        walletName: newWallet.walletName,
+        balance: newWallet.balance.toString(),
+      },
+    });
+
+    return {
+      message: 'wallet created successfully',
+      status: HttpStatus.OK,
+      wallet: newWallet,
+    };
+  };
+
   createWallet = async (
     walletInput: Partial<WalletEntity>,
     accountId: string,
@@ -767,12 +807,39 @@ export class PaymentService {
 
   withdrawFromWallet = async (
     amount: number,
-    driver: DriverEntity,
+    driver?: DriverEntity,
+    dealer?: DealerEntity,
   ): Promise<{ wallet?: WalletEntity; message?: string }> => {
     const request_number = this.configService.get<string>(
       'platform_whithdrawal_request_number',
     );
-    const { driverId, email } = driver;
+
+    let userId: string;
+    let email: string;
+
+    switch (true) {
+      case !!driver:
+        userId = driver.userId;
+        email = driver.email;
+        break;
+
+      case !!dealer:
+        userId = dealer.userId;
+        email = dealer.email;
+
+      default:
+        this.logger.error('invalid request');
+        this.auditLogService.error({
+          logCategory: LogCategory.PAYMENT,
+          description: 'failed to provide valid entity',
+          details: {
+            userId,
+            amount: amount.toString(),
+          },
+          status: HttpStatus.BAD_REQUEST,
+        });
+        throw new BadRequestException('invalid request');
+    }
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -780,21 +847,21 @@ export class PaymentService {
 
     try {
       const wallet = await queryRunner.manager.findOne(WalletEntity, {
-        where: { userId: driverId },
+        where: { userId },
         lock: { mode: 'pessimistic_write' }, // prevent concurrent modification
       });
 
       if (!wallet) {
-        throw new Error(`Wallet not found for driver ${driverId}`);
+        throw new Error(`Wallet not found for driver ${userId}`);
       }
 
       if (wallet.balance < amount) {
-        this.logger.error(`Insufficient balance for driver ${driverId}`);
+        this.logger.error(`Insufficient balance for driver ${userId}`);
         await queryRunner.rollbackTransaction();
         return { message: 'insufficient balance' };
       }
 
-      if (wallet.userId !== driverId) {
+      if (wallet.userId !== userId) {
         this.logger.error('Unauthorized withdrawal access');
         await queryRunner.rollbackTransaction();
         return { message: 'unauthorized' };
@@ -814,6 +881,16 @@ export class PaymentService {
       }
 
       // Update wallet balance and metadata
+      const availableBalance = wallet.balance - wallet.lienBalance;
+
+      if (amount < availableBalance) {
+        this.logger.error(
+          'insufficient balance',
+          'payment',
+          'withdraw from wallet',
+        );
+        throw new ConflictException('insufficient balance');
+      }
       const newBalance = wallet.balance - amount;
       const metadata = wallet.metadata;
 
@@ -836,8 +913,8 @@ export class PaymentService {
 
       // Optional: Record the transaction in the transactions table
       const transaction = queryRunner.manager.create(TransactionEntity, {
-        reference: `WD-${driverId.slice(0, 3)}-${Date.now()}`,
-        userId: driverId,
+        reference: `WD-${userId.slice(0, 3)}-${Date.now()}`,
+        userId: userId,
         amount,
         status: TransactionStatus.processing,
         type: TransactionType.debit,
@@ -862,7 +939,7 @@ export class PaymentService {
           Bank Name: ${bankDetails.bankName}
           Amount: ${amount}
         `,
-        driverId,
+        userId,
         amount.toString(),
         wallet.walletId,
       );
@@ -879,7 +956,7 @@ export class PaymentService {
       });
 
       this.logger.log(
-        `Withdrawal of ${amount} from driver ${driverId} successful`,
+        `Withdrawal of ${amount} from driver ${userId} successful`,
       );
       return {
         wallet,
@@ -892,13 +969,161 @@ export class PaymentService {
         logCategory: LogCategory.PAYMENT,
         description: 'Driver wallet withdrawal failed',
         email: driver.email,
-        details: { driverId, amount: amount.toString(), error: error.message },
+        details: { userId, amount: amount.toString(), error: error.message },
         status: HttpStatus.BAD_REQUEST,
       });
       return { message: 'withdrawal failed' };
     } finally {
       await queryRunner.release();
     }
+  };
+
+  getWallets = async (adminId: string, filter: WalletFilter) => {
+    const { search, status, type, createdAt, skip, take } = filter;
+
+    const walletFilter = {
+      ...(search !== undefined && { search }),
+      ...(status !== undefined && { status }),
+      ...(type !== undefined && { type }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
+
+    const wallets = await this.walletRepository.findWallets(walletFilter);
+
+    this.logger.log(`wallets fetched by ${adminId}`);
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'wallets fetched by admin',
+      details: {
+        adminId,
+        filter: JSON.stringify(walletFilter),
+      },
+    });
+
+    return wallets;
+  };
+
+  getWalletByAdmin = async (adminId: string, walletId: string) => {
+    if (!walletId) {
+      this.logger.error('userId not included in request');
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'fetch user wallet',
+        details: {
+          adminId,
+          walletId,
+        },
+        status: HttpStatus.BAD_REQUEST,
+      });
+      throw new BadRequestException('walletId not included');
+    }
+
+    const userWallet = await this.walletRepository.findWallet(walletId);
+
+    if (!userWallet) {
+      this.logger.error(`wallet with walletId ${walletId} not found`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'fetch wallet',
+        details: {
+          adminId,
+          walletId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('wallet not found');
+    }
+
+    this.logger.log(
+      `wallet ${walletId} fetched successfully by admin ${adminId}`,
+    );
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'fetch wallet by walletId',
+      details: {
+        adminId,
+        walletId,
+      },
+    });
+
+    return {
+      message: 'wallet fetched successfully',
+      status: HttpStatus.FOUND,
+      data: userWallet,
+    };
+  };
+
+  getWallet = async (
+    buyer?: BuyerEntity,
+    driver?: DriverEntity,
+    dealer?: DealerEntity,
+  ) => {
+    let userId: string;
+    let role: string;
+
+    switch (true) {
+      case !!buyer:
+        userId = buyer.userId;
+        role = 'buyer';
+        break;
+
+      case !!driver:
+        userId = driver.userId;
+        role = 'driver';
+        break;
+
+      case !!dealer:
+        userId = dealer.userId;
+        role = 'dealer';
+        break;
+
+      default:
+        this.logger.error('failed to provide a valid id');
+        this.auditLogService.error({
+          logCategory: LogCategory.PAYMENT,
+          description: 'fetch wallet',
+          details: {
+            userId,
+          },
+          status: HttpStatus.NOT_FOUND,
+        });
+        throw new BadRequestException('invalid request');
+    }
+
+    const wallet = await this.walletRepository.findWalletUserId(userId);
+
+    if (!wallet) {
+      this.logger.error('failed to fetch wallet with userId', userId);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'failed to fetch wallet',
+        details: {
+          userId,
+          role,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException(`wallet with userId ${userId} not found`);
+    }
+
+    this.logger.log('wallet fetched successfully');
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: `${role} with id ${userId} fetched wallet`,
+      details: {
+        userId,
+        walletId: wallet.walletId,
+        role,
+      },
+    });
+
+    return {
+      message: 'wallet fetched successfully',
+      status: HttpStatus.FOUND,
+      wallet: WalletEntity,
+    };
   };
 
   getWalletStats = async (adminId: string, type: WalletUserEnum) => {

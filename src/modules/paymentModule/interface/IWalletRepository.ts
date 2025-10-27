@@ -9,7 +9,7 @@ import {
 export interface IWalletRepository {
   createWallet(input: Partial<WalletEntity>): Promise<WalletEntity>;
   findWallet(walletId: string): Promise<WalletEntity>;
-  findWalletUserId(userId?: string): Promise<WalletEntity>;
+  findWalletUserId(userId: string): Promise<WalletEntity>;
   findWallets(filter: WalletFilter): Promise<PaginatedWalletResponse>;
   updateWallet(
     walletAccount: string,

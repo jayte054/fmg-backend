@@ -18,10 +18,12 @@ import { GetBuyerDecorator } from '../../../common/decorators/getBuyerDecorator'
 import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   BuyerPaymentResponseDto,
+  BuyerWalletResponseDto,
   InitializePaymentDto,
   PaginatedPaymentResponseDto,
   PaymentFilterDto,
   UpdateBankDetailDto,
+  WalletResponseDto,
   WithdrawalDto,
 } from '../utils/payment.dto';
 import { GetDealerDecorator } from 'src/common/decorators/getDealerDecorator';
@@ -119,5 +121,33 @@ export class PaymentController {
     @Query() paymentFilter: PaymentFilterDto,
   ) {
     return await this.paymentService.findPayments(buyer, paymentFilter);
+  }
+
+  @Get('createBuyerWallet')
+  @ApiOperation({ summary: 'create wallet for buyer' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'create buyer wallet',
+    type: BuyerWalletResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async createBuyerWallet(@GetBuyerDecorator() buyer: BuyerEntity) {
+    return await this.paymentService.createBuyerWallet(buyer);
+  }
+
+  @Get('getWallet')
+  @ApiOperation({ summary: 'fetch wallet' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'fetch wallet',
+    type: WalletResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  async fetchWallet(
+    @GetBuyerDecorator() buyer?: BuyerEntity,
+    @GetDealerDecorator() dealer?: DealerEntity,
+    @GetDriverDecorator() driver?: DriverEntity,
+  ) {
+    return await this.paymentService.getWallet(buyer, driver, dealer);
   }
 }

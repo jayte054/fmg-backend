@@ -24,6 +24,7 @@ import { PaymentStatus, RevenueSource } from './interface';
 import { PaymentEntity } from '../entity/payment.entity';
 import { RevenueEntity } from '../entity/revenue.entity';
 import { CashbackWalletEntity } from '../entity/cashback.entity';
+import { WalletEntity } from '../entity/wallet.entity';
 
 class PurchaseCredentials {
   @ApiProperty()
@@ -359,4 +360,38 @@ export class WalletStatsResponseDto {
   @ApiProperty()
   @IsNumber()
   averageBalance: number;
+}
+
+export class BuyerWalletResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsString()
+  status: number;
+  @ApiProperty()
+  @IsString()
+  wallet: WalletEntity;
+}
+
+export class WalletResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: WalletEntity;
+}
+
+export class WalletsResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsNumber()
+  status: number;
+  @ApiProperty()
+  data: WalletEntity;
 }

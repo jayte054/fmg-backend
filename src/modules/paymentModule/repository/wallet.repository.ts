@@ -30,7 +30,7 @@ export class WalletRepository extends Repository<WalletEntity> {
     return await query.getOne();
   };
 
-  findWalletUserId = async (userId?: string): Promise<WalletEntity> => {
+  findWalletUserId = async (userId: string): Promise<WalletEntity> => {
     const query = this.createQueryBuilder('wallet');
     query.where('wallet.userId = :userId', { userId });
     return await query.getOne();
@@ -39,7 +39,7 @@ export class WalletRepository extends Repository<WalletEntity> {
   findWallets = async (
     filter: WalletFilter,
   ): Promise<PaginatedWalletResponse> => {
-    const { search, status, createdAt, skip, take } = filter;
+    const { search, status, createdAt, type, skip, take } = filter;
     const query = this.createQueryBuilder('wallet');
 
     if (search) {
@@ -60,6 +60,12 @@ export class WalletRepository extends Repository<WalletEntity> {
     if (createdAt) {
       query.andWhere('wallet.createdAt = :createdAt', { createdAt });
     }
+
+    if (type) {
+      query.andWhere('wallet.type = :type', { type });
+    }
+
+    query.orderBy('wallet.createdAt', 'DESC');
 
     const [wallets, total] = await query
       .skip(skip)

@@ -71,6 +71,7 @@ export interface WalletFilter {
   search?: string;
   status?: string;
   createdAt?: string;
+  type?: WalletUserEnum;
   skip: number;
   take: number;
 }
@@ -368,4 +369,10 @@ export class JobInterface {
   data: {
     reference?: string;
   };
+}
+
+export interface BuyerWalletResponse {
+  message: string;
+  status: number;
+  wallet: WalletEntity;
 }

@@ -22,7 +22,18 @@ export class WalletEntity extends BaseEntity {
   balance: number;
 
   @Column()
+  availableBalance: number;
+  // for driver => available balance is balance - lienBalance
+  // for buyer => available balance is balance - lienBalance
+
+  @Column()
   previousBalance: number;
+
+  @Column()
+  lienBalance?: number;
+
+  @Column()
+  addedByAdmin?: string;
 
   @Column({ type: 'enum', enum: WalletUserEnum })
   type: WalletUserEnum;

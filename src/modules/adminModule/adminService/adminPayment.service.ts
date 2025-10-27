@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuditLogService } from 'src/modules/auditLogModule/auditLogService/auditLog.service';
 import { PaymentService } from 'src/modules/paymentModule/service/payment.service';
-import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
+import {
+  WalletFilter,
+  WalletUserEnum,
+} from 'src/modules/paymentModule/utils/interface';
 import {
   AdminPaymentFilterDto,
   CashbackWalletFilterDto,
@@ -90,5 +93,20 @@ export class AdminPaymentService {
     const stats = await this.paymentService.getWalletStats(admin.adminId, type);
 
     return stats;
+  };
+
+  fetchWalletByUserType = async (admin: AdminEntity, filter: WalletFilter) => {
+    const wallets = await this.paymentService.getWallets(admin.adminId, filter);
+
+    return wallets;
+  };
+
+  fetchWallet = async (admin: AdminEntity, walletId: string) => {
+    const wallet = await this.paymentService.getWalletByAdmin(
+      admin.adminId,
+      walletId,
+    );
+
+    return wallet;
   };
 }
