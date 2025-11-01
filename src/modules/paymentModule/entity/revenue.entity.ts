@@ -1,4 +1,11 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { RevenueSource } from '../utils/interface';
 
 @Entity()
@@ -18,6 +25,9 @@ export class RevenueEntity extends BaseEntity {
   @Column()
   source: RevenueSource;
 
-  @Column()
+  @CreateDateColumn()
   recordedAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
 }

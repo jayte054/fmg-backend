@@ -31,16 +31,20 @@ import {
   BuyerWalletResponse,
   CashbackWalletFilter,
   CreateCashbackWalletResponse,
+  CreateRevenueWalletInterface,
   PaginatedCashbackWalletResponse,
   PaymentFilter,
   PaymentStatus,
   PaystackTransactionData,
   RevenueFilter,
+  RevenueWalletFilterInterface,
+  RevenueWalletsFilterInterface,
   SubAccountResponse,
   TransactionFilterInterface,
   TransactionStatus,
   TransactionType,
   UpdateCashbackInputInterface,
+  UpdateRevenueWalletInterface,
   UpdateWalletData,
   WalletFilter,
   WalletStatus,
@@ -59,10 +63,12 @@ import { BuyerService } from 'src/modules/usersModule/service/buyer.service';
 import { PaymentEntity } from '../entity/payment.entity';
 import { IRevenueRepository } from '../interface/IRevenueRepository';
 import { DuplicateException } from 'src/common/exceptions/exceptions';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { RevenueEntity } from '../entity/revenue.entity';
 import { ITransactionRepositoryInterface } from '../interface/ITransactionrepository.interface';
 import { TransactionEntity } from '../entity/transaction.entity';
+import { RevenueWalletEntity } from '../entity/revenueWallet.entity';
+import { IRevenueWalletRepository } from '../interface/IRevenueWalletRepository';
 
 @Injectable()
 export class PaymentService {
@@ -87,6 +93,9 @@ export class PaymentService {
 
     @Inject('ITransactionRepositoryInterface')
     private readonly transactionRepository: ITransactionRepositoryInterface,
+
+    @Inject('IRevenueWalletRepository')
+    private readonly revenueWalletRepo: IRevenueWalletRepository,
 
     private readonly configService: ConfigService,
     private readonly productService: ProductService,
@@ -615,10 +624,12 @@ export class PaymentService {
     walletInput: Partial<WalletEntity>,
     accountId: string,
     email: string,
+    queryRunner?: QueryRunner,
   ): Promise<WalletEntity> => {
     const { walletName, userId, type } = walletInput;
     const accExtension = Math.floor(100000 + Math.random() * 900000).toString();
     const walletAccount = `${accountId}-${accExtension}`;
+    const manager = queryRunner ? queryRunner.manager : this.dataSource.manager;
 
     const input: Partial<WalletEntity> = {
       walletName,
@@ -632,7 +643,7 @@ export class PaymentService {
       metadata: {},
     };
 
-    const newWallet = await this.walletRepository.createWallet(input);
+    const newWallet = await manager.save(WalletEntity, input);
 
     await this.auditLogService.log({
       logCategory: LogCategory.PAYMENT,
@@ -1146,7 +1157,9 @@ export class PaymentService {
     name: string,
     email: string,
     dealerId: string,
+    queryRunner?: QueryRunner,
   ): Promise<SubAccountResponse | { message: string }> => {
+    const manager = queryRunner ? queryRunner.manager : this.dataSource.manager;
     const { userId, bankName, walletId, bankCode, accountNumber } =
       subAccountInput;
 
@@ -1192,7 +1205,7 @@ export class PaymentService {
         });
         throw new InternalServerErrorException('failed to create subaccount');
       }
-      const newSubAccount = await this.subAccountRepository.createSubAccount({
+      const newSubAccount = await manager.save(SubAccountEntity, {
         userId,
         subAccountCode: responseData.subaccount_code,
         bankName,
@@ -1935,8 +1948,229 @@ export class PaymentService {
 
     return updatedTransaction;
   };
-}
 
+  createRevenueWallet = async (
+    input: CreateRevenueWalletInterface,
+    queryRunner: QueryRunner,
+  ) => {
+    const manager = queryRunner ? queryRunner.manager : this.dataSource.manager;
+    const existingWallet = await this.revenueWalletRepo.fetchRevenueWallet({
+      userId: input.userId,
+    });
+
+    if (existingWallet) {
+      this.logger.error(`wallet exists for user ${input.userId}`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'create revenue wallet',
+        details: {
+          name: input.name,
+          type: input.userType,
+        },
+        status: HttpStatus.CONFLICT,
+      });
+      return;
+    }
+    const newWallet = manager.create(RevenueWalletEntity, input);
+    await manager.save(newWallet);
+
+    this.logger.log('revenue wallet created successfully');
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'create revenue wallet',
+      details: {
+        name: input.name,
+        type: input.userType,
+      },
+    });
+
+    return `wallet ${newWallet.revenueWalletId} created succesfully`;
+  };
+
+  fetchRevenueWallet = async (
+    walletFilter: RevenueWalletFilterInterface,
+    driver?: DriverEntity,
+    dealer?: DealerEntity,
+  ) => {
+    const { userId, revenueWalletId } = walletFilter;
+    const userType = dealer ? WalletUserEnum.dealer : WalletUserEnum.driver;
+
+    if (!userType) {
+      this.logger.warn('user not found');
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'user not found in request',
+        details: { errorType: String(HttpStatus.FORBIDDEN) },
+        status: HttpStatus.FORBIDDEN,
+      });
+      throw new BadRequestException('user details not found');
+    }
+
+    const filter = {
+      ...(userId && { userId }),
+      ...(revenueWalletId && { revenueWalletId }),
+    };
+
+    const revenueWallet =
+      await this.revenueWalletRepo.fetchRevenueWallet(filter);
+
+    if (!revenueWallet) {
+      this.logger.error(`wallet with id ${JSON.stringify(filter)}`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'failed fetch revenue wallet',
+        details: {
+          ...filter,
+          id: dealer ? dealer.dealerId : driver.driverId,
+        },
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    this.logger.log('revenue wallet fetched successfully');
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'revenue wallet fetched successfully',
+      details: { ...filter },
+    });
+
+    return {
+      message: 'revenue wallet fetched successfully',
+      userType,
+      revenueWallet,
+    };
+  };
+
+  fetchRevenueWallets = async (
+    filter: RevenueWalletsFilterInterface,
+    dealer?: DealerEntity,
+    driver?: DriverEntity,
+  ) => {
+    let type: WalletUserEnum;
+
+    if (dealer) type = WalletUserEnum.dealer;
+    else if (driver) type = WalletUserEnum.driver;
+
+    if (!type) {
+      this.logger.warn('user not provided');
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'user not provided',
+        details: { errorType: String(HttpStatus.FORBIDDEN) },
+        status: HttpStatus.FORBIDDEN,
+      });
+    }
+    const { search, userType, createdAt, skip, take } = filter;
+    const walletFilter = {
+      ...(search !== undefined && { search }),
+      ...(userType !== undefined && { userType }),
+      ...(createdAt !== undefined && { createdAt }),
+      skip,
+      take,
+    };
+
+    const wallets =
+      await this.revenueWalletRepo.fetchRevenueWallets(walletFilter);
+
+    this.logger.log('wallets fetched successfully');
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'wallets fetched successfully',
+      details: {
+        filter: JSON.stringify(walletFilter),
+        id: dealer ? dealer.dealerId : driver.driverId,
+      },
+    });
+
+    return {
+      message: 'revenue wallets fetched successfully',
+      wallets,
+    };
+  };
+
+  updateRevenueWallet = async (
+    updateRevenueWalletInterface: UpdateRevenueWalletInterface,
+    userId: string,
+  ) => {
+    const { revenueWalletId, revenueId, amount } = updateRevenueWalletInterface;
+    const wallet = await this.revenueWalletRepo.fetchRevenueWallet({
+      revenueWalletId,
+    });
+
+    if (wallet.userId !== userId) {
+      this.logger.error('user unauthorized');
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'unauthorized request to update revenue wallet',
+        details: {
+          userId,
+          data: JSON.stringify(updateRevenueWalletInterface),
+        },
+        status: HttpStatus.UNAUTHORIZED,
+      });
+      throw new UnauthorizedException('unauthorized');
+    }
+
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      throw new BadRequestException('Invalid amount provided');
+    }
+
+    if (amount < 0) {
+      this.logger.warn('Negative amount detected in updateRevenueWallet');
+    }
+
+    const balance = wallet.balance ?? 0;
+    const currentBalance = balance + amount;
+    const previousMetadata = wallet.metadata ?? {
+      numberOfCredits: 0,
+      totalRevenue: 0,
+    };
+
+    const updatedMetadata = {
+      lastTransactionDate: new Date().toISOString(),
+      numberOfCredits: previousMetadata.numberOfCredits + 1,
+      totalRevenue: amount,
+    };
+
+    const input: Partial<RevenueWalletEntity> = {
+      balance: currentBalance,
+      previousBalance: balance,
+      metadata: updatedMetadata,
+    };
+
+    let updatedWallet;
+    try {
+      updatedWallet = await this.revenueWalletRepo.updateWallet(
+        revenueWalletId,
+        input,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to update revenue wallet: ${error.message}`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'Error updating revenue wallet',
+        details: { userId, revenueWalletId, error: error.message },
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+      throw new InternalServerErrorException('Failed to update revenue wallet');
+    }
+
+    this.logger.log('revenue wallet updated successfully');
+    this.auditLogService.log({
+      logCategory: LogCategory.PAYMENT,
+      description: 'revenue wallet updated successfully',
+      details: {
+        revenueId,
+        input: JSON.stringify(input),
+      },
+    });
+
+    return {
+      message: 'revenue wallet updated successfully',
+      wallet: updatedWallet,
+    };
+  };
+}
 // private calculateCommissions(deliveryFee: number, productAmount: number) {
 //   const commissionOnDelivery = deliveryFee * 0.3;
 //   const commissionOnProduct = productAmount * 0.05;

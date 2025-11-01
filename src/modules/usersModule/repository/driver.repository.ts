@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DriverEntity } from '../userEntity/driver.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { UpdateDriverDto } from '../utils/user.dto';
 import {
   CreateDriverInterface,
@@ -15,9 +15,13 @@ export class DriverRepository extends Repository<DriverEntity> {
     super(DriverEntity, dataSource.createEntityManager());
   }
 
-  createDriver = async (createDriverDto: CreateDriverInterface) => {
-    const driver = await this.create(createDriverDto);
-    const newDriver = await driver.save();
+  createDriver = async (
+    createDriverDto: CreateDriverInterface,
+    queryRunner: QueryRunner,
+  ) => {
+    const manager = queryRunner ? queryRunner.manager : this.dataSource.manager;
+    const driver = manager.create(DriverEntity, createDriverDto);
+    const newDriver = await manager.save(driver);
     return newDriver;
   };
 

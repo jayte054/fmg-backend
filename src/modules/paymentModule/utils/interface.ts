@@ -1,6 +1,7 @@
 import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { PaymentEntity } from '../entity/payment.entity';
 import { RevenueEntity } from '../entity/revenue.entity';
+import { RevenueWalletEntity } from '../entity/revenueWallet.entity';
 import { SubAccountEntity } from '../entity/subaccount.entity';
 import { TransactionEntity } from '../entity/transaction.entity';
 import { WalletEntity } from '../entity/wallet.entity';
@@ -375,4 +376,51 @@ export interface BuyerWalletResponse {
   message: string;
   status: number;
   wallet: WalletEntity;
+}
+
+export interface RevenueWalletMetadata {
+  totalRevenue?: number;
+  numberOfCredits?: number;
+  lastTransactionDate?: string;
+  [key: string]: any;
+}
+
+export interface RevenueWalletFilterInterface {
+  userId?: string;
+  revenueWalletId?: string;
+}
+
+export interface RevenueWalletsFilterInterface {
+  search?: string;
+  userType?: WalletUserEnum;
+  createdAt?: Date;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedRevenueWalletInterface {
+  wallets: RevenueWalletEntity[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedRevenueWalletResponse {
+  wallets: RevenueWalletEntity[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+}
+
+export interface CreateRevenueWalletInterface {
+  name: string;
+  userId: string;
+  userType: WalletUserEnum;
+}
+
+export interface UpdateRevenueWalletInterface {
+  revenueWalletId: string;
+  amount: number;
+  revenueId: string;
 }

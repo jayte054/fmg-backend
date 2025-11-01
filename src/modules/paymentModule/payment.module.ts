@@ -26,6 +26,8 @@ import { CashbackWalletEntity } from './entity/cashback.entity';
 import { RevenueRepository } from './repository/revenue.repository';
 import { TransactionEntity } from './entity/transaction.entity';
 import { TransactionRepository } from './repository/transaction.repository';
+import { RevenueWalletEntity } from './entity/revenueWallet.entity';
+import { RevenueWalletRepository } from './repository/revenueWallet.repository';
 // import { BullModule } from '@nestjs/bullmq';
 // import { PaymentProcessor } from './service/paymentProcessor.service';
 
@@ -45,6 +47,7 @@ import { TransactionRepository } from './repository/transaction.repository';
       WalletEntity,
       CashbackWalletEntity,
       TransactionEntity,
+      RevenueWalletEntity,
     ]),
   ],
   providers: [
@@ -73,6 +76,10 @@ import { TransactionRepository } from './repository/transaction.repository';
     {
       provide: 'ITransactionRepositoryInterface',
       useClass: TransactionRepository,
+    },
+    {
+      provide: 'IRevenueWalletRepository',
+      useClass: RevenueWalletRepository,
     },
   ],
   controllers: [PaymentController],

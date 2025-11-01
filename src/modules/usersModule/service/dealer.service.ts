@@ -30,6 +30,7 @@ import { PaymentService } from '../../paymentModule/service/payment.service';
 import { SubAccountEntity } from '../../paymentModule/entity/subaccount.entity';
 import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
 import { DealerEntity } from '../userEntity/dealerEntity';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DealerService {
@@ -39,6 +40,7 @@ export class DealerService {
     private readonly dealerRepository: IDealerRepository,
     private readonly auditLogService: AuditLogService,
     private readonly paymentService: PaymentService,
+    private readonly dataSource: DataSource,
   ) {}
 
   createDealer = async (
@@ -56,6 +58,10 @@ export class DealerService {
       accountNumber,
     } = dealerCredentials;
 
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
       const createDealerDto: CreateDealerDto = {
         dealerId: uuidV4(),
@@ -71,7 +77,10 @@ export class DealerService {
         userId: user.id,
       };
 
-      const dealer = await this.dealerRepository.createDealer(createDealerDto);
+      const dealer = await this.dealerRepository.createDealer(
+        createDealerDto,
+        queryRunner,
+      );
       if (dealer) {
         this.logger.verbose('dealer profile created successfully');
       }
@@ -86,6 +95,7 @@ export class DealerService {
         walletInput,
         accountId,
         dealer.email,
+        queryRunner,
       );
 
       const subAccountInput: Partial<SubAccountEntity> = {
@@ -101,6 +111,16 @@ export class DealerService {
         name,
         dealer.email,
         dealer.dealerId,
+        queryRunner,
+      );
+
+      await this.paymentService.createRevenueWallet(
+        {
+          name,
+          userId: dealer.userId,
+          userType: WalletUserEnum.dealer,
+        },
+        queryRunner,
       );
 
       if ('sub_account' in subAccountResult) {

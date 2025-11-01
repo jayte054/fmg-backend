@@ -31,6 +31,7 @@ import { LogCategory } from '../../auditLogModule/utils/logInterface';
 import { WalletEntity } from '../../paymentModule/entity/wallet.entity';
 import { PaymentService } from '../../paymentModule/service/payment.service';
 import { WalletUserEnum } from 'src/modules/paymentModule/utils/interface';
+import { DataSource } from 'typeorm';
 
 config();
 
@@ -43,6 +44,7 @@ export class DriverService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly auditLogService: AuditLogService,
     private readonly walletService: PaymentService,
+    private readonly dataSource: DataSource,
   ) {}
 
   createDriver = async (
@@ -58,6 +60,11 @@ export class DriverService {
       vehicle,
       driversLicenseNumber,
     } = driverCredentials;
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
       if (!files || files.length < 2) {
         throw new Error('both files should be provided');
@@ -108,7 +115,10 @@ export class DriverService {
         userId: user.id,
       };
 
-      const driver = await this.driverRepository.createDriver(drivrInterface);
+      const driver = await this.driverRepository.createDriver(
+        drivrInterface,
+        queryRunner,
+      );
 
       const walletInput: Partial<WalletEntity> = {
         walletName: `${driver.firstName} ${driver.lastName}`,
@@ -120,6 +130,16 @@ export class DriverService {
         walletInput,
         accountId,
         driver.email,
+        queryRunner,
+      );
+
+      await this.walletService.createRevenueWallet(
+        {
+          name: `${driver.firstName} ${driver.lastName}`,
+          userId: driver.userId,
+          userType: WalletUserEnum.dealer,
+        },
+        queryRunner,
       );
 
       this.logger.verbose(

@@ -1,3 +1,4 @@
+import { QueryRunner } from 'typeorm';
 import { AdminEntity } from '../userEntity/admin.entity';
 import { BuyerEntity } from '../userEntity/buyer.entity';
 import { DealerEntity } from '../userEntity/dealerEntity';
@@ -44,7 +45,10 @@ export interface IBuyerRepository {
 }
 
 export interface IDealerRepository {
-  createDealer(createDealerDto: CreateDealerDto): Promise<DealerResponse>;
+  createDealer(
+    createDealerDto: CreateDealerDto,
+    queryRunner: QueryRunner,
+  ): Promise<DealerResponse>;
   findDealerId(dealerId: string): Promise<DealerResponse>;
   findDealers(
     filter: DealersFilterInterface,
@@ -57,7 +61,10 @@ export interface IDealerRepository {
 }
 
 export interface IDriverRepository {
-  createDriver(createDriverDto: CreateDriverInterface): Promise<DriverDetails>;
+  createDriver(
+    createDriverDto: CreateDriverInterface,
+    queryRunner?: QueryRunner,
+  ): Promise<DriverDetails>;
   findDriverById(userId: string): Promise<DriverDetails>;
   findDrivers(filter: DriverFilterInterface): Promise<PaginatedDriversResponse>;
   findDriverById2(driverId: string): Promise<DriverDetails>;

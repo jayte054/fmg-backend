@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -20,11 +21,17 @@ import {
   ApiPropertyOptional,
   // ApiPropertyOptional
 } from '@nestjs/swagger';
-import { PaymentStatus, RevenueSource } from './interface';
+import {
+  PaginatedRevenueWalletResponse,
+  PaymentStatus,
+  RevenueSource,
+  WalletUserEnum,
+} from './interface';
 import { PaymentEntity } from '../entity/payment.entity';
 import { RevenueEntity } from '../entity/revenue.entity';
 import { CashbackWalletEntity } from '../entity/cashback.entity';
 import { WalletEntity } from '../entity/wallet.entity';
+import { RevenueWalletEntity } from '../entity/revenueWallet.entity';
 
 class PurchaseCredentials {
   @ApiProperty()
@@ -394,4 +401,42 @@ export class WalletsResponseDto {
   status: number;
   @ApiProperty()
   data: WalletEntity;
+}
+
+export class CreateRevenueWalletDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+  @ApiProperty()
+  @IsEnum(WalletUserEnum)
+  @IsNotEmpty()
+  userType: WalletUserEnum;
+}
+
+export class RevenueWalletResponseDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+  @ApiProperty()
+  @IsEnum(WalletUserEnum)
+  @IsNotEmpty()
+  userType: WalletUserEnum;
+  @ApiProperty()
+  @IsObject()
+  revenueWallet: RevenueWalletEntity;
+}
+
+export class RevenueWalletsResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  @IsObject()
+  wallets: PaginatedRevenueWalletResponse;
 }

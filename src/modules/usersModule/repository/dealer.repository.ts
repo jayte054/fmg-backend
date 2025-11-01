@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DealerEntity } from '../userEntity/dealerEntity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { CreateDealerDto, UpdateDealerDto } from '../utils/user.dto';
 import { DealersFilterInterface } from '../utils/user.types';
 import { paginatedDealerResponse } from '../utils/utils';
@@ -11,9 +11,13 @@ export class DealerRepository extends Repository<DealerEntity> {
     super(DealerEntity, dataSource.createEntityManager());
   }
 
-  createDealer = async (createDealerDto: CreateDealerDto) => {
-    const newDealer = this.create(createDealerDto);
-    const dealer = await newDealer.save();
+  createDealer = async (
+    createDealerDto: CreateDealerDto,
+    queryRunner?: QueryRunner,
+  ) => {
+    const manager = queryRunner ? queryRunner.manager : this.dataSource.manager;
+    const newDealer = manager.create(DealerEntity, createDealerDto);
+    const dealer = await manager.save(newDealer);
     return dealer;
   };
 

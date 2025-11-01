@@ -6,6 +6,8 @@ import {
   PaginatedPaymentResponse,
   PaginatedRevenueInterface,
   PaginatedRevenueResponse,
+  PaginatedRevenueWalletInterface,
+  PaginatedRevenueWalletResponse,
   PaginatedTransactionInterfaceResponse,
   PaginatedWalletResponse,
   PaymentInterface,
@@ -97,5 +99,28 @@ export const paginatedTransactionsResponse = (
     page: Math.floor(skip / take) + 1,
     perPage: take,
     hasMore: skip + transactions.length < total,
+  };
+};
+
+export const paginatedRevenueWallet = (
+  paginatedRevenueWalletInterface: PaginatedRevenueWalletInterface,
+): PaginatedRevenueWalletResponse => {
+  const { wallets, total, skip, take } = paginatedRevenueWalletInterface;
+  if (!wallets || wallets.length === 0) {
+    return {
+      wallets: [],
+      total: 0,
+      page: 0,
+      perPage: 0,
+      hasMore: false,
+    };
+  }
+
+  return {
+    wallets,
+    total,
+    page: Math.floor(skip / take) + 1,
+    perPage: take,
+    hasMore: skip + wallets.length < total,
   };
 };

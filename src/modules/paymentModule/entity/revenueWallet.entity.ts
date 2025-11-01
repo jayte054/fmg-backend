@@ -1,13 +1,42 @@
-import { BaseEntity, Entity } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { RevenueWalletMetadata, WalletUserEnum } from '../utils/interface';
 
 @Entity()
 export class RevenueWalletEntity extends BaseEntity {
-   revenueWalletId: string;
-}
+  @PrimaryGeneratedColumn('uuid')
+  revenueWalletId: string;
 
-//todo 
-//update UpdatePayment endpoint to use revenueWallet entity to 
-// calculate total revenue by driver or dealer
-// use wallet strictly for money that can be withdrawn
-// for the driver money gotten from cashback purchase
-// for the dealer money gotten from all purchases
+  @Column()
+  name: string;
+
+  @Column({ type: 'decimal' })
+  balance: number;
+
+  @Column({ type: 'decimal' })
+  previousBalance: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
+
+  @Column({ default: false })
+  isDeleted: boolean;
+
+  @Column()
+  userId: string;
+
+  @Column()
+  userType: WalletUserEnum;
+
+  @Column({ type: 'jsonb', default: {} })
+  metadata: RevenueWalletMetadata;
+}
