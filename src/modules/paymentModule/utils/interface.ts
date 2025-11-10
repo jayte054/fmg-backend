@@ -420,7 +420,7 @@ export interface CreateRevenueWalletInterface {
 }
 
 export interface UpdateRevenueWalletInterface {
-  revenueWalletId: string;
+  revenueWalletId?: string;
   amount: number;
   revenueId: string;
 }

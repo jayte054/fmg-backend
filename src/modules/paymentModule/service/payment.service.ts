@@ -424,30 +424,30 @@ export class PaymentService {
         updateDriverWalletData,
       );
 
-      const dealerMetadata = { ...dealerWallet.metadata };
-      const previous = Number(dealerMetadata.numberOfTransactions);
-      const prevDealerAmount =
-        Number(dealerMetadata.totalAmountTransacted) || 0;
-      dealerMetadata.numberOfTransactions =
-        typeof previous === 'number' ? previous + 1 : 1;
-      dealerMetadata['totalAmountTransacted'] = prevDealerAmount + dealerShare;
-      dealerMetadata.lastTransactionDate = new Date().toISOString();
-      if (!dealerMetadata.dealerId) {
-        dealerMetadata['dealerId'] = dealerId;
-      }
+      // const dealerMetadata = { ...dealerWallet.metadata };
+      // const previous = Number(dealerMetadata.numberOfTransactions);
+      // const prevDealerAmount =
+      //   Number(dealerMetadata.totalAmountTransacted) || 0;
+      // dealerMetadata.numberOfTransactions =
+      //   typeof previous === 'number' ? previous + 1 : 1;
+      // dealerMetadata['totalAmountTransacted'] = prevDealerAmount + dealerShare;
+      // dealerMetadata.lastTransactionDate = new Date().toISOString();
+      // if (!dealerMetadata.dealerId) {
+      //   dealerMetadata['dealerId'] = dealerId;
+      // }
 
-      const updateDealerWalletData: UpdateWalletData = {
-        balance: dealerShare + dealerWallet.balance,
-        previousBalance: dealerWallet.balance,
-        metadata: dealerMetadata,
-        updatedAt: new Date(),
-      };
+      // const updateDealerWalletData: UpdateWalletData = {
+      //   balance: dealerShare + dealerWallet.balance,
+      //   previousBalance: dealerWallet.balance,
+      //   metadata: dealerMetadata,
+      //   updatedAt: new Date(),
+      // };
 
-      await queryRunner.manager.update(
-        WalletEntity,
-        dealerWallet.walletAccount,
-        updateDealerWalletData,
-      );
+      // await queryRunner.manager.update(
+      //   WalletEntity,
+      //   dealerWallet.walletAccount,
+      //   updateDealerWalletData,
+      // );
 
       const commonFields = {
         email: email,
@@ -466,7 +466,7 @@ export class PaymentService {
       };
 
       //update buyer metadata
-      const prevAmount = Number(buyer.data.metadata?.amountTransacted) || 0;
+      const prevAmount = parseFloat(buyer.data.metadata?.amountTransacted) || 0;
       const updatedBuyerMetadata = { ...buyer.data.metadata };
       updatedBuyerMetadata['amountTransacted'] = (
         prevAmount + totalAmount
@@ -536,6 +536,21 @@ export class PaymentService {
           relatedTransactionid: transaction.transactionId,
           metadata: updatedMetadata,
         },
+      );
+
+      await this.updateRevenueWalletBalance(
+        { revenueId: revenueRecord.revenueId, amount: driverShare },
+        driverWallet.userId,
+        queryRunner,
+      );
+
+      await this.updateRevenueWalletBalance(
+        {
+          revenueId: revenueRecord.revenueId,
+          amount: dealerShare,
+        },
+        dealerWallet.userId,
+        queryRunner,
       );
 
       await queryRunner.manager.save(settlementTransaction);
@@ -822,7 +837,7 @@ export class PaymentService {
     dealer?: DealerEntity,
   ): Promise<{ wallet?: WalletEntity; message?: string }> => {
     const request_number = this.configService.get<string>(
-      'platform_whithdrawal_request_number',
+      'platform_withdrawal_request_number',
     );
 
     let userId: string;
@@ -2088,14 +2103,35 @@ export class PaymentService {
     };
   };
 
-  updateRevenueWallet = async (
+  updateRevenueWalletBalance = async (
     updateRevenueWalletInterface: UpdateRevenueWalletInterface,
     userId: string,
+    queryRunner?: QueryRunner,
   ) => {
-    const { revenueWalletId, revenueId, amount } = updateRevenueWalletInterface;
-    const wallet = await this.revenueWalletRepo.fetchRevenueWallet({
-      revenueWalletId,
+    if (!queryRunner) {
+      throw new InternalServerErrorException('QueryRunner not provided');
+    }
+
+    const { revenueId, amount } = updateRevenueWalletInterface;
+
+    const filter: RevenueWalletFilterInterface = { userId };
+
+    const wallet = await queryRunner.manager.findOne(RevenueWalletEntity, {
+      where: filter,
     });
+
+    if (!wallet) {
+      this.logger.error(`Revenue wallet with ID ${userId} not found`);
+      this.auditLogService.error({
+        logCategory: LogCategory.PAYMENT,
+        description: 'Revenue wallet not found during update attempt',
+        details: { userId },
+        status: HttpStatus.NOT_FOUND,
+      });
+      throw new NotFoundException('Revenue wallet not found');
+    }
+
+    const walletId = wallet.revenueWalletId;
 
     if (wallet.userId !== userId) {
       this.logger.error('user unauthorized');
@@ -2129,7 +2165,7 @@ export class PaymentService {
     const updatedMetadata = {
       lastTransactionDate: new Date().toISOString(),
       numberOfCredits: previousMetadata.numberOfCredits + 1,
-      totalRevenue: amount,
+      totalRevenue: previousMetadata.totalRevenue + amount,
     };
 
     const input: Partial<RevenueWalletEntity> = {
@@ -2138,18 +2174,22 @@ export class PaymentService {
       metadata: updatedMetadata,
     };
 
-    let updatedWallet;
+    let updatedWallet: RevenueWalletEntity;
     try {
-      updatedWallet = await this.revenueWalletRepo.updateWallet(
-        revenueWalletId,
+      await queryRunner.manager.update(
+        RevenueWalletEntity,
+        { revenueWalletId: walletId },
         input,
       );
+      updatedWallet = await queryRunner.manager.findOne(RevenueWalletEntity, {
+        where: { revenueWalletId: walletId },
+      });
     } catch (error) {
       this.logger.error(`Failed to update revenue wallet: ${error.message}`);
       this.auditLogService.error({
         logCategory: LogCategory.PAYMENT,
         description: 'Error updating revenue wallet',
-        details: { userId, revenueWalletId, error: error.message },
+        details: { userId, walletId, error: error.message },
         status: HttpStatus.INTERNAL_SERVER_ERROR,
       });
       throw new InternalServerErrorException('Failed to update revenue wallet');

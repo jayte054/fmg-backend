@@ -1,17 +1,14 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+// import { WorkerHost } from '@nestjs/bullmq';
 import { PaymentService } from './payment.service';
-import { JobInterface } from '../utils/interface';
+import { Injectable } from '@nestjs/common';
 
-@Processor('payment')
-export class PaymentProcessor extends WorkerHost {
-  constructor(private readonly paymentService: PaymentService) {
-    super();
-  }
+@Injectable()
+export class PaymentProcessor {
+  constructor(private readonly paymentService: PaymentService) {}
 
-  async process(job: JobInterface): Promise<void> {
-    if (job.name === 'requery_payment') {
-      const { reference } = job.data;
-      await this.paymentService.requeryPaymentVerification(reference);
-    }
-  }
+  createFincraVirtualAccount = () => {};
+
+  buyerWalletCheckoutPayment = () => {};
+
+  driverWalletWithdrawal = () => {};
 }
