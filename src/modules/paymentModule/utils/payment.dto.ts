@@ -440,3 +440,32 @@ export class RevenueWalletsResponseDto {
   @IsObject()
   wallets: PaginatedRevenueWalletResponse;
 }
+
+export class CashbackWalletResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  status: number;
+  @ApiProperty()
+  wallet: CashbackWalletEntity;
+}
+
+export class FetchRevenueWalletResponseDto {
+  @ApiProperty()
+  @IsString()
+  message: string;
+  @ApiProperty()
+  userType: WalletUserEnum;
+  @ApiProperty()
+  revenueWallet: RevenueWalletEntity;
+}
+
+export class RevenueWalletFilterDto {
+  @ApiPropertyOptional()
+  @IsString()
+  userId?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  revenueWalletId?: string;
+}

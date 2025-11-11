@@ -19,9 +19,12 @@ import { BuyerEntity } from '../../usersModule/userEntity/buyer.entity';
 import {
   BuyerPaymentResponseDto,
   BuyerWalletResponseDto,
+  CashbackWalletResponseDto,
+  FetchRevenueWalletResponseDto,
   InitializePaymentDto,
   PaginatedPaymentResponseDto,
   PaymentFilterDto,
+  RevenueWalletFilterDto,
   UpdateBankDetailDto,
   WalletResponseDto,
   WithdrawalDto,
@@ -149,5 +152,37 @@ export class PaymentController {
     @GetDriverDecorator() driver?: DriverEntity,
   ) {
     return await this.paymentService.getWallet(buyer, driver, dealer);
+  }
+
+  @Get('cashbackWallet')
+  @ApiOperation({ summary: 'fetch cashbackWallet' })
+  @ApiResponse({
+    status: HttpStatus.FOUND,
+    description: 'find cashbackWallet',
+    type: CashbackWalletResponseDto,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchCashbackWallet(@GetBuyerDecorator() buyer: BuyerEntity) {
+    return await this.paymentService.findCashBackWalletByBuyerId(buyer);
+  }
+
+  @Get('fetchRevenueWallet')
+  @ApiOperation({ summary: 'fetch revenue wallet' })
+  @ApiResponse({
+    status: HttpStatus.FOUND,
+    description: 'fetch revenue wallet',
+    type: FetchRevenueWalletResponseDto,
+  })
+  @HttpCode(HttpStatus.FOUND)
+  async fetchRevenueWallet(
+    @Body() walletFilter: RevenueWalletFilterDto,
+    @GetDriverDecorator() driver?: DriverEntity,
+    @GetDealerDecorator() dealer?: DealerEntity,
+  ) {
+    return await this.paymentService.fetchRevenueWallet(
+      walletFilter,
+      driver,
+      dealer,
+    );
   }
 }

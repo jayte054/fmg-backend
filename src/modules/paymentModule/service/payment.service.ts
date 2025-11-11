@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import {
+  CashbackWalletResponseDto,
   InitializePaymentDto,
   PaymentFilterDto,
   RevenueFilterDto,
@@ -1491,9 +1492,9 @@ export class PaymentService {
     return wallet;
   };
 
-  findWalletByBuyerId = async (
+  findCashBackWalletByBuyerId = async (
     buyer: BuyerEntity,
-  ): Promise<CashbackWalletEntity> => {
+  ): Promise<CashbackWalletResponseDto> => {
     const { buyerId, email } = buyer;
 
     const wallet =
@@ -1522,7 +1523,11 @@ export class PaymentService {
         walletId: wallet.walletId,
       },
     });
-    return wallet;
+    return {
+      message: 'wallet fetched successfully',
+      status: HttpStatus.FOUND,
+      wallet,
+    };
   };
 
   private updateCashbackMethod = async (amount: string, buyerId: string) => {
@@ -2058,6 +2063,7 @@ export class PaymentService {
 
   fetchRevenueWallets = async (
     filter: RevenueWalletsFilterInterface,
+    adminId?: string,
     dealer?: DealerEntity,
     driver?: DriverEntity,
   ) => {
@@ -2093,7 +2099,7 @@ export class PaymentService {
       description: 'wallets fetched successfully',
       details: {
         filter: JSON.stringify(walletFilter),
-        id: dealer ? dealer.dealerId : driver.driverId,
+        id: dealer ? dealer.dealerId : driver ? driver.driverId : adminId,
       },
     });
 
